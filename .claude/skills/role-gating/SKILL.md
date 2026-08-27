@@ -53,6 +53,8 @@ bug this skill exists to prevent.
 | `/leave` (file + track own leave) | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Approve / decline a leave request | ADMIN, **not own** (note required to decline) | `LeavePage.jsx` (`isAdmin` section + `enabled:` query) + `PATCH /api/leave-requests/:id/decision` |
 | Withdraw a leave request | the requester, while `PENDING` | `LeavePage.jsx` + `POST /api/leave-requests/:id/withdraw` |
+| Leave conflicts for one request (`GET /api/leave-requests/:id/conflicts`) | ADMIN | `LeavePage.jsx` (`conflictsQuery`, `enabled: approving != null`) → `LeaveApprovalDialog` |
+| "Affected by approved leave" list (`GET /api/appointments/leave-clashes`) | ADMIN, RECEPTIONIST | `AppointmentsPage.jsx` (`canSeeLeaveClashes` + `enabled:` query) |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/profile` (own account) | `ALL_ROLES` | `App.jsx` (guard) — see note below on the missing nav entry |
 | "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.jsx` (`user?.role === "PATIENT"`) |
@@ -93,6 +95,12 @@ family: `userId` on a new request is taken from the token, not the body (you fil
 and an `ADMIN` may not decide a request where `userId` is their own — the same "can't act on yourself"
 shape as staff deactivation. Non-admin staff are scoped server-side to their own requests on
 `GET /api/leave-requests` regardless of the `userId` query param.
+
+An `APPROVED` leave request's effect on the calendar is entirely **derived** — no appointment is
+modified on approval (D4). `getAvailability` treats a covered day as fully booked; `listLeaveClashes`
+(`GET /api/appointments/leave-clashes`, `ADMIN`/`RECEPTIONIST`) and `leaveRequestConflicts`
+(`GET /api/leave-requests/:id/conflicts`, `ADMIN`) surface the already-booked appointments that now
+land on a leave day, for someone to reschedule by hand.
 
 ## The backend must enforce it too
 

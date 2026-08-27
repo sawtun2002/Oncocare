@@ -6,12 +6,14 @@ import {
   createAppointment,
   declineAppointment,
   listAppointments,
+  listLeaveClashes,
   updateAppointment,
   updateAppointmentStatus,
 } from "../../api/appointments";
 import { listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
+import { GlassCard } from "../../components/GlassCard";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
@@ -23,6 +25,7 @@ import {
   dangerAction,
   inputClass,
   pageTitle,
+  sectionLabel,
   tableBase,
   tableHead,
   tableRow,
@@ -49,14 +52,23 @@ export function AppointmentsPage() {
   const [cancelling, setCancelling] = useState(null);
 
   const actor = { userId: user?.id, role: user?.role };
+  // Reception and admins get the "needs rescheduling" list -- appointments that
+  // ended up on a doctor's approved-leave day (D4: approval never auto-cancels).
+  const canSeeLeaveClashes = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
 
   const appointmentsQuery = useQuery({ queryKey: ["appointments"], queryFn: listAppointments });
   const patientsQuery = useQuery({ queryKey: ["patients"], queryFn: listPatients });
   const doctorsQuery = useQuery({ queryKey: ["doctors"], queryFn: listDoctors });
+  const clashesQuery = useQuery({
+    queryKey: ["leave-clashes"],
+    queryFn: listLeaveClashes,
+    enabled: canSeeLeaveClashes,
+  });
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["appointments"] });
     queryClient.invalidateQueries({ queryKey: ["availability"] });
+    queryClient.invalidateQueries({ queryKey: ["leave-clashes"] });
   };
 
   const createMutation = useMutation({
@@ -152,6 +164,8 @@ export function AppointmentsPage() {
     return appointments;
   }, [appointmentsQuery.data, patientsQuery.data, doctorFilter, statusFilter, fromDate, toDate, search]);
 
+  const clashes = clashesQuery.data ?? [];
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -160,6 +174,35 @@ export function AppointmentsPage() {
           + Book appointment
         </button>
       </div>
+
+      {canSeeLeaveClashes && clashes.length > 0 && (
+        <GlassCard className="mt-4 border border-amber-300/40 p-4 dark:border-amber-400/25">
+          <h2 className={sectionLabel}>Affected by approved leave</h2>
+          <p className="mt-1 text-xs text-ink-400">
+            These fall on a day their doctor is now on leave — reschedule or cancel each one.
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {clashes.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-ink-700">
+                  <span className="font-medium text-ink-900">{patientName(a.patientId)}</span> with{" "}
+                  {doctorName(a.doctorId)} · {formatDateTime(a.scheduledAt)}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Badge status={a.status} />
+                  <button
+                    type="button"
+                    onClick={() => setRescheduling(a)}
+                    className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
+                  >
+                    Reschedule
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      )}
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">

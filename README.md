@@ -43,7 +43,10 @@ or appointments, and can be reversed at any time. An admin can't deactivate thei
 Any staff member can file and track time off at **Leave** (`/leave`). An `ADMIN` sees an extra
 "Awaiting your decision" section there and approves or declines requests (a note is required to
 decline); a pending request also shows on the admin's notice bell. An admin can't decide their own
-request.
+request. Approving is a review step — the dialog lists any appointments that fall in the leave window
+first. Approved leave then hides that doctor's slots for new bookings and lists the already-booked
+appointments under **Affected by approved leave** on the Bookings page (`ADMIN`/`RECEPTIONIST`) to
+reschedule; nothing is cancelled automatically.
 
 ## Mock data layer
 

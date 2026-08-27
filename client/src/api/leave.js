@@ -32,6 +32,13 @@ function notFound() {
   });
 }
 
+/** Local calendar date (`YYYY-MM-DD`) an ISO instant falls on, clinic-local. */
+function localDateOf(iso) {
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /**
  * Leave requests, newest first. A non-ADMIN caller sees only their own,
  * scoped here the way the real backend scopes by token -- the optional
@@ -136,4 +143,27 @@ export async function withdrawLeaveRequest(id, actor) {
   request.status = "WITHDRAWN";
   persist();
   return delay(request);
+}
+
+/**
+ * The appointments an approval would land on top of: SCHEDULED or REQUESTED
+ * bookings for the requesting staff member (as `doctorId`) whose day falls
+ * inside the leave window. Returned so the admin sees what they're committing
+ * to before approving -- approval is not blocked (D4), the bookings just go on
+ * reception's rescheduling list afterward. Sorted by `scheduledAt` ascending.
+ * Allowed roles: ADMIN.
+ * @param {number} id
+ */
+export async function leaveRequestConflicts(id) {
+  const request = db.leaveRequests.find((r) => r.id === id);
+  if (!request) return notFound();
+
+  const clashes = db.appointments.filter((a) => {
+    if (a.doctorId !== request.userId) return false;
+    if (a.status !== "SCHEDULED" && a.status !== "REQUESTED") return false;
+    const day = localDateOf(a.scheduledAt);
+    return request.startDate <= day && day <= request.endDate;
+  });
+  clashes.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  return delay(clashes);
 }
