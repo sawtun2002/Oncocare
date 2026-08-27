@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { listAppointments } from "../api/appointments";
 import { listLeaveRequests } from "../api/leave";
 import { listPatients } from "../api/patients";
@@ -9,6 +10,14 @@ import { formatDateOnly, formatDateTime } from "../lib/format";
 import { noticesFor, unreadCount } from "../lib/notices";
 
 const LEAVE_TYPE_WORD = { ANNUAL: "annual", SICK: "sick", TRAINING: "training", OTHER: "" };
+
+// Where a notice takes you when clicked: the screen that shows it. Leave
+// notices are ADMIN-only and belong on /leave; an appointment notice belongs
+// on the patient's own bookings list, or the staff bookings page.
+function hrefFor(notice, role) {
+  if (notice.kind === "leave") return "/leave";
+  return role === "PATIENT" ? "/my-bookings" : "/appointments";
+}
 
 // One notice, as a sentence. The event log stays neutral ("DECLINED by the
 // doctor"); the phrasing that suits *this* viewer lives here.
@@ -183,26 +192,33 @@ export function NoticeBell({ align = "right" }) {
               {shown.map((n) => {
                 const fresh = isUnread(n);
                 return (
-                  <li
-                    key={n.key}
-                    className={`flex gap-2.5 px-4 py-3 ${fresh ? "bg-frost-300/10" : ""}`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                        fresh ? "bg-frost-500" : "bg-transparent"
+                  <li key={n.key}>
+                    <Link
+                      to={hrefFor(n, user?.role)}
+                      onClick={() => setOpen(false)}
+                      className={`flex gap-2.5 px-4 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-frost-400/50 ${
+                        fresh
+                          ? "bg-frost-300/10 hover:bg-frost-300/20"
+                          : "hover:bg-ice-100"
                       }`}
-                    />
-                    <div className="min-w-0">
-                      {fresh && <span className="sr-only">Unread. </span>}
-                      <p className={fresh ? "font-medium text-ink-900" : "text-ink-700"}>
-                        {describe(n, user, names)}
-                      </p>
-                      {n.kind === "appointment" && n.event.reason && (
-                        <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
-                      )}
-                      <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.at)}</p>
-                    </div>
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                          fresh ? "bg-frost-500" : "bg-transparent"
+                        }`}
+                      />
+                      <div className="min-w-0">
+                        {fresh && <span className="sr-only">Unread. </span>}
+                        <p className={fresh ? "font-medium text-ink-900" : "text-ink-700"}>
+                          {describe(n, user, names)}
+                        </p>
+                        {n.kind === "appointment" && n.event.reason && (
+                          <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
+                        )}
+                        <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.at)}</p>
+                      </div>
+                    </Link>
                   </li>
                 );
               })}
