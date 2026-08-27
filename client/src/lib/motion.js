@@ -56,3 +56,23 @@ export const pageMotion = {
  * them instead of cross-fading.
  */
 export const NAV_PILL_ID = "nav-active-pill";
+
+/**
+ * Toast. Slides up into the stack and leaves sideways, so a dismissal never
+ * looks like the toast below it moving up to take its place.
+ */
+export const toastMotion = {
+  hidden: { opacity: 0, y: 12, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: DURATION.base, ease: EASE } },
+  exit: { opacity: 0, x: 24, transition: { duration: DURATION.fast, ease: "easeIn" } },
+};
+
+/**
+ * The mobile navigation drawer and the scrim behind it. Off-canvas rather than
+ * a fade: the sidebar is permanent furniture at desktop widths, and sliding it
+ * in from the same edge is what says "this is that, just hidden".
+ */
+export const drawerMotion = {
+  hidden: { x: "-100%", transition: { duration: DURATION.base, ease: "easeIn" } },
+  visible: { x: 0, transition: { duration: DURATION.base, ease: EASE } },
+};

@@ -5,6 +5,7 @@ import { createAppointment, SLOT_MINUTES } from "../../api/appointments";
 import { listDoctors } from "../../api/users";
 import { GlassCard } from "../../components/GlassCard";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
 import { btnPrimary, errorText, inputClass, labelClass, pageTitle } from "../../lib/ui";
 import { SlotPicker } from "./SlotPicker";
@@ -13,6 +14,7 @@ export function BookAppointmentPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // `?doctorId=` lets "Book with Dr. X" on a doctor's profile land here with the
   // doctor already chosen. Read once as the initial value -- after that the
@@ -49,6 +51,10 @@ export function BookAppointmentPage() {
         durationMinutes: SLOT_MINUTES,
         reason,
       });
+      // The confirmation has to outlive this page, which is why it is a toast
+      // and not a message rendered here: the next thing the patient sees is
+      // their bookings list.
+      toast.success("Your appointment is booked.");
       navigate("/my-bookings");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

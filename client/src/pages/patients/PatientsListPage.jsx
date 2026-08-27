@@ -3,14 +3,17 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createPatient, listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
+import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { calculateAge, formatDate } from "../../lib/format";
-import { btnPrimary, inputClass, pageTitle, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import { btnPrimary, inputClass, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
 import { PatientFormDialog } from "./PatientFormDialog";
 
 export function PatientsListPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
 
@@ -19,7 +22,10 @@ export function PatientsListPage() {
 
   const createMutation = useMutation({
     mutationFn: (input) => createPatient(input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["patients"] }),
+    onSuccess: (patient) => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success(`${patient.name} has been registered.`);
+    },
   });
 
   const canRegister = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
@@ -57,11 +63,11 @@ export function PatientsListPage() {
 
       <div className={`mt-4 ${tableWrap}`}>
         {patientsQuery.isLoading ? (
-          <p className="p-4 text-sm text-ink-400">Loading…</p>
+          <TableSkeleton columns={5} />
         ) : filtered.length === 0 ? (
           <p className="p-4 text-sm text-ink-400">No patients found.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
                 <th className="px-4 py-2.5">Name</th>

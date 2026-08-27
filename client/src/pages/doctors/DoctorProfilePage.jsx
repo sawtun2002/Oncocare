@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { getDoctorProfile } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
+import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
 import { initials } from "../../lib/format";
 import { btnGhost, btnPrimary, pageTitle, sectionLabel } from "../../lib/ui";
@@ -20,7 +21,7 @@ export function DoctorProfilePage() {
   const doctor = doctorQuery.data;
 
   if (doctorQuery.isLoading) {
-    return <p className="text-sm text-ink-400">Loading profile…</p>;
+    return <CardSkeleton lines={5} />;
   }
 
   if (doctorQuery.isError || !doctor) {

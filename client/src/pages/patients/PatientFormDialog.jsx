@@ -58,7 +58,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
   return (
     <Modal title={initial ? "Edit patient" : "Register patient"} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Full name" required>
             <input
               required
@@ -110,7 +110,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Diagnosis type" required>
             <input
               required

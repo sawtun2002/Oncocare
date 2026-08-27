@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createStaffUser, listUsers } from "../../api/users";
-import { btnPrimary, pageTitle, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import { TableSkeleton } from "../../components/Skeleton";
+import { useToast } from "../../context/ToastContext";
+import { btnPrimary, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
 import { StaffUserFormDialog } from "./StaffUserFormDialog";
 
 const ROLE_LABEL = {
@@ -17,13 +19,17 @@ function isStaff(user) {
 
 export function UsersPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [showForm, setShowForm] = useState(false);
 
   const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers() });
 
   const createMutation = useMutation({
     mutationFn: (input) => createStaffUser(input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: (user) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(`${user.name} can now sign in.`);
+    },
   });
 
   // This screen manages staff logins only. Patient accounts are created via
@@ -45,11 +51,11 @@ export function UsersPage() {
 
       <div className={`mt-6 ${tableWrap}`}>
         {usersQuery.isLoading ? (
-          <p className="p-4 text-sm text-ink-400">Loading…</p>
+          <TableSkeleton columns={3} />
         ) : staff.length === 0 ? (
           <p className="p-4 text-sm text-ink-400">No staff accounts yet.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
                 <th className="px-4 py-2.5">Name</th>

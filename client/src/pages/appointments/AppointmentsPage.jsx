@@ -10,12 +10,15 @@ import { listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { TableSkeleton } from "../../components/Skeleton";
+import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
 import {
   btnPrimary,
   dangerAction,
   inputClass,
   pageTitle,
+  tableBase,
   tableHead,
   tableRow,
   tableWrap,
@@ -27,6 +30,7 @@ const STATUS_OPTIONS = ["SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW"];
 
 export function AppointmentsPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [search, setSearch] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -47,17 +51,28 @@ export function AppointmentsPage() {
 
   const createMutation = useMutation({
     mutationFn: (input) => createAppointment(input),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Appointment booked.");
+    },
   });
 
   const rescheduleMutation = useMutation({
     mutationFn: ({ id, ...input }) => updateAppointment(id, input),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Booking moved.");
+    },
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => updateAppointmentStatus(id, status),
-    onSuccess: invalidate,
+    // The second argument is the mutation's own input, which is how the message
+    // can name what happened without a second piece of state to read it from.
+    onSuccess: (_data, { status }) => {
+      invalidate();
+      toast.success(status === "CANCELLED" ? "Booking cancelled." : "Appointment updated.");
+    },
   });
 
   function patientName(id) {
@@ -188,11 +203,11 @@ export function AppointmentsPage() {
 
       <div className={`mt-4 ${tableWrap}`}>
         {appointmentsQuery.isLoading ? (
-          <p className="p-4 text-sm text-ink-400">Loading…</p>
+          <TableSkeleton columns={6} />
         ) : filtered.length === 0 ? (
           <p className="p-4 text-sm text-ink-400">No appointments found.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
                 <th className="px-4 py-2.5">Patient</th>
@@ -215,7 +230,15 @@ export function AppointmentsPage() {
                       <Badge status={a.status} />
                       <select
                         value={a.status}
-                        onChange={(e) => statusMutation.mutate({ id: a.id, status: e.target.value })}
+                        // Fire-and-forget, so a failure has nowhere of its own
+                        // to show: the dialogs below print their errors inline,
+                        // this one has to be toasted or it is silent.
+                        onChange={(e) =>
+                          statusMutation.mutate(
+                            { id: a.id, status: e.target.value },
+                            { onError: () => toast.error("Could not update that appointment.") }
+                          )
+                        }
                         className={`${inputClass} mt-0 w-auto py-1 text-xs`}
                       >
                         {STATUS_OPTIONS.map((s) => (

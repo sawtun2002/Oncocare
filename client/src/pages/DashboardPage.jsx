@@ -5,10 +5,11 @@ import { listAppointments } from "../api/appointments";
 import { getBillingSummary } from "../api/billing";
 import { listPatients } from "../api/patients";
 import { Badge } from "../components/Badge";
+import { TableSkeleton } from "../components/Skeleton";
 import { StatCard } from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
 import { formatCurrency, formatDateTime } from "../lib/format";
-import { pageTitle, tableHead, tableRow, tableWrap } from "../lib/ui";
+import { pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../lib/ui";
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -35,11 +36,20 @@ export function DashboardPage() {
       <p className="mt-2 text-sm text-ink-400">Here's what's happening today.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Total patients" value={patientsQuery.data?.length ?? "—"} />
-        <StatCard label="Scheduled appointments" value={upcoming.length} />
+        <StatCard
+          label="Total patients"
+          loading={patientsQuery.isLoading}
+          value={patientsQuery.data?.length ?? "—"}
+        />
+        <StatCard
+          label="Scheduled appointments"
+          loading={appointmentsQuery.isLoading}
+          value={upcoming.length}
+        />
         {canSeeBilling && (
           <StatCard
             label="Outstanding balance"
+            loading={billingQuery.isLoading}
             value={billingQuery.data ? formatCurrency(billingQuery.data.outstanding) : "—"}
           />
         )}
@@ -53,10 +63,12 @@ export function DashboardPage() {
           </Link>
         </div>
         <div className={`mt-3 ${tableWrap}`}>
-          {upcoming.length === 0 ? (
+          {appointmentsQuery.isLoading ? (
+            <TableSkeleton columns={3} rows={3} />
+          ) : upcoming.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">Patient</th>

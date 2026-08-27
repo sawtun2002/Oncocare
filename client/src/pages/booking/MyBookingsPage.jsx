@@ -6,7 +6,9 @@ import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
+import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
 import { btnGhost, btnPrimary, dangerAction, pageTitle, sectionLabel } from "../../lib/ui";
 import { RescheduleFormDialog } from "./RescheduleFormDialog";
@@ -14,6 +16,7 @@ import { RescheduleFormDialog } from "./RescheduleFormDialog";
 export function MyBookingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [rescheduling, setRescheduling] = useState(null);
   const [cancelling, setCancelling] = useState(null);
   // Read once on mount rather than on every render: keeps the upcoming/past
@@ -30,12 +33,18 @@ export function MyBookingsPage() {
 
   const rescheduleMutation = useMutation({
     mutationFn: ({ id, ...input }) => updateAppointment(id, input),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Your appointment has been moved.");
+    },
   });
 
   const cancelMutation = useMutation({
     mutationFn: (id) => updateAppointmentStatus(id, "CANCELLED"),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Your appointment has been cancelled.");
+    },
   });
 
   const patientId = user?.patientId;
@@ -75,7 +84,7 @@ export function MyBookingsPage() {
         <h2 className={sectionLabel}>Upcoming</h2>
         <div className="mt-3 space-y-3">
           {appointmentsQuery.isLoading ? (
-            <p className="text-sm text-ink-400">Loading…</p>
+            <CardSkeleton />
           ) : upcoming.length === 0 ? (
             <GlassCard className="p-6">
               <p className="text-sm text-ink-400">
@@ -123,7 +132,9 @@ export function MyBookingsPage() {
       <section className="mt-10">
         <h2 className={sectionLabel}>History</h2>
         <div className="mt-3 space-y-3">
-          {past.length === 0 ? (
+          {appointmentsQuery.isLoading ? (
+            <CardSkeleton lines={1} />
+          ) : past.length === 0 ? (
             <GlassCard className="p-6">
               <p className="text-sm text-ink-400">No past appointments.</p>
             </GlassCard>

@@ -8,13 +8,16 @@ import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
+import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { calculateAge, formatCurrency, formatDate, formatDateTime } from "../../lib/format";
 import {
   btnGhost,
   dangerAction,
   pageTitle,
   sectionLabel,
+  tableBase,
   tableHead,
   tableRow,
   tableWrap,
@@ -27,6 +30,7 @@ export function PatientDetailPage() {
   const patientId = Number(id);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [rescheduling, setRescheduling] = useState(null);
   const [cancelling, setCancelling] = useState(null);
@@ -43,6 +47,7 @@ export function PatientDetailPage() {
     mutationFn: (input) => updatePatient(patientId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success("Record updated.");
     },
   });
 
@@ -53,12 +58,18 @@ export function PatientDetailPage() {
 
   const rescheduleMutation = useMutation({
     mutationFn: ({ id: apptId, ...input }) => updateAppointment(apptId, input),
-    onSuccess: invalidateAppointments,
+    onSuccess: () => {
+      invalidateAppointments();
+      toast.success("Booking moved.");
+    },
   });
 
   const cancelMutation = useMutation({
     mutationFn: (apptId) => updateAppointmentStatus(apptId, "CANCELLED"),
-    onSuccess: invalidateAppointments,
+    onSuccess: () => {
+      invalidateAppointments();
+      toast.success("Booking cancelled.");
+    },
   });
 
   const patient = patientQuery.data;
@@ -66,7 +77,7 @@ export function PatientDetailPage() {
   const canManageBookings = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
   const clinicalOnly = user?.role === "DOCTOR";
 
-  if (patientQuery.isLoading) return <p className="text-sm text-ink-400">Loading…</p>;
+  if (patientQuery.isLoading) return <CardSkeleton lines={4} />;
   if (!patient) return <p className="text-sm text-ink-400">Patient not found.</p>;
 
   const patientAppointments = (appointmentsQuery.data ?? []).filter((a) => a.patientId === patientId);
@@ -127,7 +138,7 @@ export function PatientDetailPage() {
           {upcomingAppointments.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">When</th>
@@ -180,7 +191,7 @@ export function PatientDetailPage() {
           {pastAppointments.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No past appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">When</th>
@@ -212,7 +223,7 @@ export function PatientDetailPage() {
           {patientInvoices.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No invoices yet.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">Issued</th>

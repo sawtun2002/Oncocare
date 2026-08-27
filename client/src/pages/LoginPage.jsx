@@ -173,7 +173,7 @@ export function LoginPage() {
                 className={inputClass}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="signup-password">
                   Password
@@ -203,7 +203,7 @@ export function LoginPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="signup-dob">
                   Date of birth

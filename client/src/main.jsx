@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './context/ToastContext'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -25,13 +26,15 @@ createRoot(document.getElementById('root')).render(
           everywhere in the app on its own, keeping only opacity. Without it,
           every variant in lib/motion.js would need its own branch. */}
       <MotionConfig reducedMotion="user">
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </ToastProvider>
       </MotionConfig>
     </ThemeProvider>
   </StrictMode>,
