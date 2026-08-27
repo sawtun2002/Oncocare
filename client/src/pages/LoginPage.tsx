@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
+import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
 import { useAuth } from "../context/AuthContext";
 import { homePathFor } from "../lib/roles";
@@ -84,7 +85,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center gap-8 px-4 py-10">
+      <div className="glass-panel hidden w-full max-w-md flex-col items-center gap-6 px-10 py-14 text-center lg:flex">
+        <img src={logoFull} alt="OncoCare" className="w-48 object-contain" />
+        <p className="max-w-xs text-sm text-ink-400">
+          Coordinated cancer care — patient records, appointments, and billing in one place.
+        </p>
+      </div>
+
       <div className="glass-panel w-full max-w-sm p-8">
         <div className="flex items-center gap-2.5">
           <img src={logoMark} alt="Cancer HMS logo" className="h-9 w-9 rounded-lg object-contain" />
