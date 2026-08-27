@@ -1,0 +1,102 @@
+/**
+ * Shared entity shapes, as JSDoc typedefs rather than TypeScript types -- there
+ * is no runtime export here, same as before. These mirror the entities in
+ * API_CONTRACT.md field-for-field; if one changes, update the other.
+ *
+ * @typedef {"ADMIN" | "DOCTOR" | "NURSE" | "RECEPTIONIST" | "PATIENT"} Role
+ */
+
+/**
+ * @typedef {Object} User
+ * @property {number} id
+ * @property {string} name
+ * @property {string} email
+ * @property {Role} role
+ * @property {number} [patientId] Set only on PATIENT accounts: the Patient record this login belongs to.
+ */
+
+/**
+ * One line of a doctor's training history.
+ *
+ * @typedef {Object} DoctorEducation
+ * @property {string} degree
+ * @property {string} institution
+ * @property {number} year Graduation / completion year.
+ */
+
+/**
+ * The public-facing profile of a DOCTOR account -- what a patient sees when
+ * choosing who to book with. `id` is the doctor's User id.
+ *
+ * Deliberately separate from `User`: this is CV information served to patients,
+ * while `User` is the account record. `name` is duplicated here so the profile
+ * endpoint is self-contained and a patient never needs to read the user list.
+ *
+ * @typedef {Object} DoctorProfile
+ * @property {number} id
+ * @property {string} name
+ * @property {string} specialty
+ * @property {number} yearsOfExperience
+ * @property {DoctorEducation[]} education Newest first.
+ * @property {string[]} [certifications]
+ * @property {string[]} [languages]
+ * @property {string} [bio]
+ * @property {boolean} acceptingNewPatients
+ */
+
+/**
+ * @typedef {"Male" | "Female" | "Other"} Sex
+ */
+
+/**
+ * @typedef {Object} Patient
+ * @property {number} id
+ * @property {string} name
+ * @property {string} dob
+ * @property {Sex} sex
+ * @property {string} phone
+ * @property {string} [address]
+ * @property {string} diagnosisType
+ * @property {string} [diagnosisStage]
+ * @property {string} [notes]
+ * @property {number} [assignedDoctorId]
+ * @property {string} registeredAt
+ */
+
+/**
+ * @typedef {"SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW"} AppointmentStatus
+ */
+
+/**
+ * @typedef {Object} Appointment
+ * @property {number} id
+ * @property {number} patientId
+ * @property {number} doctorId
+ * @property {string} scheduledAt
+ * @property {number} durationMinutes
+ * @property {AppointmentStatus} status
+ * @property {string} [reason]
+ */
+
+/**
+ * @typedef {"UNPAID" | "PARTIAL" | "PAID"} InvoiceStatus
+ */
+
+/**
+ * @typedef {Object} InvoiceItem
+ * @property {number} id
+ * @property {string} description
+ * @property {number} quantity
+ * @property {number} unitPrice
+ */
+
+/**
+ * @typedef {Object} Invoice
+ * @property {number} id
+ * @property {number} patientId
+ * @property {string} issuedAt
+ * @property {InvoiceStatus} status
+ * @property {InvoiceItem[]} items
+ */
+
+export {};

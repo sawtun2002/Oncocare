@@ -8,7 +8,7 @@
     <script>
       /* Applies the saved theme before first paint -- without this a dark-mode
          reload flashes the light background until React mounts. Mirrors
-         readStoredPreference() in src/context/ThemeContext.tsx; keep the key
+         readStoredPreference() in src/context/ThemeContext.jsx; keep the key
          and the "system" fallback identical in both. */
       (function () {
         try {
@@ -25,6 +25,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

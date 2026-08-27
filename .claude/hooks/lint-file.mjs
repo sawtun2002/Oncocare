@@ -20,7 +20,7 @@ const WRITE_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 if (!WRITE_TOOLS.has(payload.tool_name ?? "")) process.exit(0);
 
 const filePath = String(payload.tool_input?.file_path ?? "");
-if (!/\.(ts|tsx)$/i.test(filePath)) process.exit(0);
+if (!/\.(js|jsx)$/i.test(filePath)) process.exit(0);
 
 // Derive the project root from this script's own location (.claude/hooks/ -> repo root) rather than
 // from cwd or an env var: a Git Bash cwd arrives as /c/Users/... which node on Windows resolves wrongly.

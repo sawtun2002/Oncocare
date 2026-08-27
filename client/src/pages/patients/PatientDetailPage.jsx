@@ -1,0 +1,287 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { listAppointments, updateAppointment, updateAppointmentStatus } from "../../api/appointments";
+import { invoiceTotal, listInvoices } from "../../api/billing";
+import { getPatient, updatePatient } from "../../api/patients";
+import { listDoctors } from "../../api/users";
+import { Badge } from "../../components/Badge";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { GlassCard } from "../../components/GlassCard";
+import { useAuth } from "../../context/AuthContext";
+import { calculateAge, formatCurrency, formatDate, formatDateTime } from "../../lib/format";
+import {
+  btnGhost,
+  dangerAction,
+  pageTitle,
+  sectionLabel,
+  tableHead,
+  tableRow,
+  tableWrap,
+} from "../../lib/ui";
+import { RescheduleFormDialog } from "../booking/RescheduleFormDialog";
+import { PatientFormDialog } from "./PatientFormDialog";
+
+export function PatientDetailPage() {
+  const { id } = useParams();
+  const patientId = Number(id);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [rescheduling, setRescheduling] = useState(null);
+  const [cancelling, setCancelling] = useState(null);
+  // Read once on mount, not per render -- keeps the upcoming/past split stable
+  // and keeps the render body pure.
+  const [now] = useState(() => Date.now());
+
+  const patientQuery = useQuery({ queryKey: ["patients", patientId], queryFn: () => getPatient(patientId) });
+  const doctorsQuery = useQuery({ queryKey: ["doctors"], queryFn: listDoctors });
+  const appointmentsQuery = useQuery({ queryKey: ["appointments"], queryFn: listAppointments });
+  const invoicesQuery = useQuery({ queryKey: ["invoices"], queryFn: listInvoices });
+
+  const updateMutation = useMutation({
+    mutationFn: (input) => updatePatient(patientId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+
+  const invalidateAppointments = () => {
+    queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    queryClient.invalidateQueries({ queryKey: ["availability"] });
+  };
+
+  const rescheduleMutation = useMutation({
+    mutationFn: ({ id: apptId, ...input }) => updateAppointment(apptId, input),
+    onSuccess: invalidateAppointments,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (apptId) => updateAppointmentStatus(apptId, "CANCELLED"),
+    onSuccess: invalidateAppointments,
+  });
+
+  const patient = patientQuery.data;
+  const canEdit = user?.role === "ADMIN" || user?.role === "RECEPTIONIST" || user?.role === "DOCTOR";
+  const canManageBookings = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
+  const clinicalOnly = user?.role === "DOCTOR";
+
+  if (patientQuery.isLoading) return <p className="text-sm text-ink-400">Loading…</p>;
+  if (!patient) return <p className="text-sm text-ink-400">Patient not found.</p>;
+
+  const patientAppointments = (appointmentsQuery.data ?? []).filter((a) => a.patientId === patientId);
+  const upcomingAppointments = patientAppointments.filter(
+    (a) => a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now
+  );
+  const pastAppointments = patientAppointments
+    .filter((a) => !(a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now))
+    .slice()
+    .reverse();
+
+  const patientInvoices = (invoicesQuery.data ?? []).filter((i) => i.patientId === patientId);
+  const doctorName = (doctorId) => doctorsQuery.data?.find((d) => d.id === doctorId)?.name ?? `#${doctorId}`;
+  const assignedDoctorName = doctorsQuery.data?.find((d) => d.id === patient.assignedDoctorId)?.name ?? "Unassigned";
+
+  return (
+    <div>
+      <Link to="/patients" className="text-sm text-frost-600 hover:underline">
+        ← Back to patients
+      </Link>
+
+      <div className="mt-3 flex items-start justify-between">
+        <div>
+          <h1 className={pageTitle}>{patient.name}</h1>
+          <p className="mt-2 text-sm text-ink-400">
+            {calculateAge(patient.dob)} years old · {patient.sex} · Registered {formatDate(patient.registeredAt)}
+          </p>
+        </div>
+        {canEdit && (
+          <button onClick={() => setShowForm(true)} className={btnGhost}>
+            Edit
+          </button>
+        )}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <GlassCard className="p-4">
+          <h2 className="text-sm font-semibold text-ink-400">Contact</h2>
+          <dl className="mt-2 space-y-1 text-sm">
+            <Row label="Phone" value={patient.phone} />
+            <Row label="Address" value={patient.address || "—"} />
+          </dl>
+        </GlassCard>
+        <GlassCard className="p-4">
+          <h2 className="text-sm font-semibold text-ink-400">Clinical</h2>
+          <dl className="mt-2 space-y-1 text-sm">
+            <Row label="Diagnosis" value={patient.diagnosisType} />
+            <Row label="Stage" value={patient.diagnosisStage || "—"} />
+            <Row label="Doctor" value={assignedDoctorName} />
+            <Row label="Notes" value={patient.notes || "—"} />
+          </dl>
+        </GlassCard>
+      </div>
+
+      <div className="mt-8">
+        <h2 className={sectionLabel}>Upcoming appointments</h2>
+        <div className={`mt-3 ${tableWrap}`}>
+          {upcomingAppointments.length === 0 ? (
+            <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead className={tableHead}>
+                <tr>
+                  <th className="px-4 py-2.5">When</th>
+                  <th className="px-4 py-2.5">Doctor</th>
+                  <th className="px-4 py-2.5">Reason</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  {canManageBookings && <th className="px-4 py-2.5">Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {upcomingAppointments.map((a) => (
+                  <tr key={a.id} className={tableRow}>
+                    <td className="px-4 py-2.5 font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</td>
+                    <td className="px-4 py-2.5 text-ink-400">{doctorName(a.doctorId)}</td>
+                    <td className="px-4 py-2.5 text-ink-400">{a.reason || "—"}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge status={a.status} />
+                    </td>
+                    {canManageBookings && (
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setRescheduling(a)}
+                            className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
+                          >
+                            Reschedule
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCancelling(a)}
+                            className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className={sectionLabel}>Appointment history</h2>
+        <div className={`mt-3 ${tableWrap}`}>
+          {pastAppointments.length === 0 ? (
+            <p className="p-4 text-sm text-ink-400">No past appointments.</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead className={tableHead}>
+                <tr>
+                  <th className="px-4 py-2.5">When</th>
+                  <th className="px-4 py-2.5">Doctor</th>
+                  <th className="px-4 py-2.5">Reason</th>
+                  <th className="px-4 py-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pastAppointments.map((a) => (
+                  <tr key={a.id} className={tableRow}>
+                    <td className="px-4 py-2.5">{formatDateTime(a.scheduledAt)}</td>
+                    <td className="px-4 py-2.5 text-ink-400">{doctorName(a.doctorId)}</td>
+                    <td className="px-4 py-2.5 text-ink-400">{a.reason || "—"}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge status={a.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className={sectionLabel}>Invoices</h2>
+        <div className={`mt-3 ${tableWrap}`}>
+          {patientInvoices.length === 0 ? (
+            <p className="p-4 text-sm text-ink-400">No invoices yet.</p>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead className={tableHead}>
+                <tr>
+                  <th className="px-4 py-2.5">Issued</th>
+                  <th className="px-4 py-2.5">Total</th>
+                  <th className="px-4 py-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {patientInvoices.map((inv) => (
+                  <tr key={inv.id} className={tableRow}>
+                    <td className="px-4 py-2.5">{formatDate(inv.issuedAt)}</td>
+                    <td className="px-4 py-2.5 text-ink-700">{formatCurrency(invoiceTotal(inv))}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge status={inv.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {showForm && (
+        <PatientFormDialog
+          doctors={doctorsQuery.data ?? []}
+          initial={patient}
+          clinicalOnly={clinicalOnly}
+          onClose={() => setShowForm(false)}
+          onSubmit={async (input) => {
+            await updateMutation.mutateAsync(input);
+          }}
+        />
+      )}
+
+      {rescheduling && (
+        <RescheduleFormDialog
+          appointment={rescheduling}
+          doctors={doctorsQuery.data ?? []}
+          onClose={() => setRescheduling(null)}
+          onSubmit={async (input) => {
+            await rescheduleMutation.mutateAsync({ id: rescheduling.id, ...input });
+          }}
+        />
+      )}
+
+      {cancelling && (
+        <ConfirmDialog
+          title="Cancel this booking?"
+          message={`The appointment on ${formatDateTime(cancelling.scheduledAt)} with ${doctorName(
+            cancelling.doctorId
+          )} will be cancelled.`}
+          confirmLabel="Cancel booking"
+          danger
+          onClose={() => setCancelling(null)}
+          onConfirm={async () => {
+            await cancelMutation.mutateAsync(cancelling.id);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <dt className="text-ink-400">{label}</dt>
+      <dd className="text-right text-ink-900">{value}</dd>
+    </div>
+  );
+}

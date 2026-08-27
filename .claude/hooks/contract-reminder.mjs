@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PostToolUse hook: after an edit to client/src/api/*.ts or client/src/types/index.ts,
+// PostToolUse hook: after an edit to client/src/api/*.js or client/src/types/index.js,
 // remind that API_CONTRACT.md is the source of truth the Java backend is built against.
 // Non-blocking, and fires at most once per file per session.
 
@@ -20,8 +20,8 @@ if (!WRITE_TOOLS.has(payload.tool_name ?? "")) process.exit(0);
 const posix = String(payload.tool_input?.file_path ?? "").replace(/\\/g, "/");
 if (!posix) process.exit(0);
 
-const isApiModule = /client\/src\/api\/[^/]+\.ts$/.test(posix) && !/\/http\.ts$/.test(posix);
-const isTypes = /client\/src\/types\/index\.ts$/.test(posix);
+const isApiModule = /client\/src\/api\/[^/]+\.js$/.test(posix) && !/\/http\.js$/.test(posix);
+const isTypes = /client\/src\/types\/index\.js$/.test(posix);
 if (!isApiModule && !isTypes) process.exit(0);
 
 // Once per file per session.

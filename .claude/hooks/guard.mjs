@@ -82,7 +82,7 @@ if (/(^|\/)server\//.test(lower) && /\.(js|mjs|cjs|ts|tsx|json)$/.test(lower)) {
 // ------------------------------- 4. mocks/ must not leak into pages/components
 const inUiLayer =
   /(^|\/)client\/src\/(pages|components|context)\//.test(lower) ||
-  /(^|\/)client\/src\/(app|main)\.tsx$/.test(lower);
+  /(^|\/)client\/src\/(app|main)\.jsx$/.test(lower);
 
 if (inUiLayer) {
   const candidates = [];
@@ -97,7 +97,7 @@ if (inUiLayer) {
   if (candidates.some((text) => mocksImport.test(text))) {
     block(
       "Blocked: pages, components and context must never import from client/src/mocks/.\n" +
-        "Only client/src/api/*.ts may touch the mock datastore -- that boundary is what makes the real\n" +
+        "Only client/src/api/*.js may touch the mock datastore -- that boundary is what makes the real\n" +
         "Spring Boot backend a one-directory swap (CLAUDE.md, API_CONTRACT.md). Add or use an api/ function instead."
     );
   }
