@@ -106,7 +106,7 @@ export function DoctorProfilePage() {
             {doctor.languages.map((language) => (
               <span
                 key={language}
-                className="rounded-full border border-white/80 bg-white/70 px-3 py-1 text-sm text-ink-700 shadow-sm"
+                className="rounded-full border border-hairline/80 bg-surface/70 px-3 py-1 text-sm text-ink-700 shadow-sm"
               >
                 {language}
               </span>

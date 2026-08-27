@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Modal } from "../../components/Modal";
-import { btnGhost, btnPrimary, inputClass, labelClass } from "../../lib/ui";
+import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { STAFF_ROLES } from "../../lib/roles";
 import type { StaffUserInput } from "../../api/users";
 
@@ -93,7 +93,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }: Props) {
           </select>
         </label>
 
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={btnGhost}>

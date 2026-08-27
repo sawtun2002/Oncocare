@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Modal } from "../../components/Modal";
-import { btnGhost, btnPrimary, inputClass, labelClass } from "../../lib/ui";
+import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import type { CreateInvoiceInput, InvoiceItemInput } from "../../api/billing";
 import type { Patient } from "../../types";
 
@@ -98,7 +98,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }: Props) {
                   <button
                     type="button"
                     onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
-                    className="text-ink-400 hover:text-rose-500"
+                    className="text-ink-400 transition hover:text-rose-500 dark:hover:text-rose-400"
                     aria-label="Remove item"
                   >
                     ✕
@@ -112,7 +112,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }: Props) {
           </div>
         </div>
 
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={btnGhost}>

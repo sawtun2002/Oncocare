@@ -4,7 +4,7 @@ import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
 import { useAuth } from "../context/AuthContext";
 import { homePathFor } from "../lib/roles";
-import { btnPrimary, inputClass, labelClass } from "../lib/ui";
+import { btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 import type { Sex } from "../types";
 
 const DEMO_ACCOUNTS = [
@@ -132,7 +132,7 @@ export function LoginPage() {
                 className={inputClass}
               />
             </div>
-            {error && <p className="text-sm text-rose-600">{error}</p>}
+            {error && <p className={errorText}>{error}</p>}
             <button type="submit" disabled={submitting} className={`${btnPrimary} w-full`}>
               {submitting ? "Signing in…" : "Sign in"}
             </button>
@@ -247,7 +247,7 @@ export function LoginPage() {
                 className={inputClass}
               />
             </div>
-            {error && <p className="text-sm text-rose-600">{error}</p>}
+            {error && <p className={errorText}>{error}</p>}
             <button type="submit" disabled={submitting} className={`${btnPrimary} w-full`}>
               {submitting ? "Creating account…" : "Create account"}
             </button>
@@ -265,7 +265,7 @@ export function LoginPage() {
         )}
 
         {mode === "login" && (
-          <div className="mt-7 border-t border-white/70 pt-4">
+          <div className="mt-7 border-t border-hairline/70 pt-4">
             <p className="text-xs font-medium text-ink-400">Demo accounts (dummy data)</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {DEMO_ACCOUNTS.map((acct) => (
@@ -276,7 +276,7 @@ export function LoginPage() {
                     setEmail(acct.email);
                     setPassword(acct.password);
                   }}
-                  className="rounded-lg border border-white/80 bg-white/60 px-2 py-1.5 text-xs text-ink-700 transition hover:bg-white"
+                  className="rounded-lg border border-hairline/80 bg-surface/60 px-2 py-1.5 text-xs text-ink-700 transition hover:bg-surface"
                 >
                   {acct.label}
                 </button>

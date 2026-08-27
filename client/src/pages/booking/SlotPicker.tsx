@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getAvailability } from "../../api/appointments";
 import { formatTime, toDateInputValue } from "../../lib/format";
-import { inputClass, labelClass } from "../../lib/ui";
+import { errorText, inputClass, labelClass } from "../../lib/ui";
 import type { User } from "../../types";
 
 interface Props {
@@ -82,7 +82,7 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
         ) : availabilityQuery.isLoading ? (
           <p className="mt-2 text-sm text-ink-400">Loading times…</p>
         ) : availabilityQuery.isError ? (
-          <p className="mt-2 text-sm text-rose-600">Could not load availability.</p>
+          <p className={`mt-2 ${errorText}`}>Could not load availability.</p>
         ) : openSlots.length === 0 ? (
           <p className="mt-2 text-sm text-ink-400">No times left on this day. Try another date.</p>
         ) : (
@@ -100,7 +100,7 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
                     isSelected
                       ? "border-transparent bg-gradient-to-r from-frost-500 to-aqua-400 text-white shadow-sm"
                       : slot.available
-                        ? "border-white/80 bg-white/70 text-ink-700 hover:bg-white"
+                        ? "border-hairline/80 bg-surface/70 text-ink-700 hover:bg-surface"
                         : "cursor-not-allowed border-ice-200 bg-ice-100/60 text-ink-400 line-through"
                   }`}
                 >

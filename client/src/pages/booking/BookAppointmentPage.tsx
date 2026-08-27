@@ -6,7 +6,7 @@ import { listDoctors } from "../../api/users";
 import { GlassCard } from "../../components/GlassCard";
 import { useAuth } from "../../context/AuthContext";
 import { formatDateTime } from "../../lib/format";
-import { btnPrimary, inputClass, labelClass, pageTitle } from "../../lib/ui";
+import { btnPrimary, errorText, inputClass, labelClass, pageTitle } from "../../lib/ui";
 import { SlotPicker } from "./SlotPicker";
 
 export function BookAppointmentPage() {
@@ -109,7 +109,7 @@ export function BookAppointmentPage() {
             </p>
           )}
 
-          {error && <p className="text-sm text-rose-600">{error}</p>}
+          {error && <p className={errorText}>{error}</p>}
 
           <div className="flex justify-end">
             <button

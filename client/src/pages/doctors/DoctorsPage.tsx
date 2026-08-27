@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { listDoctorProfiles } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
 import { initials } from "../../lib/format";
-import { pageTitle } from "../../lib/ui";
+import { errorText, pageTitle, pillBase, TONE } from "../../lib/ui";
 import type { DoctorProfile } from "../../types";
 
 export function DoctorsPage() {
@@ -21,7 +21,7 @@ export function DoctorsPage() {
       {doctorsQuery.isLoading ? (
         <p className="mt-6 text-sm text-ink-400">Loading doctors…</p>
       ) : doctorsQuery.isError ? (
-        <p className="mt-6 text-sm text-rose-600">Could not load the doctor directory.</p>
+        <p className={`mt-6 ${errorText}`}>Could not load the doctor directory.</p>
       ) : doctors.length === 0 ? (
         <GlassCard className="mt-6 p-6">
           <p className="text-sm text-ink-400">No doctor profiles are published yet.</p>
@@ -43,7 +43,7 @@ function DoctorCard({ doctor }: { doctor: DoctorProfile }) {
       to={`/doctors/${doctor.id}`}
       className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/60"
     >
-      <GlassCard className="h-full p-5 transition duration-200 hover:-translate-y-0.5 hover:border-frost-300/70 hover:bg-white/75 hover:shadow-lg hover:shadow-frost-500/10">
+      <GlassCard className="h-full p-5 transition duration-200 hover:-translate-y-0.5 hover:border-frost-300/70 hover:bg-surface/75 hover:shadow-lg hover:shadow-frost-500/10">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-frost-400 to-aqua-400 text-base font-semibold text-white shadow-sm">
             {initials(doctor.name)}
@@ -69,17 +69,11 @@ function DoctorCard({ doctor }: { doctor: DoctorProfile }) {
   );
 }
 
-// Not a `Badge` -- that one is keyed by appointment/invoice status strings. Same
-// pill shape and the same emerald/ice semantics, though.
+// Not a `Badge` -- that one is keyed by appointment/invoice status strings. It
+// shares the same pill shape and tones, from lib/ui.ts.
 function AcceptingBadge({ accepting }: { accepting: boolean }) {
   return (
-    <span
-      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-        accepting
-          ? "bg-emerald-100/70 text-emerald-800 ring-emerald-300/50"
-          : "bg-ice-200/80 text-ink-400 ring-ice-300/60"
-      }`}
-    >
+    <span className={`${pillBase} ${accepting ? TONE.positive : TONE.muted}`}>
       {accepting ? "Accepting new patients" : "Not taking new patients"}
     </span>
   );

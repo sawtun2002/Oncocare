@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Modal } from "../../components/Modal";
 import { SLOT_MINUTES, type AppointmentInput } from "../../api/appointments";
-import { btnGhost, btnPrimary, inputClass, labelClass } from "../../lib/ui";
+import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { formatDateTime } from "../../lib/format";
 import { SlotPicker } from "../booking/SlotPicker";
 import type { Patient, User } from "../../types";
@@ -81,7 +81,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }: 
           </p>
         )}
 
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={btnGhost}>

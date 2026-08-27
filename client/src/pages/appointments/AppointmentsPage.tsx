@@ -12,7 +12,15 @@ import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { formatDateTime } from "../../lib/format";
-import { btnPrimary, inputClass, pageTitle, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import {
+  btnPrimary,
+  dangerAction,
+  inputClass,
+  pageTitle,
+  tableHead,
+  tableRow,
+  tableWrap,
+} from "../../lib/ui";
 import { RescheduleFormDialog } from "../booking/RescheduleFormDialog";
 import type { Appointment, AppointmentStatus } from "../../types";
 import { AppointmentFormDialog } from "./AppointmentFormDialog";
@@ -228,7 +236,7 @@ export function AppointmentsPage() {
                       <button
                         type="button"
                         onClick={() => setRescheduling(a)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-white/70"
+                        className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                       >
                         Reschedule
                       </button>
@@ -236,7 +244,7 @@ export function AppointmentsPage() {
                         <button
                           type="button"
                           onClick={() => setCancelling(a)}
-                          className="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                          className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
                         >
                           Cancel
                         </button>

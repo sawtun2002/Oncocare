@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Modal } from "./Modal";
-import { btnDanger, btnGhost, btnPrimary } from "../lib/ui";
+import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
 
 interface Props {
   title: string;
@@ -44,7 +44,7 @@ export function ConfirmDialog({
   return (
     <Modal title={title} onClose={onClose}>
       <p className="text-sm text-ink-700">{message}</p>
-      {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
+      {error && <p className={`mt-3 ${errorText}`}>{error}</p>}
       <div className="mt-6 flex justify-end gap-2">
         <button type="button" onClick={onClose} className={btnGhost} disabled={submitting}>
           Keep it

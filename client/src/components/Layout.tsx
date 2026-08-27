@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
+import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { initials } from "../lib/format";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
@@ -57,7 +58,7 @@ export function Layout() {
                 `block rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
                   isActive
                     ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm shadow-frost-500/25"
-                    : "text-ink-700 hover:translate-x-0.5 hover:bg-white/60 hover:text-ink-900"
+                    : "text-ink-700 hover:translate-x-0.5 hover:bg-surface/60 hover:text-ink-900"
                 }`
               }
             >
@@ -66,7 +67,7 @@ export function Layout() {
           ))}
         </nav>
 
-        <div className="group mt-4 rounded-xl border border-white/70 bg-white/50 p-3 transition duration-200 hover:border-frost-300/70 hover:bg-white/75 hover:shadow-md hover:shadow-frost-500/10">
+        <div className="group mt-4 rounded-xl border border-hairline/70 bg-surface/50 p-3 transition duration-200 hover:border-frost-300/70 hover:bg-surface/75 hover:shadow-md hover:shadow-frost-500/10">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-frost-400 to-aqua-400 text-xs font-semibold text-white shadow-sm transition duration-200 group-hover:scale-105">
               {initials(user.name)}
@@ -76,11 +77,13 @@ export function Layout() {
               <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
             </div>
           </div>
+          <ThemeToggle />
+
           {/* Rose on hover: logging out ends the session, so it should not look
               like just another neutral button once you are on it. */}
           <button
             onClick={logout}
-            className="mt-3 w-full rounded-lg border border-white/80 bg-white/70 px-3 py-1.5 text-sm text-ink-700 transition duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300/60"
+            className="mt-3 w-full rounded-lg border border-hairline/80 bg-surface/70 px-3 py-1.5 text-sm text-ink-700 transition duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300/60 dark:hover:border-rose-400/30 dark:hover:bg-rose-400/15 dark:hover:text-rose-300"
           >
             Log out
           </button>

@@ -8,7 +8,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
 import { useAuth } from "../../context/AuthContext";
 import { formatDateTime } from "../../lib/format";
-import { btnGhost, btnPrimary, pageTitle, sectionLabel } from "../../lib/ui";
+import { btnGhost, btnPrimary, dangerAction, pageTitle, sectionLabel } from "../../lib/ui";
 import { RescheduleFormDialog } from "./RescheduleFormDialog";
 import type { Appointment } from "../../types";
 
@@ -111,7 +111,7 @@ export function MyBookingsPage() {
                   <button
                     type="button"
                     onClick={() => setCancelling(a)}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                    className={`rounded-lg px-3 py-2 text-sm font-medium ${dangerAction}`}
                   >
                     Cancel
                   </button>

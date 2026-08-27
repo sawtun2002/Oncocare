@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Modal } from "../../components/Modal";
-import { btnGhost, btnPrimary, inputClass, labelClass } from "../../lib/ui";
+import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import type { Patient, Sex, User } from "../../types";
 import type { PatientInput } from "../../api/patients";
 
@@ -160,7 +160,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           />
         </Field>
 
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={btnGhost}>
@@ -179,7 +179,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   return (
     <label className={labelClass}>
       {label}
-      {required && <span className="text-rose-500"> *</span>}
+      {required && <span className="text-rose-500 dark:text-rose-400"> *</span>}
       {children}
     </label>
   );

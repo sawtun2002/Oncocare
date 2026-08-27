@@ -5,6 +5,23 @@
     <link rel="icon" type="image/png" href="/logo-mark.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cancer HMS</title>
+    <script>
+      /* Applies the saved theme before first paint -- without this a dark-mode
+         reload flashes the light background until React mounts. Mirrors
+         readStoredPreference() in src/context/ThemeContext.tsx; keep the key
+         and the "system" fallback identical in both. */
+      (function () {
+        try {
+          var stored = localStorage.getItem("cancer-hms-theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+        } catch (e) {
+          /* Private mode with storage blocked: fall through to the light default. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

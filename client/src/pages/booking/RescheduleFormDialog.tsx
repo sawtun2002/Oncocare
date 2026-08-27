@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Modal } from "../../components/Modal";
-import { btnGhost, btnPrimary } from "../../lib/ui";
+import { btnGhost, btnPrimary, errorText } from "../../lib/ui";
 import { formatDateTime } from "../../lib/format";
 import { SlotPicker } from "./SlotPicker";
 import type { Appointment, User } from "../../types";
@@ -48,7 +48,7 @@ export function RescheduleFormDialog({ appointment, doctors, onClose, onSubmit }
           onSelectStart={setSelectedStart}
         />
 
-        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={btnGhost}>

@@ -1,41 +1,166 @@
 @import "tailwindcss";
 
-/* ---------------------------------------------------------------------------
-   Design tokens. Tailwind v4 is configured here, in CSS -- there is no
-   tailwind.config.js (see CLAUDE.md). Every --color-* token below generates the
-   usual bg-/text-/border-/ring- utilities.
---------------------------------------------------------------------------- */
-@theme {
-  /* Surface: the icy page ground the frosted panels sit on. */
-  --color-ice-50: #f7fbff;
-  --color-ice-100: #eaf2fa;
-  --color-ice-200: #dbe9f6;
-  --color-ice-300: #c6dcf0;
+/* Dark mode is driven by `data-theme` on <html>, not by a media query alone --
+   the app offers an explicit light/dark/system choice (see ThemeContext), and a
+   media query cannot express "the user picked light while their OS is dark".
+   `:where()` keeps the variant at zero specificity so it never out-ranks the
+   utility it modifies. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-  /* Accent: buttons, active nav, focus rings, links. */
+/* ---------------------------------------------------------------------------
+   Palette.
+
+   Raw values live here as plain custom properties rather than directly in
+   @theme, because @theme resolves at build time: a token written as a literal
+   is baked into every utility and can never change at runtime. Declaring them
+   here and mapping them through `@theme inline` below makes the generated
+   utilities emit var(--ice-100) instead of #eaf2fa, so re-declaring the value
+   under [data-theme="dark"] re-themes the whole app with no JS and no reflow.
+
+   Only surface and ink swap. The frost/aqua accent is brand identity -- it is
+   the OncoCare logo's own blue -- and stays fixed in both themes.
+
+   The ice-/ink- scales are ordered by *contrast against the page*, not by
+   absolute lightness: ice-50 is always the calmest surface and ice-300 always
+   the strongest hairline, which is why the dark values ascend where the light
+   ones descend. Every existing `bg-ice-100` / `border-ice-200` keeps meaning
+   what it meant.
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Surface: the icy page ground the frosted panels sit on. */
+  --ice-50: #f7fbff;
+  --ice-100: #eaf2fa;
+  --ice-200: #dbe9f6;
+  --ice-300: #c6dcf0;
+
+  /* Ink: text. ink-700/900 are the only colours body copy may use -- both
+     clear 4.5:1 on every surface token above. ink-400 is for labels only. */
+  --ink-900: #1f2d3d;
+  --ink-700: #33475b;
+  --ink-400: #6b8199;
+
+  /* Semantic surfaces. These replace the hardcoded `bg-white/70`-style
+     literals that used to be written inline in a dozen components: on a dark
+     ground "white at 70%" is a pale haze, but "surface at 70%" is correct in
+     both themes. */
+  --surface: #ffffff;
+  --hairline: #ffffff;
+
+  /* Glass. Tuned per theme: a light-calibrated shadow reads as nothing on a
+     dark ground, so dark gets a deeper one plus a fainter inset highlight. */
+  --glass-bg: rgb(255 255 255 / 0.55);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-inset: rgb(255 255 255 / 0.6);
+  --glass-shadow: 0 8px 32px -8px rgb(31 45 61 / 0.12);
+  --glass-solid-bg: rgb(255 255 255 / 0.92);
+  --glass-solid-border: rgb(255 255 255 / 0.9);
+  --glass-solid-inset: rgb(255 255 255 / 0.7);
+  --glass-solid-shadow: 0 8px 32px -8px rgb(31 45 61 / 0.1);
+
+  /* What the glass collapses to when transparency is refused or unsupported. */
+  --surface-opaque: #ffffff;
+
+  /* Page-background glows. */
+  --glow-warm: rgb(255 255 255 / 0.9);
+  --glow-cool: rgb(148 197 240 / 0.35);
+
+  /* chrome-text gradient stops, light-to-dark down the glyph. */
+  --chrome-1: #ffffff;
+  --chrome-2: #cddced;
+  --chrome-3: #7d97b0;
+  --chrome-4: #ffffff;
+  --chrome-5: #a9bed2;
+  --chrome-6: #6b8199;
+  --chrome-shadow: rgb(31 45 61 / 0.25);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ice-50: #0b1420;
+  --ice-100: #131f2e;
+  --ice-200: #1e2c3f;
+  --ice-300: #2c3d54;
+
+  --ink-900: #eaf2fa;
+  --ink-700: #c2d3e4;
+  --ink-400: #8aa1b8;
+
+  --surface: #1b2a3c;
+  /* Muted deliberately: the hairline is used at high alpha (/70-/90), so a
+     brighter blue-grey here would draw borders louder than the content. */
+  --hairline: #3d5470;
+
+  --glass-bg: rgb(20 32 46 / 0.55);
+  --glass-border: rgb(120 152 190 / 0.18);
+  --glass-inset: rgb(255 255 255 / 0.06);
+  --glass-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.55);
+  --glass-solid-bg: rgb(20 32 46 / 0.92);
+  --glass-solid-border: rgb(120 152 190 / 0.16);
+  --glass-solid-inset: rgb(255 255 255 / 0.05);
+  --glass-solid-shadow: 0 8px 32px -8px rgb(0 0 0 / 0.5);
+
+  --surface-opaque: #14202e;
+
+  /* The warm highlight becomes a cool lift -- a white glow on navy reads as a
+     smudge. */
+  --glow-warm: rgb(94 200 229 / 0.1);
+  --glow-cool: rgb(74 143 212 / 0.16);
+
+  /* Inverted so the sheen still runs light-to-dark against a dark ground,
+     without the near-white stops that would blow out. */
+  --chrome-1: #f4f9ff;
+  --chrome-2: #b9cde3;
+  --chrome-3: #7f9ab7;
+  --chrome-4: #eaf2fa;
+  --chrome-5: #9db4cd;
+  --chrome-6: #6d88a5;
+  --chrome-shadow: rgb(0 0 0 / 0.45);
+}
+
+/* ---------------------------------------------------------------------------
+   Tailwind tokens. `inline` is what makes runtime theming work: it inlines the
+   var() reference into each generated utility instead of resolving the value,
+   so `bg-ice-100` compiles to var(--ice-100) and follows the swap above.
+   Without it, the utilities would bake today's light values in permanently.
+
+   Every --color-* token here generates the usual bg-/text-/border-/ring-
+   utilities. Opacity modifiers (`bg-surface/70`) still work -- Tailwind v4
+   colour-mixes the variable rather than needing channel triplets.
+--------------------------------------------------------------------------- */
+@theme inline {
+  --color-ice-50: var(--ice-50);
+  --color-ice-100: var(--ice-100);
+  --color-ice-200: var(--ice-200);
+  --color-ice-300: var(--ice-300);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-400: var(--ink-400);
+
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+
+  /* Accent: buttons, active nav, focus rings, links. Fixed in both themes. */
   --color-frost-300: #b3d8f7;
   --color-frost-400: #8fc4f0;
   --color-frost-500: #6aa9e9;
   --color-frost-600: #4a8fd4;
   --color-frost-700: #3b74ae;
   --color-aqua-400: #5ec8e5;
-
-  /* Ink: text. ink-700/900 are the only colours body copy may use -- both
-     clear 4.5:1 on every surface token above. ink-400 is for labels only. */
-  --color-ink-900: #1f2d3d;
-  --color-ink-700: #33475b;
-  --color-ink-400: #6b8199;
 }
 
 @layer base {
   body {
-    background-color: var(--color-ice-100);
+    background-color: var(--ice-100);
     background-image:
-      radial-gradient(ellipse 80% 60% at 15% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 100% 10%, rgba(148, 197, 240, 0.35), transparent 60%),
-      linear-gradient(160deg, var(--color-ice-100) 0%, var(--color-ice-50) 55%, var(--color-ice-200) 100%);
+      radial-gradient(ellipse 80% 60% at 15% 0%, var(--glow-warm), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 100% 10%, var(--glow-cool), transparent 60%),
+      linear-gradient(160deg, var(--ice-100) 0%, var(--ice-50) 55%, var(--ice-200) 100%);
     background-attachment: fixed;
-    color: var(--color-ink-700);
+    color: var(--ink-700);
   }
 }
 
@@ -51,22 +176,22 @@
    from the standard property; declaring the prefixed form afterwards makes it
    drop the unprefixed one, which silently kills the blur in Chrome/Firefox. */
 @utility glass-panel {
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--glass-border);
   border-radius: 1rem;
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
-    0 8px 32px -8px rgba(31, 45, 61, 0.12);
+    0 1px 0 0 var(--glass-inset) inset,
+    var(--glass-shadow);
 }
 
 @utility glass-panel-solid {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: var(--glass-solid-bg);
+  border: 1px solid var(--glass-solid-border);
   border-radius: 1rem;
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
-    0 8px 32px -8px rgba(31, 45, 61, 0.1);
+    0 1px 0 0 var(--glass-solid-inset) inset,
+    var(--glass-solid-shadow);
 }
 
 /* Chrome heading treatment from the reference. Page-level <h1> only -- never
@@ -74,43 +199,43 @@
 @utility chrome-text {
   background-image: linear-gradient(
     180deg,
-    #ffffff 0%,
-    #cddced 22%,
-    #7d97b0 48%,
-    #ffffff 62%,
-    #a9bed2 85%,
-    #6b8199 100%
+    var(--chrome-1) 0%,
+    var(--chrome-2) 22%,
+    var(--chrome-3) 48%,
+    var(--chrome-4) 62%,
+    var(--chrome-5) 85%,
+    var(--chrome-6) 100%
   );
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(31, 45, 61, 0.25));
+  filter: drop-shadow(0 1px 1px var(--chrome-shadow));
 }
 
 /* Accessibility fallbacks ---------------------------------------------------
    Readers who ask for less transparency, and browsers without backdrop-filter,
    get the same layout on opaque surfaces rather than a wash of low-contrast
-   text. */
+   text. Both collapse to --surface-opaque, so they follow the theme too. */
 @media (prefers-reduced-transparency: reduce) {
   .glass-panel {
-    background: #ffffff;
+    background: var(--surface-opaque);
     backdrop-filter: none;
-    border-color: var(--color-ice-300);
+    border-color: var(--ice-300);
   }
   .glass-panel-solid {
-    background: #ffffff;
-    border-color: var(--color-ice-300);
+    background: var(--surface-opaque);
+    border-color: var(--ice-300);
   }
   .chrome-text {
     background-image: none;
-    color: var(--color-ink-900);
-    -webkit-text-fill-color: var(--color-ink-900);
+    color: var(--ink-900);
+    -webkit-text-fill-color: var(--ink-900);
     filter: none;
   }
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass-panel {
-    background: rgba(255, 255, 255, 0.93);
+    background: color-mix(in srgb, var(--surface-opaque) 93%, transparent);
   }
 }
