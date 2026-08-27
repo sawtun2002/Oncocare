@@ -1,24 +1,9 @@
-import { db, delay } from "../mocks/db";
+import { api } from "./http";
 
-/**
- * The patient-facing doctor directory. Deliberately separate from
- * `users.listDoctors()`, which returns account records (`User[]`) to populate
- * pickers: this returns CV information only, and is the one doctor endpoint a
- * PATIENT is allowed to read.
- *
- * @returns {Promise<import("../types").DoctorProfile[]>}
- */
 export async function listDoctorProfiles() {
-  return delay([...db.doctorProfiles].sort((a, b) => a.name.localeCompare(b.name)));
+  return api.get("/doctors");
 }
 
-/** @returns {Promise<import("../types").DoctorProfile>} */
 export async function getDoctorProfile(id) {
-  const profile = db.doctorProfiles.find((d) => d.id === id);
-  if (!profile) {
-    return delay(undefined, 200).then(() => {
-      throw new Error("Doctor not found");
-    });
-  }
-  return delay(profile);
+  return api.get(`/doctors/${id}`);
 }

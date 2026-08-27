@@ -12,14 +12,15 @@ const ROLE_LABEL = {
 
 const MIN_PASSWORD_LENGTH = 6;
 
-// STAFF_ROLES already excludes PATIENT -- there is no way to reach that option
-// from this dialog, which is the point: staff accounts are the only thing an
-// admin can create here.
 export function StaffUserFormDialog({ onClose, onSubmit }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(STAFF_ROLES[0]);
+  const [specialty, setSpecialty] = useState("");
+  const [yearsOfExperience, setYearsOfExperience] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const modalRef = useRef(null);
@@ -33,7 +34,16 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
     setError(null);
     setSubmitting(true);
     try {
-      await onSubmit({ name, email, password, role });
+      await onSubmit({
+        name,
+        email,
+        password,
+        role,
+        doctorProfile:
+          role === "DOCTOR"
+            ? { specialty, yearsOfExperience: Number(yearsOfExperience), phone, bio }
+            : null,
+      });
       modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -83,6 +93,43 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
             ))}
           </select>
         </label>
+
+        {role === "DOCTOR" && (
+          <>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className={labelClass}>
+                Specialty
+                <input
+                  required
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                Years of experience
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={yearsOfExperience}
+                  onChange={(e) => setYearsOfExperience(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
+            </div>
+
+            <label className={labelClass}>
+              Phone
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+            </label>
+
+            <label className={labelClass}>
+              Biography
+              <textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} className={inputClass} />
+            </label>
+          </>
+        )}
 
         {error && <p className={errorText}>{error}</p>}
 

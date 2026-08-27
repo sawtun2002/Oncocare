@@ -45,6 +45,23 @@
  */
 
 /**
+ * @typedef {Object} DoctorProfileInput
+ * @property {string} specialty
+ * @property {number} yearsOfExperience
+ * @property {string} [phone]
+ * @property {string} [bio]
+ */
+
+/**
+ * @typedef {Object} StaffUserInput
+ * @property {string} name
+ * @property {string} email
+ * @property {string} password
+ * @property {Exclude<Role, "PATIENT">} role
+ * @property {DoctorProfileInput | null} doctorProfile Required when role is `DOCTOR`.
+ */
+
+/**
  * @typedef {"Male" | "Female" | "Other"} Sex
  */
 
@@ -61,6 +78,11 @@
  * @property {string} [notes]
  * @property {number} [assignedDoctorId]
  * @property {string} registeredAt
+ */
+
+/**
+ * @typedef {Omit<Patient, "id" | "registeredAt"> & {email: string, password: string}} PatientRegistrationInput
+ * The account credentials are required when staff register a patient because each patient record owns one portal login.
  */
 
 /**

@@ -7,6 +7,8 @@ const EMPTY = {
   dob: "",
   sex: "Female",
   phone: "",
+  email: "",
+  password: "",
   address: "",
   diagnosisType: "",
   diagnosisStage: "",
@@ -100,6 +102,30 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
             />
           </Field>
         </div>
+
+        {!initial && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Portal email" required>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Temporary password" required>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        )}
 
         <Field label="Address">
           <input

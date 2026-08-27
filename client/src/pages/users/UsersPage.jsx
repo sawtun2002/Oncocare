@@ -26,8 +26,9 @@ export function UsersPage() {
 
   const createMutation = useMutation({
     mutationFn: (input) => createStaffUser(input),
-    onSuccess: (user) => {
+    onSuccess: (user, input) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      if (input.role === "DOCTOR") queryClient.invalidateQueries({ queryKey: ["doctor-profiles"] });
       toast.success(`${user.name} can now sign in.`);
     },
   });
@@ -45,8 +46,7 @@ export function UsersPage() {
         </button>
       </div>
       <p className="mt-2 text-sm text-ink-400">
-        Administrator, Doctor, Nurse and Receptionist logins. Patients create their own accounts from the
-        login page.
+        Administrator, Doctor, Nurse and Receptionist logins. Doctor accounts include their profile details at creation.
       </p>
 
       <div className={`mt-6 ${tableWrap}`}>
