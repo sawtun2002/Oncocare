@@ -1,6 +1,6 @@
 # `.claude/` — Claude Code configuration
 
-Committed to the repo so everyone working on Cancer HMS gets the same guardrails and commands.
+Committed to the repo so everyone working on OncoCare gets the same guardrails and commands.
 `settings.local.json` (personal permission grants) is gitignored.
 
 ## Commands

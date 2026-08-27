@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Cancer HMS — a hospital management system for cancer care covering patient records, appointments, and billing, with role-based access (Admin, Doctor, Nurse, Receptionist) plus a patient-facing booking portal (Patient).
+OncoCare — a hospital management system for cancer care covering patient records, appointments, and billing, with role-based access (Admin, Doctor, Nurse, Receptionist) plus a patient-facing booking portal (Patient).
 
 ## Package manager: pnpm only
 

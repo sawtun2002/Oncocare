@@ -94,9 +94,9 @@ export function LoginPage() {
 
       <div className="glass-panel w-full max-w-sm p-8">
         <div className="flex items-center gap-2.5">
-          <img src={logoMark} alt="Cancer HMS logo" className="h-9 w-9 rounded-lg object-contain" />
+          <img src={logoMark} alt="OncoCare logo" className="h-9 w-9 rounded-lg object-contain" />
           <div>
-            <h1 className="text-lg font-semibold text-ink-900">Cancer HMS</h1>
+            <h1 className="text-lg font-semibold text-ink-900">OncoCare</h1>
             <p className="text-xs text-ink-400">
               {mode === "login" ? "Sign in to continue" : "Create your patient account"}
             </p>

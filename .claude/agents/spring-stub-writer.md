@@ -41,7 +41,7 @@ Rules:
 - Controllers are **interfaces** carrying full signatures and mapping annotations, so the backend
   developer writes only implementations. Include `@RequestBody`, `@PathVariable`, `@RequestParam` as the
   contract requires.
-- Package everything under `com.cancerhms.api` with matching sub-packages (`...api.dto`, `...api.enums`,
+- Package everything under `com.oncocare.api` with matching sub-packages (`...api.dto`, `...api.enums`,
   `...api.controller`).
 - Add a short Javadoc on each type naming the contract section it came from.
 - Where the contract specifies roles, emit `@PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")`.

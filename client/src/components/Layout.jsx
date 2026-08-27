@@ -123,7 +123,7 @@ export function Layout() {
             <MenuIcon />
           </button>
           <img src={logoMark} alt="" className="h-7 w-7 rounded-lg object-contain" />
-          <span className="text-sm font-semibold tracking-wide text-ink-900">Cancer HMS</span>
+          <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
         </header>
 
         <div className="mx-auto max-w-6xl px-1 py-4 sm:px-8 sm:py-6">
@@ -156,8 +156,8 @@ function SidebarBody({ items, user, logout, pillId, onNavigate }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-1 pb-6 pt-1">
-        <img src={logoMark} alt="Cancer HMS logo" className="h-8 w-8 rounded-lg object-contain" />
-        <span className="text-sm font-semibold tracking-wide text-ink-900">Cancer HMS</span>
+        <img src={logoMark} alt="OncoCare logo" className="h-8 w-8 rounded-lg object-contain" />
+        <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto">

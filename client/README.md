@@ -1,6 +1,6 @@
 # `client/`
 
-The Cancer HMS frontend: React 19 + Vite + Tailwind CSS v4, in plain JavaScript/JSX, running against an
+The OncoCare frontend: React 19 + Vite + Tailwind CSS v4, in plain JavaScript/JSX, running against an
 in-browser mock API until the Spring Boot backend exists.
 
 ```bash

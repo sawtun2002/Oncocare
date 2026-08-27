@@ -1,4 +1,4 @@
-# Cancer HMS
+# OncoCare
 
 A hospital management system for cancer care: patient records, appointments, and billing, with role-based access (Admin, Doctor, Nurse, Receptionist) plus a patient self-service booking portal (Patient).
 

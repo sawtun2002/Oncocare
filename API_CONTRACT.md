@@ -1,4 +1,4 @@
-# API Contract — Cancer HMS
+# API Contract — OncoCare
 
 The frontend (`/client`) currently runs against an in-browser mock API (`client/src/api/*.ts`, backed by `client/src/mocks/`). This document specifies the REST contract the real Spring Boot backend should implement so that swapping the mock functions for real `axios` calls requires no changes to any page/component — only to the internals of the files in `client/src/api/`.
 

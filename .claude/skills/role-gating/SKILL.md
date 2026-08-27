@@ -1,6 +1,6 @@
 ---
 name: role-gating
-description: How role-based access control is enforced in the Cancer HMS frontend — the three places a restriction must be applied, and the current permission matrix. Load whenever adding or changing a role restriction, a nav item, a route, a ProtectedRoute wrapper, or any user.role conditional, and when auditing who can see or do what.
+description: How role-based access control is enforced in the OncoCare frontend — the three places a restriction must be applied, and the current permission matrix. Load whenever adding or changing a role restriction, a nav item, a route, a ProtectedRoute wrapper, or any user.role conditional, and when auditing who can see or do what.
 ---
 
 # Role gating

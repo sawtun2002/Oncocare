@@ -1,9 +1,9 @@
 ---
 name: hms-frontend-conventions
-description: House style for the Cancer HMS React frontend — file placement, naming, exports, TanStack Query usage, dialog/page split, and Tailwind rules. Load before writing or editing any file under client/src (pages, components, context, lib), and before adding a new page, dialog, or shared component.
+description: House style for the OncoCare React frontend — file placement, naming, exports, TanStack Query usage, dialog/page split, and Tailwind rules. Load before writing or editing any file under client/src (pages, components, context, lib), and before adding a new page, dialog, or shared component.
 ---
 
-# Cancer HMS frontend conventions
+# OncoCare frontend conventions
 
 These are observed conventions from the existing code, not aspirations. New code should be
 indistinguishable from what is already there.
