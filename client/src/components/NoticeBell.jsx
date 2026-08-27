@@ -75,6 +75,12 @@ function describe(notice, user, names) {
 export function NoticeBell({ align = "right" }) {
   const { user, markNotificationsRead } = useAuth();
   const [open, setOpen] = useState(false);
+  // The `notificationsReadAt` value captured at the moment the panel is opened,
+  // held for that one viewing. Opening also stamps a new `notificationsReadAt`
+  // (below), so without this snapshot every item would flip to "read" the
+  // instant the panel appeared. Instead: this open highlights what arrived
+  // since last time, the next open clears it.
+  const [seenAt, setSeenAt] = useState(null);
   const rootRef = useRef(null);
   const isStaff = !!user && user.role !== "PATIENT";
   const isAdmin = user?.role === "ADMIN";
@@ -124,7 +130,10 @@ export function NoticeBell({ align = "right" }) {
   async function toggle() {
     const next = !open;
     setOpen(next);
-    if (next && unread > 0) {
+    if (!next) return;
+    // Freeze what counts as "new" for this viewing before we mark everything read.
+    setSeenAt(user?.notificationsReadAt ?? null);
+    if (unread > 0) {
       // A failed stamp isn't worth interrupting anyone -- the badge just stays
       // until the next successful open.
       try {
@@ -137,6 +146,8 @@ export function NoticeBell({ align = "right" }) {
 
   const shown = notices.slice(0, 20);
   const names = { doctor: doctorName, patient: patientName, user: staffName };
+  const isUnread = (n) => !seenAt || n.at > seenAt;
+  const newCount = shown.filter(isUnread).length;
 
   return (
     <div ref={rootRef} className="relative">
@@ -157,26 +168,44 @@ export function NoticeBell({ align = "right" }) {
 
       {open && (
         <div
-          className={`glass-panel-solid absolute z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden text-sm ${
+          className={`glass-panel-solid absolute z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden bg-surface text-sm ${
             align === "left" ? "left-0" : "right-0"
           }`}
         >
-          <div className="border-b border-hairline/60 px-4 py-2.5 font-semibold text-ink-900">
-            Notifications
+          <div className="flex items-baseline justify-between border-b border-ice-200 px-4 py-2.5">
+            <span className="font-semibold text-ink-900">Notifications</span>
+            {newCount > 0 && <span className="text-xs font-medium text-frost-600">{newCount} new</span>}
           </div>
           {shown.length === 0 ? (
             <p className="px-4 py-6 text-center text-ink-400">You're all caught up.</p>
           ) : (
-            <ul className="max-h-96 divide-y divide-hairline/50 overflow-y-auto">
-              {shown.map((n) => (
-                <li key={n.key} className="px-4 py-3">
-                  <p className="text-ink-700">{describe(n, user, names)}</p>
-                  {n.kind === "appointment" && n.event.reason && (
-                    <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
-                  )}
-                  <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.at)}</p>
-                </li>
-              ))}
+            <ul className="max-h-96 divide-y divide-ice-200 overflow-y-auto">
+              {shown.map((n) => {
+                const fresh = isUnread(n);
+                return (
+                  <li
+                    key={n.key}
+                    className={`flex gap-2.5 px-4 py-3 ${fresh ? "bg-frost-300/10" : ""}`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        fresh ? "bg-frost-500" : "bg-transparent"
+                      }`}
+                    />
+                    <div className="min-w-0">
+                      {fresh && <span className="sr-only">Unread. </span>}
+                      <p className={fresh ? "font-medium text-ink-900" : "text-ink-700"}>
+                        {describe(n, user, names)}
+                      </p>
+                      {n.kind === "appointment" && n.event.reason && (
+                        <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
+                      )}
+                      <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.at)}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
