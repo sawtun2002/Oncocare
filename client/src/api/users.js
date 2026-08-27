@@ -26,6 +26,7 @@ function toUser(m) {
     department: m.department,
     notifyAppointmentReminders: m.notifyAppointmentReminders,
     lastLoginAt: m.lastLoginAt,
+    notificationsReadAt: m.notificationsReadAt,
   };
 }
 

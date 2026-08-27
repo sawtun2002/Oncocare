@@ -3,6 +3,7 @@ import {
   changePassword as apiChangePassword,
   fetchCurrentUser,
   login as apiLogin,
+  markNotificationsRead as apiMarkNotificationsRead,
   signup as apiSignup,
   updateAvatar as apiUpdateAvatar,
   updateNotificationPreferences as apiUpdateNotificationPreferences,
@@ -77,6 +78,13 @@ export function AuthProvider({ children }) {
     setUser(updated);
   }
 
+  // Clears the notice bell. Like the two above it goes through here rather than
+  // straight from NoticeBell, so the sidebar's unread badge updates at once.
+  async function markNotificationsRead() {
+    const updated = await apiMarkNotificationsRead(localStorage.getItem(TOKEN_KEY));
+    setUser(updated);
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -89,6 +97,7 @@ export function AuthProvider({ children }) {
         changePassword,
         updateAvatar,
         updateNotificationPreferences,
+        markNotificationsRead,
       }}
     >
       {children}

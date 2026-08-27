@@ -24,16 +24,19 @@
  * @property {string} email
  * @property {Role} role
  * @property {number} [patientId] Set only on PATIENT accounts: the Patient record this login belongs to.
- * @property {UserStatus} [status] Defaults to ACTIVE.
+ * @property {UserStatus} status Defaults to ACTIVE. Always present -- the mock sets it on every account.
  * @property {string} [avatarUrl] A photo the account holder uploaded. The mock stores this as a `data:`
  *   URI; a real backend would more likely serve it from object storage and return a plain URL instead --
  *   a swap point when wiring the real API, like the 404-vs-undefined one below.
  * @property {string} [phone] Staff accounts only. A patient's phone lives on their Patient record, not
  *   here -- see Patient.phone.
  * @property {string} [department] Staff accounts only, free text (e.g. "Oncology Ward 3").
- * @property {boolean} [notifyAppointmentReminders] Defaults to true. Mock-only preference: there is no
- *   real email backend yet to act on it.
+ * @property {boolean} notifyAppointmentReminders Defaults to true. Mock-only preference: there is no
+ *   real email backend yet to act on it. Always present.
  * @property {string} [lastLoginAt] ISO datetime of the account's most recent successful login.
+ * @property {string} [notificationsReadAt] ISO datetime the account last cleared its notice bell.
+ *   Unset means nothing has been read. The only stored state behind the bell -- notices themselves are
+ *   derived from appointment events, not persisted. See lib/notices.js.
  */
 
 /**

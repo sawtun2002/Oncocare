@@ -55,6 +55,7 @@ function toUser(m) {
     department: m.department,
     notifyAppointmentReminders: m.notifyAppointmentReminders,
     lastLoginAt: m.lastLoginAt,
+    notificationsReadAt: m.notificationsReadAt,
   };
 }
 
@@ -214,6 +215,23 @@ export async function updateNotificationPreferences(token, input) {
     });
   }
   match.notifyAppointmentReminders = input.notifyAppointmentReminders;
+  persist();
+  return delay(toUser(match));
+}
+
+/**
+ * Stamp the signed-in account's notice bell as read, up to now. The bell's
+ * unread count is "appointment events after this timestamp" -- there is no
+ * per-notice read state, by design (see the Notices note in API_CONTRACT.md).
+ */
+export async function markNotificationsRead(token) {
+  const match = userForToken(token);
+  if (!match) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Session expired");
+    });
+  }
+  match.notificationsReadAt = new Date().toISOString();
   persist();
   return delay(toUser(match));
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useOutlet } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
 import { Avatar } from "./Avatar";
+import { NoticeBell } from "./NoticeBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
@@ -71,7 +72,7 @@ export function Layout() {
   return (
     <div className="flex h-screen p-3 sm:p-4">
       <aside className="glass-panel hidden w-60 shrink-0 flex-col p-4 lg:flex">
-        <SidebarBody items={visibleItems} user={user} logout={logout} pillId={NAV_PILL_ID} />
+        <SidebarBody items={visibleItems} user={user} logout={logout} pillId={NAV_PILL_ID} showBell />
       </aside>
 
       <AnimatePresence>
@@ -125,6 +126,9 @@ export function Layout() {
           </button>
           <img src={logoMark} alt="" className="h-7 w-7 rounded-lg object-contain" />
           <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+          <div className="ml-auto">
+            <NoticeBell />
+          </div>
         </header>
 
         <div className="mx-auto max-w-6xl px-1 py-4 sm:px-8 sm:py-6">
@@ -153,12 +157,17 @@ export function Layout() {
  * shared-layout animation of the active-link pill to one of the two -- see the
  * note at the drawer.
  */
-function SidebarBody({ items, user, logout, pillId, onNavigate }) {
+function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-1 pb-6 pt-1">
         <img src={logoMark} alt="OncoCare logo" className="h-8 w-8 rounded-lg object-contain" />
         <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+        {showBell && (
+          <div className="ml-auto">
+            <NoticeBell />
+          </div>
+        )}
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto">

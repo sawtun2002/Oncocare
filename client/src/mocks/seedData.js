@@ -12,6 +12,7 @@
  * @property {string} [department] Staff accounts only.
  * @property {boolean} notifyAppointmentReminders
  * @property {string} [lastLoginAt] Left unset in the seed -- nobody has "signed in" until they actually do.
+ * @property {string} [notificationsReadAt] Left unset in the seed -- the notice bell starts unread.
  */
 
 // status/notifyAppointmentReminders are spelled out on every row rather than

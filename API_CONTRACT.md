@@ -34,6 +34,10 @@ All endpoints are prefixed with `/api`. All authenticated endpoints expect `Auth
 - `PATCH /api/auth/me/notifications` — body `NotificationPreferencesInput` → updated `User`. Allowed
   roles: all, own account only. Mock-only for now — there is no real email backend to act on the
   preference yet, so the backend only needs to persist and return it.
+- `POST /api/auth/me/notifications/read` — no body → updated `User`. Allowed roles: all, own account
+  only. Stamps `notificationsReadAt` to now; that is the whole of the notice bell's stored state (see
+  **Notices** below). Distinct from `PATCH /api/auth/me/notifications`, which is the email-reminder
+  *preference*.
 
 ```ts
 type Role = "ADMIN" | "DOCTOR" | "NURSE" | "RECEPTIONIST" | "PATIENT";
@@ -50,6 +54,7 @@ interface User {
   department?: string;    // staff accounts only, free text (e.g. "Oncology Ward 3")
   notifyAppointmentReminders: boolean;  // defaults true; mock-only preference
   lastLoginAt?: string;   // ISO datetime, set by POST /api/auth/login
+  notificationsReadAt?: string;  // ISO datetime; see Notices. Unset = nothing read yet.
 }
 interface SignupInput {
   name: string;
@@ -96,6 +101,33 @@ The frontend enforces exactly this in `client/src/lib/validation.js` (`evaluateP
 live strength meter on the signup and change-password forms — but it is bypassable, so the backend must
 re-check the same rules and return **400** with a message naming the first unmet rule. Keep the two
 definitions in step: a change to the policy is a change to that file *and* to this list.
+
+### Notices
+
+The in-app notice bell shows an account the appointment activity it should know about. **Nothing is
+stored per notice.** Each `AppointmentEvent` already records who acted (`byUserId`/`byRole`), so a
+notice is simply an event on an appointment the viewer is a party to, that the viewer did not cause
+themselves. The backend derives the list on demand; the only persisted state is
+`User.notificationsReadAt`, and "unread" is `event.at > notificationsReadAt` (everything, if unset).
+
+Audience by role — the frontend computes exactly this in `client/src/lib/notices.js`, and the backend
+must match it:
+
+| Viewer | Appointments in scope | Event types | Extra rule |
+|---|---|---|---|
+| `PATIENT` | their own (`patientId`) | `ACCEPTED`, `DECLINED`, `RESCHEDULED`, `CANCELLED` | not events they caused |
+| `DOCTOR` | their own (`doctorId`) | `REQUESTED`, `RESCHEDULED`, `CANCELLED` | not events they caused |
+| `RECEPTIONIST` | all | `REQUESTED`, `RESCHEDULED`, `CANCELLED` | **only `byRole === "PATIENT"`** events (D6) — so they can triage requests and re-fill freed slots |
+| `ADMIN`, `NURSE` | — | — | no appointment notices (an `ADMIN` gets leave-approval notices once leave exists) |
+
+A system event (an expired request: `byUserId`/`byRole` null) always counts as a notice for its
+appointment's patient and doctor.
+
+`GET /api/notifications` is **optional** for the backend: the v1 client derives notices from the
+`GET /api/appointments` result it already holds. A server-side endpoint returning the same derived list
+may be added later without any client change beyond swapping the source. Allowed roles when it does
+exist: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `PATIENT` — each scoped server-side to their own
+derived notices per the table above, never a `userId` parameter.
 
 `PATIENT` accounts are patients signing in to the booking portal. Every endpoint below is annotated with
 the roles allowed to call it — **`PATIENT` is not staff**, and silence is never permission.
