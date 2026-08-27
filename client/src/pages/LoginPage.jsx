@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
+import { PasswordStrength } from "../components/PasswordStrength";
 import { useAuth } from "../context/AuthContext";
 import { homePathFor } from "../lib/roles";
 import { btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
+import { MIN_PASSWORD_LENGTH, evaluatePassword, isValidPhone } from "../lib/validation";
 
 const DEMO_ACCOUNTS = [
   { label: "Admin", email: "admin@cancerhms.local", password: "admin123" },
@@ -13,8 +15,6 @@ const DEMO_ACCOUNTS = [
   { label: "Receptionist", email: "reception@cancerhms.local", password: "reception123" },
   { label: "Patient", email: "patient@cancerhms.local", password: "patient123" },
 ];
-
-const MIN_PASSWORD_LENGTH = 6;
 
 export function LoginPage() {
   const { user, login, signup } = useAuth();
@@ -36,6 +36,12 @@ export function LoginPage() {
 
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Live signup validation: the strength meter reads `pw`, the submit handler
+  // gates on `pw.ok`, and the phone field shows `phoneError` once the user has
+  // typed something that doesn't look like a real number.
+  const pw = evaluatePassword(signupPassword);
+  const phoneError = phone !== "" && !isValidPhone(phone);
 
   // Also handles the post-login/signup redirect: both set the user, this
   // rerenders, and each role lands on its own home. No hardcoded "/" -- that
@@ -64,12 +70,16 @@ export function LoginPage() {
 
   async function handleSignup(e) {
     e.preventDefault();
-    if (signupPassword.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+    if (!pw.ok) {
+      setError("Choose a stronger password — every requirement below must be met.");
       return;
     }
     if (signupPassword !== confirmPassword) {
       setError("Passwords don't match.");
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      setError("Enter a valid phone number (7–15 digits).");
       return;
     }
     setError(null);
@@ -203,6 +213,9 @@ export function LoginPage() {
                 />
               </div>
             </div>
+
+            {signupPassword.length > 0 && <PasswordStrength result={pw} />}
+
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="signup-dob">
@@ -241,10 +254,18 @@ export function LoginPage() {
                 id="signup-phone"
                 type="tel"
                 required
+                inputMode="tel"
+                autoComplete="tel"
+                aria-invalid={phoneError}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className={inputClass}
               />
+              {phoneError && (
+                <p className={`mt-1 ${errorText}`}>
+                  Enter a valid phone number, e.g. +1 555 123 4567.
+                </p>
+              )}
             </div>
             {error && <p className={errorText}>{error}</p>}
             <button type="submit" disabled={submitting} className={`${btnPrimary} w-full`}>

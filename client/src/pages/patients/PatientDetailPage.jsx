@@ -2,16 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { listAppointments, updateAppointment, updateAppointmentStatus } from "../../api/appointments";
-import { invoiceTotal, listInvoices } from "../../api/billing";
+import { listInvoices } from "../../api/billing";
 import { getPatient, updatePatient } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
+import { InvoiceCard } from "../../components/InvoiceCard";
 import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { calculateAge, formatCurrency, formatDate, formatDateTime } from "../../lib/format";
+import { calculateAge, formatDate, formatDateTime } from "../../lib/format";
 import {
   btnGhost,
   dangerAction,
@@ -119,6 +120,16 @@ export function PatientDetailPage() {
           <dl className="mt-2 space-y-1 text-sm">
             <Row label="Phone" value={patient.phone} />
             <Row label="Address" value={patient.address || "—"} />
+            <Row
+              label="Emergency contact"
+              value={
+                patient.emergencyContactName
+                  ? `${patient.emergencyContactName}${
+                      patient.emergencyContactPhone ? ` · ${patient.emergencyContactPhone}` : ""
+                    }`
+                  : "—"
+              }
+            />
           </dl>
         </GlassCard>
         <GlassCard className="p-4">
@@ -127,10 +138,22 @@ export function PatientDetailPage() {
             <Row label="Diagnosis" value={patient.diagnosisType} />
             <Row label="Stage" value={patient.diagnosisStage || "—"} />
             <Row label="Doctor" value={assignedDoctorName} />
+            <Row label="Blood type" value={patient.bloodType || "—"} />
+            <Row label="Allergies" value={patient.allergies || "—"} />
             <Row label="Notes" value={patient.notes || "—"} />
           </dl>
         </GlassCard>
       </div>
+
+      {/* Full-width rather than squeezed into the two-column grid above: this
+          is a paragraph, not a short label/value fact, and the Row layout
+          those cards use reads badly once the value wraps to several lines. */}
+      {patient.medicalHistory && (
+        <GlassCard className="mt-4 p-4">
+          <h2 className="text-sm font-semibold text-ink-400">Medical history</h2>
+          <p className="mt-2 text-sm text-ink-700">{patient.medicalHistory}</p>
+        </GlassCard>
+      )}
 
       <div className="mt-8">
         <h2 className={sectionLabel}>Upcoming appointments</h2>
@@ -218,31 +241,12 @@ export function PatientDetailPage() {
       </div>
 
       <div className="mt-8">
-        <h2 className={sectionLabel}>Invoices</h2>
-        <div className={`mt-3 ${tableWrap}`}>
+        <h2 className={sectionLabel}>Billing</h2>
+        <div className="mt-3 space-y-3">
           {patientInvoices.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">No invoices yet.</p>
+            <p className="text-sm text-ink-400">No invoices yet.</p>
           ) : (
-            <table className={tableBase}>
-              <thead className={tableHead}>
-                <tr>
-                  <th className="px-4 py-2.5">Issued</th>
-                  <th className="px-4 py-2.5">Total</th>
-                  <th className="px-4 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {patientInvoices.map((inv) => (
-                  <tr key={inv.id} className={tableRow}>
-                    <td className="px-4 py-2.5">{formatDate(inv.issuedAt)}</td>
-                    <td className="px-4 py-2.5 text-ink-700">{formatCurrency(invoiceTotal(inv))}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge status={inv.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            patientInvoices.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
           )}
         </div>
       </div>

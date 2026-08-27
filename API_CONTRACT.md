@@ -81,6 +81,22 @@ will disagree. Photo (`PATCH /api/auth/me/avatar`) and the reminders toggle
 (`PATCH /api/auth/me/notifications`) are deliberately separate endpoints rather than more `ProfileInput`
 fields: each is meant to save the instant it changes in the UI, not wait on this endpoint's own submit.
 
+### Password policy
+
+Every field that sets a password — `SignupInput.password`, `PasswordChangeInput.newPassword`,
+`StaffUserInput.password` — must satisfy **all** of:
+
+- at least 8 characters;
+- contains a lowercase letter, an uppercase letter, a digit, and a non-alphanumeric character;
+- at least 5 distinct characters (rejects `aaaaaaaa`, `abababab`);
+- no single character three or more times in a row (`aaa`);
+- not one of a small server-maintained list of common passwords.
+
+The frontend enforces exactly this in `client/src/lib/validation.js` (`evaluatePassword`) as a UX guard —
+live strength meter on the signup and change-password forms — but it is bypassable, so the backend must
+re-check the same rules and return **400** with a message naming the first unmet rule. Keep the two
+definitions in step: a change to the policy is a change to that file *and* to this list.
+
 `PATIENT` accounts are patients signing in to the booking portal. Every endpoint below is annotated with
 the roles allowed to call it — **`PATIENT` is not staff**, and silence is never permission.
 
@@ -151,9 +167,10 @@ added later it belongs to `ADMIN` (any profile) and `DOCTOR` (their own).
 - `GET /api/patients/:id` — → `Patient`. 404 if missing. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`,
   `RECEPTIONIST`; a `PATIENT` may read only their own record (`id === their own patientId`).
 - `POST /api/patients` — body `PatientInput` → created `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to `diagnosisType`, `diagnosisStage`, `notes` on their assigned patients — enforce server-side).
+- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to the clinical fields — `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`, `medicalHistory`, `notes` — on their assigned patients; **never** `emergencyContactName`/`emergencyContactPhone`, which are registrar territory like `phone`/`address` — enforce server-side).
 
 ```ts
+type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
 interface Patient {
   id: number;
   name: string;
@@ -161,8 +178,13 @@ interface Patient {
   sex: "Male" | "Female" | "Other";
   phone: string;
   address?: string;
+  emergencyContactName?: string;   // registrar field, not DOCTOR-editable -- see above
+  emergencyContactPhone?: string;  // registrar field, not DOCTOR-editable -- see above
   diagnosisType: string;
   diagnosisStage?: string;
+  bloodType?: BloodType;
+  allergies?: string;      // free text
+  medicalHistory?: string; // free text -- past conditions, surgeries, relevant family history
   notes?: string;
   assignedDoctorId?: number;
   registeredAt: string;   // ISO datetime
@@ -212,14 +234,18 @@ interface TimeSlot {
 
 ## Billing
 
-Billing is staff-only in its entirety. These four endpoints previously carried no role annotation, which
-was tolerable while every account was a staff account and is not once patients can sign in.
+Managing billing (creating invoices, changing their status, the revenue summary) is staff-only.
+**Reading your own bill is not** — a `PATIENT` may list their own invoices read-only, the same shape of
+exception `GET /api/appointments` already makes.
 
-- `GET /api/invoices` — → `Invoice[]`, newest issued first. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `GET /api/invoices?patientId=` — → `Invoice[]`, newest issued first. `patientId` is an optional filter.
+  Allowed roles: `ADMIN`, `RECEPTIONIST` for any patient; `PATIENT` **read-only**, scoped to their own
+  invoices server-side regardless of the `patientId` parameter — the filter is a convenience, never the
+  check, same as the equivalent appointments rule.
 - `GET /api/invoices/:id` — → `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status` defaults to `UNPAID`, `issuedAt` set server-side). Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus }` → updated `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `GET /api/billing/summary` — → `{ totalRevenue: number; outstanding: number; invoiceCount: number }`. `totalRevenue` sums `PAID` invoices; `outstanding` sums non-`PAID` invoices. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `GET /api/billing/summary` — → `{ totalRevenue: number; outstanding: number; invoiceCount: number }`. `totalRevenue` sums `PAID` invoices; `outstanding` sums non-`PAID` invoices. Allowed roles: `ADMIN`, `RECEPTIONIST`. **Not** `PATIENT` — this is the clinic-wide total, not theirs; a patient's own outstanding/paid totals are computed client-side from their own `GET /api/invoices` result on `/my-bills`.
 
 ```ts
 type InvoiceStatus = "UNPAID" | "PARTIAL" | "PAID";

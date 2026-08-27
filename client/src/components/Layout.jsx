@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { to: "/users", label: "Staff accounts", roles: ["ADMIN"] },
   { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
   { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
+  { to: "/my-bills", label: "My bill", roles: PATIENT_ROLES },
   { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
 ];
 

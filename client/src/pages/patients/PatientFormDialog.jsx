@@ -2,22 +2,34 @@ import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
 const EMPTY = {
   name: "",
   dob: "",
   sex: "Female",
   phone: "",
   address: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
   diagnosisType: "",
   diagnosisStage: "",
+  bloodType: "",
+  allergies: "",
+  medicalHistory: "",
   notes: "",
   assignedDoctorId: undefined,
 };
 
 /**
  * Props: doctors, initial (Patient, when editing), clinicalOnly (when true,
- * only diagnosis/stage/notes are editable -- used for the Doctor role),
- * onClose, onSubmit.
+ * only the clinical fields -- diagnosis/stage/blood type/allergies/medical
+ * history/notes -- are editable; used for the Doctor role), onClose, onSubmit.
+ *
+ * The split mirrors who actually owns each fact: demographics and emergency
+ * contact are registrar territory, same as phone/address; blood type,
+ * allergies and medical history are clinical, same as diagnosis -- a doctor
+ * needs to be able to update them without going through reception.
  */
 export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onSubmit }) {
   const [form, setForm] = useState(
@@ -28,8 +40,13 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           sex: initial.sex,
           phone: initial.phone,
           address: initial.address ?? "",
+          emergencyContactName: initial.emergencyContactName ?? "",
+          emergencyContactPhone: initial.emergencyContactPhone ?? "",
           diagnosisType: initial.diagnosisType,
           diagnosisStage: initial.diagnosisStage ?? "",
+          bloodType: initial.bloodType ?? "",
+          allergies: initial.allergies ?? "",
+          medicalHistory: initial.medicalHistory ?? "",
           notes: initial.notes ?? "",
           assignedDoctorId: initial.assignedDoctorId,
         }
@@ -120,6 +137,25 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
         </Field>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Emergency contact name">
+            <input
+              disabled={disabled}
+              value={form.emergencyContactName}
+              onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Emergency contact phone">
+            <input
+              disabled={disabled}
+              value={form.emergencyContactPhone}
+              onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Diagnosis type" required>
             <input
               required
@@ -132,6 +168,34 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
             <input
               value={form.diagnosisStage}
               onChange={(e) => setForm({ ...form, diagnosisStage: e.target.value })}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+
+        {/* No `disabled` on these three -- blood type, allergies and medical
+            history are clinical facts, and a DOCTOR (clinicalOnly) may update
+            them the same as diagnosis/stage/notes below. */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Blood type">
+            <select
+              value={form.bloodType}
+              onChange={(e) => setForm({ ...form, bloodType: e.target.value })}
+              className={inputClass}
+            >
+              <option value="">Unknown</option>
+              {BLOOD_TYPES.map((bt) => (
+                <option key={bt} value={bt}>
+                  {bt}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Allergies">
+            <input
+              value={form.allergies}
+              onChange={(e) => setForm({ ...form, allergies: e.target.value })}
+              placeholder="e.g. Penicillin"
               className={inputClass}
             />
           </Field>
@@ -158,6 +222,16 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               </option>
             ))}
           </select>
+        </Field>
+
+        <Field label="Medical history">
+          <textarea
+            rows={2}
+            value={form.medicalHistory}
+            onChange={(e) => setForm({ ...form, medicalHistory: e.target.value })}
+            placeholder="Past conditions, surgeries, relevant family history…"
+            className={inputClass}
+          />
         </Field>
 
         <Field label="Notes">

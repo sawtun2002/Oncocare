@@ -46,6 +46,7 @@ bug this skill exists to prevent.
 | Edit patient — clinical fields only | DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly`) → `PatientFormDialog`'s `clinicalOnly` prop disables non-clinical inputs |
 | Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canManageBookings`) |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| `/my-bills` (own bill, read-only) | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/profile` (own account) | `ALL_ROLES` | `App.jsx` (guard) — see note below on the missing nav entry |
 | "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.jsx` (`user?.role === "PATIENT"`) |
@@ -67,7 +68,9 @@ any `ADMIN` may deactivate any *other* staff account, but `UsersPage.jsx` hides 
 signed-in admin's own row, and `PATCH /api/users/:id/status` documents the same restriction
 server-side — deactivating the only admin who could undo it would lock everyone out.
 
-Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `notes`.
+Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`,
+`medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone` are **not** in that set — they
+sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly` is true.
 
 ## The backend must enforce it too
 

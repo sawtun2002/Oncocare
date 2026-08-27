@@ -84,6 +84,14 @@ If you change a sort, change the contract line too.
 - `getPatient` and `getInvoice` resolve to `undefined` when the id is unknown, while the contract
   specifies **404**. This is a swap point: when wiring the real API, decide whether to keep `undefined`
   or throw.
+- `listAppointments()` and `listInvoices()` take **no `patientId` parameter**, even though the contract
+  documents `GET /api/appointments?patientId=` and `GET /api/invoices?patientId=` as optional filters.
+  Both mock functions always return every row; every page that needs "just this patient's" filters
+  client-side after the fetch (`MyBookingsPage`, `PatientDetailPage`, `MyBillsPage`, ...). This is a
+  deliberate mock simplification, not drift to fix — but it also means the mock enforces **none** of the
+  PATIENT-scoping language in either contract entry ("scoped to their own ... regardless of the parameter
+  ... the filter is a convenience, never the check"); that check exists only server-side, in the real
+  backend, same as the DOCTOR clinical-field restriction below.
 - Role annotations are now on every endpoint except the three that precede a session
   (`POST /api/auth/login`, `POST /api/auth/signup`, `GET /api/auth/me`), where they would mean nothing.
   Silence elsewhere is a bug, not a permission.

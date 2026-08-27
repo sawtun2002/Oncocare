@@ -33,6 +33,14 @@ export const btnDanger =
 export const errorText = "text-sm text-rose-600 dark:text-rose-400";
 
 /**
+ * Two inline-text tones that pair with `errorText` for the signup password
+ * checklist: `hintText` is an unmet/neutral line, `okText` a satisfied one.
+ * Same `dark:` caveat as `errorText` -- emerald-600 doesn't read on navy.
+ */
+export const hintText = "text-xs text-ink-400";
+export const okText = "text-xs text-emerald-600 dark:text-emerald-400";
+
+/**
  * Destructive inline action -- a table row's Cancel/Delete link, as opposed to
  * `btnDanger`'s bordered button. Colour only: these appear at both text-xs (in
  * tables) and text-sm, so sizing stays at the call site.

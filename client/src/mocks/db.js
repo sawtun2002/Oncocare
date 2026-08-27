@@ -15,7 +15,12 @@ import {
 // visitor's v4 localStorage is simply abandoned in favour of the v5 seed, not
 // migrated -- so toUser() in api/auth.js and api/users.js can trust every
 // field is present without a defensive default.
-const STORAGE_KEY = "cancer-hms-mock-db-v5";
+// v6 added emergencyContactName/emergencyContactPhone/bloodType/allergies/
+// medicalHistory to patients -- all optional, so no defaulting is needed
+// anywhere that reads them, but the bump still applies for the same reason
+// as v5: a returning visitor's v5 localStorage lacks the new seed content
+// (John Doe's allergy, Maria's blood type, etc.) that demos the feature.
+const STORAGE_KEY = "cancer-hms-mock-db-v6";
 
 /**
  * @typedef {Object} MockDb

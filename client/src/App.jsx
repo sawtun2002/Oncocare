@@ -12,6 +12,7 @@ import { AppointmentsPage } from "./pages/appointments/AppointmentsPage";
 import { BillingPage } from "./pages/billing/BillingPage";
 import { BookAppointmentPage } from "./pages/booking/BookAppointmentPage";
 import { MyBookingsPage } from "./pages/booking/MyBookingsPage";
+import { MyBillsPage } from "./pages/billing/MyBillsPage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
 
@@ -50,6 +51,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={PATIENT_ROLES} />}>
             <Route path="/my-bookings" element={<MyBookingsPage />} />
             <Route path="/book" element={<BookAppointmentPage />} />
+            <Route path="/my-bills" element={<MyBillsPage />} />
           </Route>
         </Route>
       </Route>

@@ -70,6 +70,10 @@
  */
 
 /**
+ * @typedef {"A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-"} BloodType
+ */
+
+/**
  * @typedef {Object} Patient
  * @property {number} id
  * @property {string} name
@@ -77,8 +81,16 @@
  * @property {Sex} sex
  * @property {string} phone
  * @property {string} [address]
+ * @property {string} [emergencyContactName] Registrar-maintained, like phone/address -- not a DOCTOR's
+ *   clinical field. See PatientFormDialog's `clinicalOnly` prop.
+ * @property {string} [emergencyContactPhone]
  * @property {string} diagnosisType
  * @property {string} [diagnosisStage]
+ * @property {BloodType} [bloodType]
+ * @property {string} [allergies] Free text -- drug/food/environmental allergies relevant to treatment.
+ * @property {string} [medicalHistory] Free text -- past conditions, surgeries, family history relevant
+ *   to the current diagnosis. Distinct from `notes`: this is background, `notes` is the running clinical
+ *   note.
  * @property {string} [notes]
  * @property {number} [assignedDoctorId]
  * @property {string} registeredAt

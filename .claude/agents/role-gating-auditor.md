@@ -61,7 +61,8 @@ used in only one of two places, is a finding.
 | Dashboard billing card + `["billing-summary"]` query | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |
 | Edit patient, all fields | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canEdit`) |
-| Edit patient, clinical fields only | DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly`) → `clinicalOnly` prop |
+| Edit patient, clinical fields only | DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly`) → `clinicalOnly` prop disables everything except `diagnosisType`/`diagnosisStage`/`bloodType`/`allergies`/`medicalHistory`/`notes` |
+| `/my-bills` (own bill, read-only) | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canManageBookings`) |
 | "Book with this doctor" CTA | PATIENT | `DoctorProfilePage.jsx` |
 

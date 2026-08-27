@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Avatar } from "../../components/Avatar";
 import { GlassCard } from "../../components/GlassCard";
+import { PasswordStrength } from "../../components/PasswordStrength";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -15,6 +16,7 @@ import {
   pageTitle,
   sectionLabel,
 } from "../../lib/ui";
+import { evaluatePassword } from "../../lib/validation";
 
 const ROLE_LABEL = {
   ADMIN: "Administrator",
@@ -300,8 +302,14 @@ function PasswordCard() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  const pw = evaluatePassword(newPassword);
+
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!pw.ok) {
+      setError("Choose a stronger password — every requirement below must be met.");
+      return;
+    }
     // Checked here rather than server-side: the confirmation field exists to
     // catch a typo in this form, and never leaves it.
     if (newPassword !== confirm) {
@@ -349,6 +357,9 @@ function PasswordCard() {
             className={inputClass}
           />
         </label>
+
+        {newPassword.length > 0 && <PasswordStrength result={pw} />}
+
         <label className={labelClass}>
           Confirm new password
           <input
