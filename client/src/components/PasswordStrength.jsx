@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { hintText, okText } from "../lib/ui";
 
 // Meter fill per evaluatePassword() score (0-4): width + colour. Score 0 has
@@ -10,6 +11,21 @@ const STRENGTH_FILL = [
   "w-full bg-emerald-500",
 ];
 
+const SCORE_KEY = ["pw.tooShort", "pw.weak", "pw.fair", "pw.good", "pw.strong"];
+
+// evaluatePassword() rule id -> message key. Kept here rather than in
+// lib/validation.js so that module stays free of the i18n layer.
+const RULE_KEY = {
+  length: "pw.ruleLength",
+  lower: "pw.ruleLower",
+  upper: "pw.ruleUpper",
+  number: "pw.ruleNumber",
+  symbol: "pw.ruleSymbol",
+  distinct: "pw.ruleDistinct",
+  "no-run": "pw.ruleNoRun",
+  "not-common": "pw.ruleNotCommon",
+};
+
 /**
  * Live strength bar + requirement checklist for a password field. `result` is
  * an `evaluatePassword()` return (see `lib/validation.js`). Shared by the
@@ -17,6 +33,8 @@ const STRENGTH_FILL = [
  * render it only once the field is non-empty.
  */
 export function PasswordStrength({ result }) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -29,14 +47,14 @@ export function PasswordStrength({ result }) {
           aria-live="polite"
           className="w-16 shrink-0 text-right text-xs font-medium text-ink-400"
         >
-          {result.label}
+          {t(SCORE_KEY[result.score])}
         </span>
       </div>
       <ul className="grid grid-cols-1 gap-x-3 gap-y-0.5 sm:grid-cols-2">
         {result.rules.map((rule) => (
           <li key={rule.id} className={rule.ok ? okText : hintText}>
             <span aria-hidden="true">{rule.ok ? "✓ " : "• "}</span>
-            {rule.label}
+            {t(RULE_KEY[rule.id], rule.n == null ? undefined : { n: rule.n })}
           </li>
         ))}
       </ul>

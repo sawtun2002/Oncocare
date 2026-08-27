@@ -32,46 +32,32 @@ const COMMON_PASSWORDS = new Set([
 
 /**
  * Each individual password requirement and whether `pw` meets it, in the order
- * the form lists them.
+ * the form lists them. `id` maps to a `pw.rule*` message key in the catalogs;
+ * `n` fills the `{n}` placeholder in the two rules that carry a number. This
+ * module stays pure -- the human-readable label lives in `PasswordStrength.jsx`.
  * @param {string} pw
- * @returns {{ id: string, label: string, ok: boolean }[]}
+ * @returns {{ id: string, ok: boolean, n?: number }[]}
  */
 function passwordRules(pw) {
   return [
-    {
-      id: "length",
-      label: `At least ${MIN_PASSWORD_LENGTH} characters`,
-      ok: pw.length >= MIN_PASSWORD_LENGTH,
-    },
-    { id: "lower", label: "A lowercase letter", ok: /[a-z]/.test(pw) },
-    { id: "upper", label: "An uppercase letter", ok: /[A-Z]/.test(pw) },
-    { id: "number", label: "A number", ok: /\d/.test(pw) },
-    { id: "symbol", label: "A symbol (!, ?, @, #, …)", ok: /[^A-Za-z0-9]/.test(pw) },
-    {
-      id: "distinct",
-      label: `${MIN_DISTINCT_CHARS}+ different characters`,
-      ok: new Set(pw).size >= MIN_DISTINCT_CHARS,
-    },
-    { id: "no-run", label: "No character 3+ times in a row", ok: !/(.)\1\1/.test(pw) },
-    {
-      id: "not-common",
-      label: "Not a commonly used password",
-      ok: pw.length > 0 && !COMMON_PASSWORDS.has(pw.toLowerCase()),
-    },
+    { id: "length", n: MIN_PASSWORD_LENGTH, ok: pw.length >= MIN_PASSWORD_LENGTH },
+    { id: "lower", ok: /[a-z]/.test(pw) },
+    { id: "upper", ok: /[A-Z]/.test(pw) },
+    { id: "number", ok: /\d/.test(pw) },
+    { id: "symbol", ok: /[^A-Za-z0-9]/.test(pw) },
+    { id: "distinct", n: MIN_DISTINCT_CHARS, ok: new Set(pw).size >= MIN_DISTINCT_CHARS },
+    { id: "no-run", ok: !/(.)\1\1/.test(pw) },
+    { id: "not-common", ok: pw.length > 0 && !COMMON_PASSWORDS.has(pw.toLowerCase()) },
   ];
 }
 
 /**
  * Rolls the rules into what the form needs: the checklist (`rules`), a 0-4
- * `score` for the strength meter, a `label` for it, and an `ok` gate that is
- * true only when every rule passes.
+ * `score` for the strength meter, and an `ok` gate that is true only when every
+ * rule passes. The score's word ("Weak"/"Strong"/…) is looked up by
+ * `PasswordStrength.jsx` from the `pw.*` keys.
  * @param {string} pw
- * @returns {{
- *   rules: { id: string, label: string, ok: boolean }[],
- *   score: number,
- *   label: string,
- *   ok: boolean,
- * }}
+ * @returns {{ rules: { id: string, ok: boolean, n?: number }[], score: number, ok: boolean }}
  */
 export function evaluatePassword(pw) {
   const rules = passwordRules(pw);
@@ -85,12 +71,7 @@ export function evaluatePassword(pw) {
   else if (met >= 4) score = 2;
   else score = 1;
 
-  return {
-    rules,
-    score,
-    label: ["Too short", "Weak", "Fair", "Good", "Strong"][score],
-    ok,
-  };
+  return { rules, score, ok };
 }
 
 /**
