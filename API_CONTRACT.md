@@ -253,10 +253,11 @@ transitions it to `DECLINED` with a system event (`byUserId`/`byRole` null,
   appointment (see above) overlapping that slot, when the slot is in the past, **or when the doctor has
   an `APPROVED` `LeaveRequest` covering `date`** (every slot that day comes back unavailable). Allowed
   roles: all.
-- `GET /api/appointments/leave-clashes` — → `Appointment[]` (`SCHEDULED` or `REQUESTED`) that now fall on
-  one of their doctor's `APPROVED`-leave days, sorted by `scheduledAt` ascending. This is reception's
-  "needs rescheduling" list — approving leave never auto-cancels (see the Leave section), it surfaces the
-  affected bookings here. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `GET /api/appointments/leave-clashes` — → `Appointment[]` — still-live bookings (`SCHEDULED`, or
+  `REQUESTED` and not past `expiresAt`) that now fall on one of their doctor's `APPROVED`-leave days,
+  sorted by `scheduledAt` ascending. This is reception's "needs rescheduling" list — approving leave
+  never auto-cancels (see the Leave section), it surfaces the affected bookings here. An expired
+  `REQUESTED` has already freed its slot and is **not** listed. Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `POST /api/appointments` — body `AppointmentInput` → created `Appointment`. **The status is derived
   from the caller's role, never read from the body:** `PATIENT` → `REQUESTED` (+ `expiresAt`), any staff
   role → `SCHEDULED`. Appends the first event (`REQUESTED` or `ACCEPTED`). **409 if the time overlaps a
@@ -385,11 +386,11 @@ from the caller's token, never the body.
 - `POST /api/leave-requests/:id/withdraw` — no body → updated `LeaveRequest` (`PENDING` → `WITHDRAWN`).
   409 if not `PENDING`. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` — **only on their own
   request**.
-- `GET /api/leave-requests/:id/conflicts` — → `Appointment[]` (`SCHEDULED` or `REQUESTED`) for the
-  requesting staff member (as `doctorId`) whose day falls inside `[startDate, endDate]`, sorted by
-  `scheduledAt` ascending. Shown to the admin before they approve, so they see what an approval commits
-  to; approval is **not** blocked by a non-empty result (D4). 404 if the request id is unknown. Allowed
-  roles: `ADMIN`.
+- `GET /api/leave-requests/:id/conflicts` — → `Appointment[]` — still-live bookings (`SCHEDULED`, or
+  `REQUESTED` and not past `expiresAt`) for the requesting staff member (as `doctorId`) whose day falls
+  inside `[startDate, endDate]`, sorted by `scheduledAt` ascending. Shown to the admin before they
+  approve, so they see what an approval commits to; approval is **not** blocked by a non-empty result
+  (D4). 404 if the request id is unknown. Allowed roles: `ADMIN`.
 
 ```ts
 type LeaveType = "ANNUAL" | "SICK" | "TRAINING" | "OTHER";

@@ -137,17 +137,18 @@ export async function listAppointments() {
 }
 
 /**
- * The SCHEDULED and REQUESTED appointments that now sit on one of their
- * doctor's APPROVED-leave days -- reception's "needs rescheduling" list.
- * Sorted by `scheduledAt` ascending, like `listAppointments`.
+ * The still-live appointments (SCHEDULED, or REQUESTED and not expired) that now
+ * sit on one of their doctor's APPROVED-leave days -- reception's "needs
+ * rescheduling" list. Sorted by `scheduledAt` ascending, like `listAppointments`.
  * Allowed roles: ADMIN, RECEPTIONIST (the ones who reschedule); other callers
  * get the same list in the mock, the real backend gates it.
  */
 export async function listLeaveClashes() {
+  // Same lazy sweep as listAppointments -- an expired request has freed its slot
+  // and is not something to reschedule.
+  if (settleExpiredRequests()) persist();
   const clashes = db.appointments.filter(
-    (a) =>
-      (a.status === "SCHEDULED" || a.status === "REQUESTED") &&
-      onApprovedLeave(a.doctorId, localDateOf(a.scheduledAt))
+    (a) => blocksSlot(a) && onApprovedLeave(a.doctorId, localDateOf(a.scheduledAt))
   );
   clashes.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
   return delay(clashes);

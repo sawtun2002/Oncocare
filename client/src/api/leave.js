@@ -145,13 +145,20 @@ export async function withdrawLeaveRequest(id, actor) {
   return delay(request);
 }
 
+/** A REQUESTED appointment that has passed its expiry has already freed its slot. */
+function isLiveBooking(a) {
+  if (a.status === "SCHEDULED") return true;
+  if (a.status !== "REQUESTED") return false;
+  return a.expiresAt == null || a.expiresAt > new Date().toISOString();
+}
+
 /**
- * The appointments an approval would land on top of: SCHEDULED or REQUESTED
- * bookings for the requesting staff member (as `doctorId`) whose day falls
- * inside the leave window. Returned so the admin sees what they're committing
- * to before approving -- approval is not blocked (D4), the bookings just go on
- * reception's rescheduling list afterward. Sorted by `scheduledAt` ascending.
- * Allowed roles: ADMIN.
+ * The appointments an approval would land on top of: still-live bookings
+ * (SCHEDULED, or REQUESTED and not expired) for the requesting staff member (as
+ * `doctorId`) whose day falls inside the leave window. Returned so the admin sees
+ * what they're committing to before approving -- approval is not blocked (D4),
+ * the bookings just go on reception's rescheduling list afterward. Sorted by
+ * `scheduledAt` ascending. Allowed roles: ADMIN.
  * @param {number} id
  */
 export async function leaveRequestConflicts(id) {
@@ -159,8 +166,7 @@ export async function leaveRequestConflicts(id) {
   if (!request) return notFound();
 
   const clashes = db.appointments.filter((a) => {
-    if (a.doctorId !== request.userId) return false;
-    if (a.status !== "SCHEDULED" && a.status !== "REQUESTED") return false;
+    if (a.doctorId !== request.userId || !isLiveBooking(a)) return false;
     const day = localDateOf(a.scheduledAt);
     return request.startDate <= day && day <= request.endDate;
   });
