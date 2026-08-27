@@ -7,6 +7,7 @@ import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { btnPrimary, dangerAction, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import { StaffUserDetailDialog } from "./StaffUserDetailDialog";
 import { StaffUserFormDialog } from "./StaffUserFormDialog";
 
 const ROLE_LABEL = {
@@ -25,6 +26,7 @@ export function UsersPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
+  const [viewing, setViewing] = useState(null);
   const [deactivating, setDeactivating] = useState(null);
 
   const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers() });
@@ -85,7 +87,15 @@ export function UsersPage() {
             <tbody>
               {staff.map((u) => (
                 <tr key={u.id} className={tableRow}>
-                  <td className="px-4 py-2.5 font-medium text-ink-900">{u.name}</td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setViewing(u)}
+                      className="font-medium text-ink-900 transition hover:text-frost-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+                    >
+                      {u.name}
+                    </button>
+                  </td>
                   <td className="px-4 py-2.5 text-ink-400">{u.email}</td>
                   <td className="px-4 py-2.5 text-ink-700">{ROLE_LABEL[u.role]}</td>
                   <td className="px-4 py-2.5">
@@ -127,6 +137,8 @@ export function UsersPage() {
           </table>
         )}
       </div>
+
+      {viewing && <StaffUserDetailDialog user={viewing} onClose={() => setViewing(null)} />}
 
       {showForm && (
         <StaffUserFormDialog
