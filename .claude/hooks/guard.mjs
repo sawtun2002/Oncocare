@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse guard for the Cancer HMS repo.
+// PreToolUse guard for the OncoCare repo.
 // Blocks (exit 2) the mistakes CLAUDE.md warns about:
 //   1. npm / yarn usage         -> this repo is pnpm-only
 //   2. package-lock.json / yarn.lock writes

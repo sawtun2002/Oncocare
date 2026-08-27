@@ -1,14 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { listAppointments } from "../../api/appointments";
-import { getBillingSummary } from "../../api/billing";
-import { listPatients } from "../../api/patients";
-import { Badge } from "../../components/Badge";
-import { StatCard } from "../../components/StatCard";
-import { useAuth } from "../../context/AuthContext";
-import { formatCurrency, formatDateTime } from "../../lib/format";
-import { pageTitle, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import { listAppointments } from "../api/appointments";
+import { getBillingSummary } from "../api/billing";
+import { listPatients } from "../api/patients";
+import { Badge } from "../components/Badge";
+import { GlassCard } from "../components/GlassCard";
+import { TableSkeleton } from "../components/Skeleton";
+import { StatCard } from "../components/StatCard";
+import { useAuth } from "../context/AuthContext";
+import { formatCurrency, formatDateTime } from "../lib/format";
+import { pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../lib/ui";
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -29,21 +31,52 @@ export function DashboardPage() {
     .filter((a) => a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now)
     .slice(0, 5);
 
+  // A doctor's pending requests are invisible unless something surfaces them.
+  const myRequests =
+    user?.role === "DOCTOR"
+      ? (appointmentsQuery.data ?? []).filter(
+          (a) => a.status === "REQUESTED" && a.doctorId === user.id
+        )
+      : [];
+
   return (
     <div>
       <h1 className={pageTitle}>Welcome, {user?.name}</h1>
       <p className="mt-2 text-sm text-ink-400">Here's what's happening today.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Total patients" value={patientsQuery.data?.length ?? "—"} />
-        <StatCard label="Scheduled appointments" value={upcoming.length} />
+        <StatCard
+          label="Total patients"
+          loading={patientsQuery.isLoading}
+          value={patientsQuery.data?.length ?? "—"}
+        />
+        <StatCard
+          label="Scheduled appointments"
+          loading={appointmentsQuery.isLoading}
+          value={upcoming.length}
+        />
         {canSeeBilling && (
           <StatCard
             label="Outstanding balance"
+            loading={billingQuery.isLoading}
             value={billingQuery.data ? formatCurrency(billingQuery.data.outstanding) : "—"}
           />
         )}
       </div>
+
+      {myRequests.length > 0 && (
+        <GlassCard className="mt-6 flex flex-wrap items-center justify-between gap-3 p-5">
+          <p className="text-sm text-ink-700">
+            <span className="font-semibold text-ink-900">
+              {myRequests.length} appointment {myRequests.length === 1 ? "request" : "requests"}
+            </span>{" "}
+            awaiting your response.
+          </p>
+          <Link to="/appointments" className="text-sm font-medium text-frost-600 hover:underline">
+            Review requests
+          </Link>
+        </GlassCard>
+      )}
 
       <div className="mt-8">
         <div className="flex items-center justify-between">
@@ -53,10 +86,12 @@ export function DashboardPage() {
           </Link>
         </div>
         <div className={`mt-3 ${tableWrap}`}>
-          {upcoming.length === 0 ? (
+          {appointmentsQuery.isLoading ? (
+            <TableSkeleton columns={3} rows={3} />
+          ) : upcoming.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">Patient</th>

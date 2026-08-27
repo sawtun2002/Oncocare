@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "./Modal";
 import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
 
@@ -9,6 +9,10 @@ import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
  *
  * Props: title, message, confirmLabel ("Confirm"), danger (style the confirm
  * button as destructive -- cancelling a booking, deleting), onClose, onConfirm.
+ *
+ * Like every dialog here it closes itself through the Modal's ref rather than by
+ * calling `onClose` directly, so the exit animation gets to run before the page
+ * unmounts it -- see the note on `Modal`.
  */
 export function ConfirmDialog({
   title,
@@ -20,13 +24,14 @@ export function ConfirmDialog({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   async function handleConfirm() {
     setError(null);
     setSubmitting(true);
     try {
       await onConfirm();
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -35,11 +40,16 @@ export function ConfirmDialog({
   }
 
   return (
-    <Modal title={title} onClose={onClose}>
+    <Modal title={title} onClose={onClose} ref={modalRef}>
       <p className="text-sm text-ink-700">{message}</p>
       {error && <p className={`mt-3 ${errorText}`}>{error}</p>}
       <div className="mt-6 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className={btnGhost} disabled={submitting}>
+        <button
+          type="button"
+          onClick={() => modalRef.current?.close()}
+          className={btnGhost}
+          disabled={submitting}
+        >
           Keep it
         </button>
         <button

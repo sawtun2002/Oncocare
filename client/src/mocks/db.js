@@ -2,6 +2,7 @@ import {
   seedAppointments,
   seedDoctorProfiles,
   seedInvoices,
+  seedLeaveRequests,
   seedPatients,
   seedUsers,
 } from "./seedData";
@@ -10,7 +11,26 @@ import {
 // DB from localStorage. v2 added PATIENT accounts with a `patientId` link.
 // v3 added a "user" nextId kind for account creation (signup / staff accounts).
 // v4 added doctorProfiles (the patient-facing doctor directory).
-const STORAGE_KEY = "cancer-hms-mock-db-v4";
+// v5 added status/avatarUrl/phone/department/notifyAppointmentReminders/
+// lastLoginAt to users. Same pattern as every bump before it: a returning
+// visitor's v4 localStorage is simply abandoned in favour of the v5 seed, not
+// migrated -- so toUser() in api/auth.js and api/users.js can trust every
+// field is present without a defensive default.
+// v6 added emergencyContactName/emergencyContactPhone/bloodType/allergies/
+// medicalHistory to patients -- all optional, so no defaulting is needed
+// anywhere that reads them, but the bump still applies for the same reason
+// as v5: a returning visitor's v5 localStorage lacks the new seed content
+// (John Doe's allergy, Maria's blood type, etc.) that demos the feature.
+// v7 turned appointments into a state machine: added REQUESTED/DECLINED
+// statuses, a required `events[]` history on every appointment, and an
+// `expiresAt` on requests. A v6 appointment has no `events` array, which the
+// timeline and the accept/decline flow both assume is present -- so, same as
+// every bump before, the v6 store is abandoned for the v7 seed rather than
+// migrated.
+// v8 added the leaveRequests array (staff time-off) and its nextId kind. A v7
+// store has no leaveRequests key, which listLeaveRequests would spread as
+// undefined -- so the v7 store is dropped for the v8 seed like every bump before.
+const STORAGE_KEY = "cancer-hms-mock-db-v8";
 
 /**
  * @typedef {Object} MockDb
@@ -19,7 +39,8 @@ const STORAGE_KEY = "cancer-hms-mock-db-v4";
  * @property {import("../types").Patient[]} patients
  * @property {import("../types").Appointment[]} appointments
  * @property {import("../types").Invoice[]} invoices
- * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number}} nextIds
+ * @property {import("../types").LeaveRequest[]} leaveRequests
+ * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number}} nextIds
  */
 
 /** @returns {MockDb} */
@@ -38,12 +59,14 @@ function loadInitial() {
     patients: seedPatients,
     appointments: seedAppointments,
     invoices: seedInvoices,
+    leaveRequests: seedLeaveRequests,
     nextIds: {
       user: seedUsers.length + 1,
       patient: seedPatients.length + 1,
       appointment: seedAppointments.length + 1,
       invoice: seedInvoices.length + 1,
       invoiceItem: seedInvoices.flatMap((i) => i.items).length + 1,
+      leaveRequest: seedLeaveRequests.length + 1,
     },
   };
 }

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getAvailability } from "../../api/appointments";
+import { Skeleton } from "../../components/Skeleton";
 import { formatTime, toDateInputValue } from "../../lib/format";
 import { errorText, inputClass, labelClass } from "../../lib/ui";
 
@@ -24,6 +25,14 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
   const slots = availabilityQuery.data ?? [];
   const openSlots = slots.filter((s) => s.available);
 
+  // A deactivated doctor drops out of the picker for *new* choices -- but if
+  // this booking (a reschedule, say) already points at one, their name has to
+  // stay visible rather than silently blank out the selected value.
+  const activeDoctors = doctors.filter((d) => d.status !== "INACTIVE");
+  const currentInactiveDoctor = doctors.find(
+    (d) => d.id === Number(doctorId) && d.status === "INACTIVE"
+  );
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -41,7 +50,12 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
             <option value="" disabled>
               Select a doctor
             </option>
-            {doctors.map((d) => (
+            {currentInactiveDoctor && (
+              <option value={currentInactiveDoctor.id} disabled>
+                {currentInactiveDoctor.name} (inactive)
+              </option>
+            )}
+            {activeDoctors.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>
@@ -71,7 +85,13 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
         {!doctorId ? (
           <p className="mt-2 text-sm text-ink-400">Choose a doctor to see open times.</p>
         ) : availabilityQuery.isLoading ? (
-          <p className="mt-2 text-sm text-ink-400">Loading times…</p>
+          // Same grid as the real slots, so picking a time doesn't make the
+          // form below jump the moment availability arrives.
+          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} className="h-9" />
+            ))}
+          </div>
         ) : availabilityQuery.isError ? (
           <p className={`mt-2 ${errorText}`}>Could not load availability.</p>
         ) : openSlots.length === 0 ? (

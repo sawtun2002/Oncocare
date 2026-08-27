@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { STAFF_ROLES } from "../../lib/roles";
@@ -22,6 +22,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
   const [role, setRole] = useState(STAFF_ROLES[0]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -33,7 +34,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
     setSubmitting(true);
     try {
       await onSubmit({ name, email, password, role });
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -42,7 +43,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
   }
 
   return (
-    <Modal title="Add staff account" onClose={onClose}>
+    <Modal title="Add staff account" onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
           Full name
@@ -86,7 +87,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
         {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className={btnGhost}>
+          <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
             Cancel
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>

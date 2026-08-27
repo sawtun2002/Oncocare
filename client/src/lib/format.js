@@ -31,6 +31,22 @@ export function toDateInputValue(date = new Date()) {
 }
 
 /**
+ * Display a bare calendar date (`YYYY-MM-DD`, no time) without a timezone shift.
+ * `new Date("2026-09-14")` is UTC midnight and renders as the 13th west of
+ * Greenwich; splitting the parts and building a *local* date avoids that. Use
+ * this for leave dates and anything else that is a day, not an instant.
+ */
+export function formatDateOnly(ymd) {
+  const [y, m, d] = String(ymd).split("-").map(Number);
+  if (!y || !m || !d) return ymd;
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/**
  * Up to two initials for an avatar: "Dr. Sarah Chen" -> "SC". Honorifics are
  * dropped first, otherwise every doctor renders as "D".
  */

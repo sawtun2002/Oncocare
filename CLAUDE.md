@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Cancer HMS — a hospital management system for cancer care covering patient records, appointments, and billing, with role-based access (Admin, Doctor, Nurse, Receptionist).
+OncoCare — a hospital management system for cancer care covering patient records, appointments, and billing, with role-based access (Admin, Doctor, Nurse, Receptionist) plus a patient-facing booking portal (Patient).
 
 ## Package manager: pnpm only
 
@@ -24,18 +24,17 @@ Or scoped directly to the client package:
 
 ```bash
 pnpm --filter client dev           # vite dev server on :5173
-pnpm --filter client build         # tsc -b && vite build
+pnpm --filter client build         # vite build
 pnpm --filter client lint          # oxlint
 pnpm --filter client preview       # preview a production build
 ```
 
-Type-check only (no emit needed for dev, but useful for verification):
-
-```bash
-cd client && npx tsc -b
-```
-
-There is no test runner configured yet.
+There is no test runner configured yet, and no type-check step: `client/` is plain JavaScript (JSX),
+not TypeScript. `client/jsconfig.json` exists for editor intellisense only — it sets `checkJs: false`
+and nothing in the build reads it. Entity shapes are documented as JSDoc `@typedef` blocks in
+`client/src/types/index.js`; they are machine-readable for tooling and editors, but they are not
+checked by any command. **`lint` and `build` are the whole gate** — do not add a `tsc` step or
+reintroduce TypeScript.
 
 ## Architecture
 
@@ -49,26 +48,53 @@ There is deliberately no `server/` directory. The backend will be built **separa
 
 The mock architecture, and the contract it must keep, matters for any future change:
 
-- `client/src/mocks/seedData.ts` + `client/src/mocks/db.ts` — the fake datastore. `db.ts` loads from `localStorage` (falling back to seed data), and exposes `persist()`, `nextId()`, and a `delay()` helper that simulates network latency so loading states behave realistically.
-- `client/src/api/*.ts` (`auth.ts`, `users.ts`, `patients.ts`, `appointments.ts`, `billing.ts`) — one module per resource, each exporting `async` functions whose names/signatures/return shapes are written to match `API_CONTRACT.md` exactly (e.g. `listPatients()`, `createInvoice(input)`, `updateAppointmentStatus(id, status)`). Pages and components only ever call these functions, never touch `mocks/` directly.
-- **When the real Spring Boot API is ready, only the internals of `client/src/api/*.ts` should change** (swap the mock-data logic for `axios` calls against `/api/...` per the contract). No page or component should need to change, and `client/src/mocks/` can then be deleted. Keep this separation intact — don't let pages import from `mocks/` directly, and don't change an `api/*.ts` function's signature without updating `API_CONTRACT.md` to match.
+- `client/src/mocks/seedData.js` + `client/src/mocks/db.js` — the fake datastore. `db.js` loads from `localStorage` (falling back to seed data), and exposes `persist()`, `nextId()`, and a `delay()` helper that simulates network latency so loading states behave realistically.
+- `client/src/api/*.js` (`auth.js`, `users.js`, `patients.js`, `appointments.js`, `billing.js`) — one module per resource, each exporting `async` functions whose names/signatures/return shapes are written to match `API_CONTRACT.md` exactly (e.g. `listPatients()`, `createInvoice(input)`, `acceptAppointment(id, actor)`). Pages and components only ever call these functions, never touch `mocks/` directly.
+- **When the real Spring Boot API is ready, only the internals of `client/src/api/*.js` should change** (swap the mock-data logic for `axios` calls against `/api/...` per the contract). No page or component should need to change, and `client/src/mocks/` can then be deleted. Keep this separation intact — don't let pages import from `mocks/` directly, and don't change an `api/*.js` function's signature without updating `API_CONTRACT.md` to match.
 
 ### Auth and role-gating
 
-Auth is a mock JWT-like flow (`api/auth.ts` issues a fake `mock-token-<userId>` and `fetchCurrentUser` decodes it) — same shape a real JWT flow would have, so `AuthContext` won't need to change when the backend is real.
+Auth is a mock JWT-like flow (`api/auth.js` issues a fake `mock-token-<userId>` and `fetchCurrentUser` decodes it) — same shape a real JWT flow would have, so `AuthContext` won't need to change when the backend is real.
 
-- `client/src/context/AuthContext.tsx` — holds the current `User`, persists the token in `localStorage`, exposes `login`/`logout`.
-- `client/src/components/ProtectedRoute.tsx` — route guard; takes an optional `allowedRoles` and redirects to `/login` (no user) or `/` (wrong role). This is the actual enforcement point — role checks live here and in per-page conditionals, not just in nav visibility.
-- `client/src/components/Layout.tsx` — sidebar nav items are filtered by role via a `roles?: Role[]` field per item (see `NAV_ITEMS`). Adding a role-restricted section requires updating **both** the nav filter here and a `ProtectedRoute allowedRoles=...` wrapper in `App.tsx` — the nav hiding alone is not access control.
-- Roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`. Current restrictions: Billing is `ADMIN`/`RECEPTIONIST` only; patient create is `ADMIN`/`RECEPTIONIST`; patient edit is `ADMIN`/`RECEPTIONIST` (full fields) or `DOCTOR` (clinical fields only, via `PatientFormDialog`'s `clinicalOnly` prop).
+- `client/src/context/AuthContext.jsx` — holds the current `User`, persists the token in `localStorage`, exposes `login`/`signup`/`logout`, plus `updateProfile`/`updateAvatar`/`updateNotificationPreferences`/`changePassword`/`markNotificationsRead` for the signed-in account's own settings and its notice bell.
+- `client/src/components/ProtectedRoute.jsx` — route guard; takes an optional `allowedRoles` and redirects to `/login` (no user) or the role's own home (wrong role). This is the actual enforcement point — role checks live here and in per-page conditionals, not just in nav visibility.
+- `client/src/components/Layout.jsx` — sidebar nav items are filtered by role via a `roles` field per item (see `NAV_ITEMS`). Adding a role-restricted section requires updating **both** the nav filter here and a `ProtectedRoute allowedRoles=...` wrapper in `App.jsx` — the nav hiding alone is not access control. `/profile` is the deliberate exception to "every route has a nav entry": it's reached by clicking the identity card at the bottom of the sidebar (avatar + name), not a `NAV_ITEMS` line — the route guard still applies exactly as normal, only the nav *link* is gone.
+- Roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `PATIENT`. **`PATIENT` is not staff** — the four staff roles are `STAFF_ROLES` in `client/src/lib/roles.js`, and a route that means "signed in" must say which of the two it means. Current restrictions: Billing management (`/billing`) is `ADMIN`/`RECEPTIONIST` only, but a `PATIENT` can read their own bill, itemized, at `/my-bills`; patient create is `ADMIN`/`RECEPTIONIST`; patient edit is `ADMIN`/`RECEPTIONIST` (full fields) or the patient's **assigned** `DOCTOR` (clinical fields only — `diagnosisType`/`diagnosisStage`/`bloodType`/`allergies`/`medicalHistory`/`notes` — via `PatientFormDialog`'s `clinicalOnly` prop; emergency contact stays registrar-only, like phone/address); the doctor directory and `/profile` are open to every role; deactivating a staff account (`/users`, `PATCH /api/users/:id/status`) is `ADMIN` only.
+- Appointments are a state machine, not a free `status` field (`REQUESTED → SCHEDULED → COMPLETED/NO_SHOW`; `DECLINED`/`CANCELLED` terminal). A `PATIENT` booking is a `REQUESTED` that a staff booking skips; `POST /api/appointments` derives the status from the caller's role, never the body. Accepting/declining a request is `ADMIN`/`RECEPTIONIST` (any) or the request's own `DOCTOR` — **never `NURSE`** (`canDecide` in `AppointmentsPage.jsx`). Every transition appends an `AppointmentEvent` to `appointment.events[]`; a reason is mandatory to decline, and to cancel or reschedule a booking that isn't the caller's own. Expired `REQUESTED` rows auto-decline on the next list read. Shared UI: `components/AppointmentTimeline.jsx`, `components/ReasonDialog.jsx`.
+- The header notice bell (`components/NoticeBell.jsx`) is **derived, not stored**: `lib/notices.js` turns the `["appointments"]` query the app already holds into a per-viewer list (an `AppointmentEvent` on an appointment you're a party to that you didn't cause — audience rules per role, mirrored in `API_CONTRACT.md`'s Notices table). For an `ADMIN` the bell is instead the queue of `PENDING` leave requests awaiting their decision. The only persisted state is `User.notificationsReadAt`, stamped by `POST /api/auth/me/notifications/read` (`markNotificationsRead`) when the panel is opened; the unread badge counts notices with `at` after that timestamp.
+- Staff leave lives at `/leave` (`pages/leave/`), open to all `STAFF_ROLES`: everyone files and tracks their own requests; an `ADMIN` additionally sees an "Awaiting your decision" section on the same page (in-page conditional + `enabled:`-gated `["users"]` query, like the dashboard billing card). A `LeaveRequest` is `PENDING` until an `ADMIN` approves/declines it (a note is required to decline) or the requester withdraws it; `APPROVED`/`DECLINED` are terminal. An `ADMIN` cannot decide their own request. `api/leave.js` follows the appointments `actor` pattern. Phase 4 (not built) will have approved leave block `getAvailability` and surface booking collisions.
+- `/profile` (`pages/profile/ProfilePage.jsx`) edits the **signed-in** account only. It takes no user id — the account comes from the session token — which is why it needs no role check. `role` is displayed read-only there on purpose: an account able to raise its own role would make every other check on this list decorative.
+- `User.status` (`"ACTIVE" | "INACTIVE"`) is how an ADMIN removes a staff account from `/users` — a status flip, not a delete, so a doctor's assigned patients and existing appointments are untouched. `auth.login()` rejects an `INACTIVE` account (checked only *after* the password already matches, so it can't be used to probe which emails exist); the frontend also drops `INACTIVE` doctors out of `SlotPicker`'s and `PatientFormDialog`'s pickers for *new* bookings/assignments, while leaving any existing selection visible.
 
 ### Data model
 
-Shared types live in `client/src/types/index.ts` (`User`, `Patient`, `Appointment`, `Invoice`, `InvoiceItem`, and their status/role unions). These mirror the entities in `API_CONTRACT.md` field-for-field — if one changes, update the other.
+Shared entity shapes live in `client/src/types/index.js` (`User`, `Patient`, `Appointment`, `AppointmentEvent`, `Invoice`, `InvoiceItem`, `LeaveRequest`, and their status/role unions) as JSDoc `@typedef` blocks. Nothing enforces them at build time — they exist so editors autocomplete and so `/contract-check`, the `contract-auditor` agent and the Java hand-off have a machine-readable target. They mirror the entities in `API_CONTRACT.md` field-for-field: if one changes, change the other in the same edit.
 
 ### Styling
 
-Tailwind CSS v4 via the `@tailwindcss/vite` plugin (no `tailwind.config.js` — v4 is configured via the Vite plugin and a single `@import "tailwindcss";` in `client/src/index.css`). There is no separate component library; UI is built with Tailwind utility classes directly, with `Modal.tsx` and `Badge.tsx` as the only shared visual primitives.
+Tailwind CSS v4 via the `@tailwindcss/vite` plugin (no `tailwind.config.js` — v4 is configured via the Vite plugin). `client/src/index.css` is **not** a bare `@import "tailwindcss";` any more: it defines the light/dark palette as CSS custom properties, maps them through `@theme inline` (which is what lets a theme swap at runtime), and declares the `glass-panel`, `glass-panel-solid` and `chrome-text` utilities. Read its comments before touching colour — the ice-/ink- scales are ordered by contrast against the page, not by lightness.
+
+There is no component library. Repeated class strings live as exported constants in `client/src/lib/ui.js` (`inputClass`, `btnPrimary`, `tableWrap`, `tableBase`, `TONE`, …) rather than being copy-pasted; add to that file instead of re-typing a variant.
+
+### Shared UI primitives
+
+All in `client/src/components/`, and all worth reusing rather than re-rolling:
+
+- `Modal.jsx` — the overlay dialog, `{ title, onClose, children, ref }`. It portals to `document.body`, is a real `role="dialog" aria-modal="true"`, traps Tab, closes on Escape and backdrop click, and restores focus to whatever opened it. **Closing is two-stage**: `onClose` is the page's unmount callback and the Modal calls it only after the exit animation finishes, so a dialog that wants to close itself (Cancel, or a successful submit) must call `modalRef.current.close()` — calling its own `onClose` prop instead unmounts mid-animation. Every dialog in `pages/` follows this.
+- `Skeleton.jsx` — `Skeleton`, `TableSkeleton`, `CardSkeleton`. Loading states are placeholders in the shape of the content, not the word "Loading". `StatCard` takes a `loading` prop for the same reason.
+- `ConfirmDialog.jsx`, `GlassCard.jsx`, `StatCard.jsx`, `Badge.jsx`, `ThemeToggle.jsx`, `Toaster.jsx`.
+
+### Toasts
+
+`client/src/context/ToastContext.jsx` exposes `useToast()` → `{ success, error, info }`. The rule: a mutation that closes its dialog on success has nowhere left to say it worked, so it says so in an `onSuccess` toast. A failure *inside a form* stays inline next to the form (`errorText` in `lib/ui.js`); a failure with no form to fail in — a status `<select>` in a table row calling `.mutate()` — is toasted via a per-call `{ onError }`.
+
+### Motion
+
+`framer-motion`, with shared variants in `client/src/lib/motion.js` (`backdropMotion`, `panelMotion`, `pageMotion`, `toastMotion`, `drawerMotion`). `main.jsx` wraps the app in `<MotionConfig reducedMotion="user">`, which is the single place `prefers-reduced-motion` is honoured — no variant needs its own branch. Route transitions live in `Layout.jsx` and use `useOutlet()` rather than `<Outlet />`, so the page that fades out is the page that was there.
+
+### Responsive shell
+
+`Layout.jsx` renders a permanent sidebar from `lg` up and the same `<SidebarBody>` as an off-canvas drawer below it. Both are driven by one `NAV_ITEMS` list, so a nav entry cannot exist in one and not the other. Data tables scroll sideways rather than crushing their columns: the overflow is on `tableWrap`, the minimum width on `tableBase`.
 
 ## Claude Code tooling
 
@@ -77,10 +103,10 @@ This repo ships its own commands, agents, skills and hooks in [`.claude/`](./.cl
 
 | Command | Use it for |
 |---|---|
-| `/verify` | The local gate: oxlint → `tsc -b` → build. There is no test runner. |
+| `/verify` | The local gate: oxlint → build. There is no test runner and no type-check. |
 | `/contract-check [resource]` | Audit `API_CONTRACT.md` against types, api modules and role gating. Reports only. |
 | `/new-slice <Resource>` | Scaffold a full resource slice, contract section included. |
-| `/wire-api <resource\|all>` | Swap an `api/*.ts` module from the mock datastore to real axios calls. |
+| `/wire-api <resource\|all>` | Swap an `api/*.js` module from the mock datastore to real axios calls. |
 | `/backend-handoff` | Generate Java/Spring stubs + briefing into `docs/backend-stubs/`. |
 
 Hooks enforce, rather than merely document, four of the rules above: npm/yarn are blocked, so are

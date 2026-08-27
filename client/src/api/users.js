@@ -14,7 +14,20 @@ import { db, delay, nextId, persist } from "../mocks/db";
  */
 
 function toUser(m) {
-  return { id: m.id, name: m.name, email: m.email, role: m.role, patientId: m.patientId };
+  return {
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    role: m.role,
+    patientId: m.patientId,
+    status: m.status,
+    avatarUrl: m.avatarUrl,
+    phone: m.phone,
+    department: m.department,
+    notifyAppointmentReminders: m.notifyAppointmentReminders,
+    lastLoginAt: m.lastLoginAt,
+    notificationsReadAt: m.notificationsReadAt,
+  };
 }
 
 export async function listUsers(role) {
@@ -43,8 +56,31 @@ export async function createStaffUser(input) {
     email: input.email,
     password: input.password,
     role: input.role,
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
   };
   db.users.push(user);
+  persist();
+  return delay(toUser(user));
+}
+
+/**
+ * ADMIN deactivates or reactivates a staff login. This flips `status` only --
+ * it never touches the record itself or anything that references it (a
+ * doctor's assigned patients, past and future appointments), which is the
+ * whole point of a status flip instead of a delete. A deactivated account
+ * cannot sign in (see auth.login()) and drops out of the doctor pickers used
+ * for *new* assignments/bookings (see the note at SlotPicker) -- existing ones
+ * are unaffected.
+ */
+export async function updateUserStatus(id, status) {
+  const user = db.users.find((u) => u.id === id);
+  if (!user) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("User not found");
+    });
+  }
+  user.status = status;
   persist();
   return delay(toUser(user));
 }

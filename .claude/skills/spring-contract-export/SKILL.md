@@ -67,7 +67,12 @@ Target stack: Java + Spring Boot + Maven + PostgreSQL.
 
 ## Open items to flag in any hand-off
 
-- 12 of 15 endpoints have no role annotation in the contract; `/api/invoices` is the notable one, since
-  the UI restricts all billing to ADMIN/RECEPTIONIST.
+- The contract now annotates all 23 endpoints except the three that precede a session
+  (`POST /api/auth/login`, `POST /api/auth/signup`, `GET /api/auth/me`), so `@PreAuthorize` can be
+  emitted from the document rather than guessed. What it *cannot* express is the per-row scoping several
+  endpoints carry in prose — a `PATIENT` restricted to their own record, a `DOCTOR` to clinical fields on
+  assigned patients. Those need service-layer checks, and the hand-off must say so out loud.
+- `PATCH /api/auth/me` and `POST /api/auth/me/password` identify the account from the principal, not from
+  a path variable. Do not add an `{id}` to them "for consistency" — the absence is the access control.
 - `GET /api/patients/:id` and `GET /api/invoices/:id` are specified as 404-on-missing, but the mock
   frontend currently returns `undefined`. The backend should implement 404 per the contract.

@@ -35,7 +35,7 @@ Then write a short briefing to the user covering:
 - **Open questions** — everything the audit flagged, especially the 404-vs-`undefined` mismatch on
   `GET /api/patients/:id` and `GET /api/invoices/:id`.
 
-Report the files written and the endpoint coverage against the 15 endpoints in the contract. Do not claim
+Report the files written and the endpoint coverage against the 23 endpoints in the contract. Do not claim
 coverage that was not produced.
 
 $ARGUMENTS

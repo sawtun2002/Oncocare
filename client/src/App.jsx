@@ -20,6 +20,11 @@ import { PatientsListPage } from "./pages/patients/PatientsListPage";
 import { PatientDetailPage } from "./pages/patients/PatientDetailPage";
 import { AppointmentsPage } from "./pages/appointments/AppointmentsPage";
 import { BillingPage } from "./pages/billing/BillingPage";
+import { BookAppointmentPage } from "./pages/booking/BookAppointmentPage";
+import { MyBookingsPage } from "./pages/booking/MyBookingsPage";
+import { MyBillsPage } from "./pages/billing/MyBillsPage";
+import { LeavePage } from "./pages/leave/LeavePage";
+import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
 import { PatientDashboard } from "./pages/patient/PatientDashboard";
 import { PatientAppointments } from "./pages/patient/PatientAppointments";
@@ -29,7 +34,6 @@ import { DoctorAppointments } from "./pages/doctor/DoctorAppointments";
 import { PatientList } from "./pages/doctor/PatientList";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { UserManagement } from "./pages/admin/UserManagement";
-import { ProfilePage } from "./pages/profile/ProfilePage";
 
 // error pages (located in src/pages/errors/)
 import NotFoundPage from "./pages/errors/NotFoundPage";
@@ -69,6 +73,7 @@ function App() {
             <Route path="/patients" element={<PatientsListPage />} />
             <Route path="/patients/:id" element={<PatientDetailPage />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
+            <Route path="/leave" element={<LeavePage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />}>
@@ -79,35 +84,18 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
           </Route>
 
-          {/* Doctor directory (shared) */}
+          {/* Shared by staff and patients: the doctor directory, and the
+              signed-in account's own settings. */}
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorProfilePage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/patient/profile" element={<ProfilePage />} />
-            <Route path="/doctor/profile" element={<ProfilePage />} />
-            <Route path="/admin/profile" element={<ProfilePage />} />
-            <Route path="/receptionist/profile" element={<ProfilePage />} />
-            <Route path="/nurse/profile" element={<ProfilePage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={PATIENT_ROLES} />}>
-            <Route path="/my-bookings" element={<PatientDashboard />} />
-            <Route path="/book" element={<PatientAppointments />} />
-            <Route path="/patient/dashboard" element={<PatientDashboard />} />
-            <Route path="/patient/appointments" element={<PatientAppointments />} />
-            <Route path="/patient/token" element={<PatientToken />} />
-          </Route>
-
-          <Route element={<ProtectedRoute allowedRoles={["DOCTOR"]} />}>
-            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-            <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-            <Route path="/doctor/patients" element={<PatientList />} />
-          </Route>
-
-          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/my-bookings" element={<MyBookingsPage />} />
+            <Route path="/book" element={<BookAppointmentPage />} />
+            <Route path="/my-bills" element={<MyBillsPage />} />
           </Route>
         </Route>
       </Route>

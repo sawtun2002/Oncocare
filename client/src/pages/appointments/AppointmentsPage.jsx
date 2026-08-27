@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
+  acceptAppointment,
+  cancelAppointment,
   createAppointment,
+  declineAppointment,
   listAppointments,
   updateAppointment,
   updateAppointmentStatus,
@@ -9,13 +12,18 @@ import {
 import { listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { Badge } from "../../components/Badge";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { ReasonDialog } from "../../components/ReasonDialog";
+import { TableSkeleton } from "../../components/Skeleton";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import { CANCEL_REASONS, DECLINE_REASONS } from "../../lib/appointmentReasons";
 import { formatDateTime } from "../../lib/format";
 import {
   btnPrimary,
   dangerAction,
   inputClass,
   pageTitle,
+  tableBase,
   tableHead,
   tableRow,
   tableWrap,
@@ -23,10 +31,13 @@ import {
 import { RescheduleFormDialog } from "../booking/RescheduleFormDialog";
 import { AppointmentFormDialog } from "./AppointmentFormDialog";
 
-const STATUS_OPTIONS = ["SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW"];
+const STATUS_OPTIONS = ["REQUESTED", "SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW", "DECLINED"];
 
 export function AppointmentsPage() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
+  const [now] = useState(() => Date.now());
   const [search, setSearch] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -34,7 +45,10 @@ export function AppointmentsPage() {
   const [toDate, setToDate] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [rescheduling, setRescheduling] = useState(null);
+  const [declining, setDeclining] = useState(null);
   const [cancelling, setCancelling] = useState(null);
+
+  const actor = { userId: user?.id, role: user?.role };
 
   const appointmentsQuery = useQuery({ queryKey: ["appointments"], queryFn: listAppointments });
   const patientsQuery = useQuery({ queryKey: ["patients"], queryFn: listPatients });
@@ -46,18 +60,51 @@ export function AppointmentsPage() {
   };
 
   const createMutation = useMutation({
-    mutationFn: (input) => createAppointment(input),
-    onSuccess: invalidate,
+    mutationFn: (input) => createAppointment(input, actor),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Appointment booked.");
+    },
   });
 
   const rescheduleMutation = useMutation({
-    mutationFn: ({ id, ...input }) => updateAppointment(id, input),
-    onSuccess: invalidate,
+    mutationFn: ({ id, ...input }) => updateAppointment(id, input, actor),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Booking moved.");
+    },
   });
 
-  const statusMutation = useMutation({
-    mutationFn: ({ id, status }) => updateAppointmentStatus(id, status),
-    onSuccess: invalidate,
+  const acceptMutation = useMutation({
+    mutationFn: (id) => acceptAppointment(id, actor),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Request accepted.");
+    },
+  });
+
+  const declineMutation = useMutation({
+    mutationFn: ({ id, reason }) => declineAppointment(id, actor, reason),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Request declined.");
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: ({ id, reason }) => cancelAppointment(id, actor, reason),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Booking cancelled.");
+    },
+  });
+
+  const closeMutation = useMutation({
+    mutationFn: ({ id, status }) => updateAppointmentStatus(id, status, actor),
+    onSuccess: (_data, { status }) => {
+      invalidate();
+      toast.success(status === "COMPLETED" ? "Marked as complete." : "Marked as no-show.");
+    },
   });
 
   function patientName(id) {
@@ -65,6 +112,15 @@ export function AppointmentsPage() {
   }
   function doctorName(id) {
     return doctorsQuery.data?.find((d) => d.id === id)?.name ?? `#${id}`;
+  }
+  // Who may answer a request: reception and admins for anyone, a doctor only for
+  // their own. A nurse never can -- see API_CONTRACT.md.
+  function canDecide(a) {
+    return (
+      user?.role === "ADMIN" ||
+      user?.role === "RECEPTIONIST" ||
+      (user?.role === "DOCTOR" && a.doctorId === user.id)
+    );
   }
 
   const filtered = useMemo(() => {
@@ -188,11 +244,11 @@ export function AppointmentsPage() {
 
       <div className={`mt-4 ${tableWrap}`}>
         {appointmentsQuery.isLoading ? (
-          <p className="p-4 text-sm text-ink-400">Loading…</p>
+          <TableSkeleton columns={6} />
         ) : filtered.length === 0 ? (
           <p className="p-4 text-sm text-ink-400">No appointments found.</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
                 <th className="px-4 py-2.5">Patient</th>
@@ -211,40 +267,32 @@ export function AppointmentsPage() {
                   <td className="px-4 py-2.5 text-ink-400">{formatDateTime(a.scheduledAt)}</td>
                   <td className="px-4 py-2.5 text-ink-400">{a.reason || "—"}</td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <Badge status={a.status} />
-                      <select
-                        value={a.status}
-                        onChange={(e) => statusMutation.mutate({ id: a.id, status: e.target.value })}
-                        className={`${inputClass} mt-0 w-auto py-1 text-xs`}
-                      >
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>
-                            {s.replace("_", " ")}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <Badge status={a.status} />
                   </td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setRescheduling(a)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
-                      >
-                        Reschedule
-                      </button>
-                      {a.status !== "CANCELLED" && (
-                        <button
-                          type="button"
-                          onClick={() => setCancelling(a)}
-                          className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
+                    <RowActions
+                      appointment={a}
+                      isPast={new Date(a.scheduledAt).getTime() <= now}
+                      canDecide={canDecide(a)}
+                      onAccept={() =>
+                        acceptMutation.mutate(a.id, {
+                          onError: (err) =>
+                            toast.error(err instanceof Error ? err.message : "Could not accept that."),
+                        })
+                      }
+                      onDecline={() => setDeclining(a)}
+                      onReschedule={() => setRescheduling(a)}
+                      onCancel={() => setCancelling(a)}
+                      onClose={(status) =>
+                        closeMutation.mutate(
+                          { id: a.id, status },
+                          {
+                            onError: (err) =>
+                              toast.error(err instanceof Error ? err.message : "Could not update that."),
+                          }
+                        )
+                      }
+                    />
                   </td>
                 </tr>
               ))}
@@ -268,6 +316,7 @@ export function AppointmentsPage() {
         <RescheduleFormDialog
           appointment={rescheduling}
           doctors={doctorsQuery.data ?? []}
+          reasonRequired
           onClose={() => setRescheduling(null)}
           onSubmit={async (input) => {
             await rescheduleMutation.mutateAsync({ id: rescheduling.id, ...input });
@@ -275,20 +324,91 @@ export function AppointmentsPage() {
         />
       )}
 
+      {declining && (
+        <ReasonDialog
+          title="Decline this request?"
+          intro={`${patientName(declining.patientId)} asked for ${formatDateTime(
+            declining.scheduledAt
+          )} with ${doctorName(declining.doctorId)}. They'll see the reason you give.`}
+          presets={DECLINE_REASONS}
+          confirmLabel="Decline request"
+          danger
+          onClose={() => setDeclining(null)}
+          onSubmit={async (reason) => {
+            await declineMutation.mutateAsync({ id: declining.id, reason });
+          }}
+        />
+      )}
+
       {cancelling && (
-        <ConfirmDialog
+        <ReasonDialog
           title="Cancel this booking?"
-          message={`${patientName(cancelling.patientId)}'s appointment on ${formatDateTime(
+          intro={`${patientName(cancelling.patientId)}'s appointment on ${formatDateTime(
             cancelling.scheduledAt
-          )} with ${doctorName(cancelling.doctorId)} will be cancelled.`}
+          )} with ${doctorName(cancelling.doctorId)} will be cancelled. They'll see the reason.`}
+          presets={CANCEL_REASONS}
           confirmLabel="Cancel booking"
           danger
           onClose={() => setCancelling(null)}
-          onConfirm={async () => {
-            await statusMutation.mutateAsync({ id: cancelling.id, status: "CANCELLED" });
+          onSubmit={async (reason) => {
+            await cancelMutation.mutateAsync({ id: cancelling.id, reason });
           }}
         />
       )}
     </div>
   );
+}
+
+const actionBtn = "rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70";
+
+function RowActions({ appointment, isPast, canDecide, onAccept, onDecline, onReschedule, onCancel, onClose }) {
+  const { status } = appointment;
+
+  if (status === "REQUESTED") {
+    return (
+      <div className="flex items-center gap-1">
+        {canDecide ? (
+          <>
+            <button type="button" onClick={onAccept} className={actionBtn}>
+              Accept
+            </button>
+            <button type="button" onClick={onDecline} className={`${actionBtn} ${dangerAction}`}>
+              Decline
+            </button>
+          </>
+        ) : (
+          <span className="text-xs text-ink-400">Awaiting doctor</span>
+        )}
+        <button type="button" onClick={onCancel} className={`${actionBtn} ${dangerAction}`}>
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  if (status === "SCHEDULED") {
+    return (
+      <div className="flex items-center gap-1">
+        {isPast ? (
+          <>
+            <button type="button" onClick={() => onClose("COMPLETED")} className={actionBtn}>
+              Mark seen
+            </button>
+            <button type="button" onClick={() => onClose("NO_SHOW")} className={actionBtn}>
+              No-show
+            </button>
+          </>
+        ) : (
+          <button type="button" onClick={onReschedule} className={actionBtn}>
+            Reschedule
+          </button>
+        )}
+        <button type="button" onClick={onCancel} className={`${actionBtn} ${dangerAction}`}>
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  return <span className="text-xs text-ink-400">—</span>;
 }

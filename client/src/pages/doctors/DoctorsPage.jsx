@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { listDoctorProfiles } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
+import { CardSkeleton } from "../../components/Skeleton";
 import { initials } from "../../lib/format";
 import { errorText, pageTitle, pillBase, TONE } from "../../lib/ui";
 
@@ -18,7 +19,11 @@ export function DoctorsPage() {
       </p>
 
       {doctorsQuery.isLoading ? (
-        <p className="mt-6 text-sm text-ink-400">Loading doctors…</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <CardSkeleton key={i} lines={3} />
+          ))}
+        </div>
       ) : doctorsQuery.isError ? (
         <p className={`mt-6 ${errorText}`}>Could not load the doctor directory.</p>
       ) : doctors.length === 0 ? (

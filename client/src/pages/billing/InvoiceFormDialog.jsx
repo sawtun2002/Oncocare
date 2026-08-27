@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 
@@ -9,6 +9,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
   const [items, setItems] = useState([{ ...EMPTY_ITEM }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   const total = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
@@ -23,7 +24,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
     setSubmitting(true);
     try {
       await onSubmit({ patientId: Number(patientId), items: items.filter((i) => i.description.trim()) });
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -32,7 +33,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
   }
 
   return (
-    <Modal title="New invoice" onClose={onClose}>
+    <Modal title="New invoice" onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
           Patient
@@ -107,7 +108,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
         {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className={btnGhost}>
+          <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
             Cancel
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>

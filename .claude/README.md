@@ -1,21 +1,21 @@
 # `.claude/` — Claude Code configuration
 
-Committed to the repo so everyone working on Cancer HMS gets the same guardrails and commands.
+Committed to the repo so everyone working on OncoCare gets the same guardrails and commands.
 `settings.local.json` (personal permission grants) is gitignored.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/verify` | The local gate: `pnpm --filter client lint`, `tsc -b`, `pnpm --filter client build`. |
+| `/verify` | The local gate: `pnpm --filter client lint`, `pnpm --filter client build`. No type-check — `client/` is plain JS. |
 | `/contract-check [resource]` | Audits `API_CONTRACT.md` against the types, api modules and role gating. Reports only, never edits. |
 | `/new-slice <Resource>` | Scaffolds a full resource slice across all eight touch points, contract section included. |
-| `/wire-api <resource\|all>` | The merge step: swaps an `api/*.ts` module from the mock datastore to axios. |
+| `/wire-api <resource\|all>` | The merge step: swaps an `api/*.js` module from the mock datastore to axios. |
 | `/backend-handoff` | Generates Java/Spring stubs + a briefing into `docs/backend-stubs/`. |
 
 ## Agents
 
-- `contract-auditor` — read-only parity check: `API_CONTRACT.md` ↔ `types/index.ts` ↔ `api/*.ts`.
+- `contract-auditor` — read-only parity check: `API_CONTRACT.md` ↔ the `@typedef`s in `types/index.js` ↔ `api/*.js`.
 - `role-gating-auditor` — read-only RBAC check across nav, route guards, page conditionals and the contract.
 - `spring-stub-writer` — generates the backend hand-off material.
 
@@ -29,8 +29,8 @@ Loaded automatically when relevant: `hms-frontend-conventions`, `api-contract-sy
 | Script | Event | Behaviour |
 |---|---|---|
 | `hooks/guard.mjs` | PreToolUse | **Blocks**: `npm`/`yarn` commands (pnpm-only repo); writing `package-lock.json` / `yarn.lock`; JS/TS files under `server/`; a `mocks/` import inside `pages/`, `components/` or `context/`. `npx` is unaffected. |
-| `hooks/lint-file.mjs` | PostToolUse | Runs oxlint on the single edited `client/src/**/*.{ts,tsx}` file. Errors block (exit 2) so they're fixed in-turn; warnings are surfaced but don't block. |
-| `hooks/contract-reminder.mjs` | PostToolUse | After editing `api/*.ts` or `types/index.ts`, reminds once per file per session that `API_CONTRACT.md` may need the same change. Never blocks. |
+| `hooks/lint-file.mjs` | PostToolUse | Runs oxlint on the single edited `client/src/**/*.{js,jsx}` file. Errors block (exit 2) so they're fixed in-turn; warnings are surfaced but don't block. |
+| `hooks/contract-reminder.mjs` | PostToolUse | After editing `api/*.js` or `types/index.js`, reminds once per file per session that `API_CONTRACT.md` may need the same change. Never blocks. |
 
 All three read the hook JSON payload on stdin, exit 0 on anything they don't recognise, and fail open on
 malformed input — a hook must never break the session.

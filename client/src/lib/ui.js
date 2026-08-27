@@ -33,6 +33,14 @@ export const btnDanger =
 export const errorText = "text-sm text-rose-600 dark:text-rose-400";
 
 /**
+ * Two inline-text tones that pair with `errorText` for the signup password
+ * checklist: `hintText` is an unmet/neutral line, `okText` a satisfied one.
+ * Same `dark:` caveat as `errorText` -- emerald-600 doesn't read on navy.
+ */
+export const hintText = "text-xs text-ink-400";
+export const okText = "text-xs text-emerald-600 dark:text-emerald-400";
+
+/**
  * Destructive inline action -- a table row's Cancel/Delete link, as opposed to
  * `btnDanger`'s bordered button. Colour only: these appear at both text-xs (in
  * tables) and text-sm, so sizing stays at the call site.
@@ -40,8 +48,19 @@ export const errorText = "text-sm text-rose-600 dark:text-rose-400";
 export const dangerAction =
   "text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-300/60 dark:text-rose-400 dark:hover:bg-rose-400/15";
 
-/** Data tables use the solid surface -- dense text must not sit on a live blur. */
-export const tableWrap = "glass-panel-solid overflow-hidden";
+/**
+ * Data tables use the solid surface -- dense text must not sit on a live blur.
+ * The panel, not the page, is what scrolls sideways on a narrow screen: the
+ * horizontal overflow lives here and the minimum width lives on `tableBase`.
+ */
+export const tableWrap = "glass-panel-solid overflow-x-auto";
+
+/**
+ * The `<table>` inside a `tableWrap`. The minimum width is the point of it --
+ * without one, a five-column clinical table on a phone squeezes every column to
+ * a couple of characters instead of scrolling.
+ */
+export const tableBase = "w-full min-w-[36rem] text-left text-sm";
 
 export const tableHead =
   "border-b border-ice-200 bg-ice-100/70 text-xs font-semibold uppercase tracking-wide text-ink-400";

@@ -1,20 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { listAppointments, updateAppointment, updateAppointmentStatus } from "../../api/appointments";
-import { invoiceTotal, listInvoices } from "../../api/billing";
+import { cancelAppointment, listAppointments, updateAppointment } from "../../api/appointments";
+import { listInvoices } from "../../api/billing";
 import { getPatient, updatePatient } from "../../api/patients";
 import { listDoctors } from "../../api/users";
+import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { Badge } from "../../components/Badge";
-import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
+import { InvoiceCard } from "../../components/InvoiceCard";
+import { ReasonDialog } from "../../components/ReasonDialog";
+import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
-import { calculateAge, formatCurrency, formatDate, formatDateTime } from "../../lib/format";
+import { useToast } from "../../context/ToastContext";
+import { CANCEL_REASONS } from "../../lib/appointmentReasons";
+import { calculateAge, formatDate, formatDateTime } from "../../lib/format";
 import {
   btnGhost,
   dangerAction,
   pageTitle,
   sectionLabel,
+  tableBase,
   tableHead,
   tableRow,
   tableWrap,
@@ -27,6 +33,7 @@ export function PatientDetailPage() {
   const patientId = Number(id);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [rescheduling, setRescheduling] = useState(null);
   const [cancelling, setCancelling] = useState(null);
@@ -43,6 +50,7 @@ export function PatientDetailPage() {
     mutationFn: (input) => updatePatient(patientId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success("Record updated.");
     },
   });
 
@@ -51,30 +59,43 @@ export function PatientDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["availability"] });
   };
 
+  // Staff acting on a patient's booking: a reason is required for both moves and
+  // cancellations (see API_CONTRACT.md), so the actor carries no patientId.
+  const actor = { userId: user?.id, role: user?.role };
+
   const rescheduleMutation = useMutation({
-    mutationFn: ({ id: apptId, ...input }) => updateAppointment(apptId, input),
-    onSuccess: invalidateAppointments,
+    mutationFn: ({ id: apptId, ...input }) => updateAppointment(apptId, input, actor),
+    onSuccess: () => {
+      invalidateAppointments();
+      toast.success("Booking moved.");
+    },
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (apptId) => updateAppointmentStatus(apptId, "CANCELLED"),
-    onSuccess: invalidateAppointments,
+    mutationFn: ({ id: apptId, reason }) => cancelAppointment(apptId, actor, reason),
+    onSuccess: () => {
+      invalidateAppointments();
+      toast.success("Booking cancelled.");
+    },
   });
 
   const patient = patientQuery.data;
-  const canEdit = user?.role === "ADMIN" || user?.role === "RECEPTIONIST" || user?.role === "DOCTOR";
+  // A DOCTOR may edit clinical fields only on their *own* assigned patients
+  // (API_CONTRACT.md) -- not every patient record. An unassigned doctor gets no
+  // Edit button at all rather than one that opens an all-disabled dialog.
+  const clinicalOnly = user?.role === "DOCTOR" && patient?.assignedDoctorId === user.id;
+  const canEdit = user?.role === "ADMIN" || user?.role === "RECEPTIONIST" || clinicalOnly;
   const canManageBookings = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
-  const clinicalOnly = user?.role === "DOCTOR";
 
-  if (patientQuery.isLoading) return <p className="text-sm text-ink-400">Loading…</p>;
+  if (patientQuery.isLoading) return <CardSkeleton lines={4} />;
   if (!patient) return <p className="text-sm text-ink-400">Patient not found.</p>;
 
   const patientAppointments = (appointmentsQuery.data ?? []).filter((a) => a.patientId === patientId);
-  const upcomingAppointments = patientAppointments.filter(
-    (a) => a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now
-  );
+  const isActive = (a) =>
+    a.status === "REQUESTED" || (a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now);
+  const upcomingAppointments = patientAppointments.filter(isActive);
   const pastAppointments = patientAppointments
-    .filter((a) => !(a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now))
+    .filter((a) => !isActive(a))
     .slice()
     .reverse();
 
@@ -108,6 +129,16 @@ export function PatientDetailPage() {
           <dl className="mt-2 space-y-1 text-sm">
             <Row label="Phone" value={patient.phone} />
             <Row label="Address" value={patient.address || "—"} />
+            <Row
+              label="Emergency contact"
+              value={
+                patient.emergencyContactName
+                  ? `${patient.emergencyContactName}${
+                      patient.emergencyContactPhone ? ` · ${patient.emergencyContactPhone}` : ""
+                    }`
+                  : "—"
+              }
+            />
           </dl>
         </GlassCard>
         <GlassCard className="p-4">
@@ -116,10 +147,22 @@ export function PatientDetailPage() {
             <Row label="Diagnosis" value={patient.diagnosisType} />
             <Row label="Stage" value={patient.diagnosisStage || "—"} />
             <Row label="Doctor" value={assignedDoctorName} />
+            <Row label="Blood type" value={patient.bloodType || "—"} />
+            <Row label="Allergies" value={patient.allergies || "—"} />
             <Row label="Notes" value={patient.notes || "—"} />
           </dl>
         </GlassCard>
       </div>
+
+      {/* Full-width rather than squeezed into the two-column grid above: this
+          is a paragraph, not a short label/value fact, and the Row layout
+          those cards use reads badly once the value wraps to several lines. */}
+      {patient.medicalHistory && (
+        <GlassCard className="mt-4 p-4">
+          <h2 className="text-sm font-semibold text-ink-400">Medical history</h2>
+          <p className="mt-2 text-sm text-ink-700">{patient.medicalHistory}</p>
+        </GlassCard>
+      )}
 
       <div className="mt-8">
         <h2 className={sectionLabel}>Upcoming appointments</h2>
@@ -127,7 +170,7 @@ export function PatientDetailPage() {
           {upcomingAppointments.length === 0 ? (
             <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
+            <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
                   <th className="px-4 py-2.5">When</th>
@@ -176,62 +219,38 @@ export function PatientDetailPage() {
 
       <div className="mt-8">
         <h2 className={sectionLabel}>Appointment history</h2>
-        <div className={`mt-3 ${tableWrap}`}>
+        <div className="mt-3 space-y-3">
           {pastAppointments.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">No past appointments.</p>
+            <p className="text-sm text-ink-400">No past appointments.</p>
           ) : (
-            <table className="w-full text-left text-sm">
-              <thead className={tableHead}>
-                <tr>
-                  <th className="px-4 py-2.5">When</th>
-                  <th className="px-4 py-2.5">Doctor</th>
-                  <th className="px-4 py-2.5">Reason</th>
-                  <th className="px-4 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pastAppointments.map((a) => (
-                  <tr key={a.id} className={tableRow}>
-                    <td className="px-4 py-2.5">{formatDateTime(a.scheduledAt)}</td>
-                    <td className="px-4 py-2.5 text-ink-400">{doctorName(a.doctorId)}</td>
-                    <td className="px-4 py-2.5 text-ink-400">{a.reason || "—"}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge status={a.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            pastAppointments.map((a) => (
+              <GlassCard key={a.id} className="p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
+                    <div className="mt-0.5 text-sm text-ink-400">
+                      {doctorName(a.doctorId)}
+                      {a.reason ? ` · ${a.reason}` : ""}
+                    </div>
+                  </div>
+                  <Badge status={a.status} />
+                </div>
+                <div className="mt-3 border-t border-hairline/60 pt-3">
+                  <AppointmentTimeline events={a.events} />
+                </div>
+              </GlassCard>
+            ))
           )}
         </div>
       </div>
 
       <div className="mt-8">
-        <h2 className={sectionLabel}>Invoices</h2>
-        <div className={`mt-3 ${tableWrap}`}>
+        <h2 className={sectionLabel}>Billing</h2>
+        <div className="mt-3 space-y-3">
           {patientInvoices.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">No invoices yet.</p>
+            <p className="text-sm text-ink-400">No invoices yet.</p>
           ) : (
-            <table className="w-full text-left text-sm">
-              <thead className={tableHead}>
-                <tr>
-                  <th className="px-4 py-2.5">Issued</th>
-                  <th className="px-4 py-2.5">Total</th>
-                  <th className="px-4 py-2.5">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {patientInvoices.map((inv) => (
-                  <tr key={inv.id} className={tableRow}>
-                    <td className="px-4 py-2.5">{formatDate(inv.issuedAt)}</td>
-                    <td className="px-4 py-2.5 text-ink-700">{formatCurrency(invoiceTotal(inv))}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge status={inv.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            patientInvoices.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
           )}
         </div>
       </div>
@@ -252,6 +271,7 @@ export function PatientDetailPage() {
         <RescheduleFormDialog
           appointment={rescheduling}
           doctors={doctorsQuery.data ?? []}
+          reasonRequired
           onClose={() => setRescheduling(null)}
           onSubmit={async (input) => {
             await rescheduleMutation.mutateAsync({ id: rescheduling.id, ...input });
@@ -260,16 +280,17 @@ export function PatientDetailPage() {
       )}
 
       {cancelling && (
-        <ConfirmDialog
+        <ReasonDialog
           title="Cancel this booking?"
-          message={`The appointment on ${formatDateTime(cancelling.scheduledAt)} with ${doctorName(
+          intro={`${patient.name}'s appointment on ${formatDateTime(cancelling.scheduledAt)} with ${doctorName(
             cancelling.doctorId
-          )} will be cancelled.`}
+          )} will be cancelled. They'll see the reason.`}
+          presets={CANCEL_REASONS}
           confirmLabel="Cancel booking"
           danger
           onClose={() => setCancelling(null)}
-          onConfirm={async () => {
-            await cancelMutation.mutateAsync(cancelling.id);
+          onSubmit={async (reason) => {
+            await cancelMutation.mutateAsync({ id: cancelling.id, reason });
           }}
         />
       )}
