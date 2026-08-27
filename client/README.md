@@ -1,32 +1,17 @@
-# React + TypeScript + Vite
+# `client/`
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The Cancer HMS frontend: React 19 + Vite + Tailwind CSS v4, in plain JavaScript/JSX, running against an
+in-browser mock API until the Spring Boot backend exists.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm --filter client dev       # vite dev server on :5173
+pnpm --filter client lint      # oxlint
+pnpm --filter client build     # vite build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+There is no type-check step and no test runner — `lint` and `build` are the whole gate. `jsconfig.json`
+is for editor intellisense only (`checkJs: false`); nothing in the build reads it.
+
+Everything else lives at the repo root: [`../README.md`](../README.md) for setup and demo logins,
+[`../API_CONTRACT.md`](../API_CONTRACT.md) for the REST contract the backend must implement, and
+[`../CLAUDE.md`](../CLAUDE.md) for the architecture and the conventions this code follows.

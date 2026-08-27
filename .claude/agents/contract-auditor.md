@@ -1,6 +1,6 @@
 ---
 name: contract-auditor
-description: Read-only auditor that cross-checks API_CONTRACT.md against client/src/types/index.ts and client/src/api/*.ts and reports drift (field names, casing, optionality, return shapes, sort order, missing endpoints). Use when asked to check contract parity, before a backend hand-off, after changing types or an api module, or as part of /contract-check.
+description: Read-only auditor that cross-checks API_CONTRACT.md against client/src/types/index.js and client/src/api/*.js and reports drift (field names, casing, optionality, return shapes, sort order, missing endpoints). Use when asked to check contract parity, before a backend hand-off, after changing types or an api module, or as part of /contract-check.
 tools: Read, Grep, Glob
 model: sonnet
 ---
@@ -16,24 +16,31 @@ backend against it, so drift is expensive — it surfaces in someone else's repo
 Always read all of these in full before reporting:
 
 - `API_CONTRACT.md`
-- `client/src/types/index.ts`
-- every file in `client/src/api/` (`auth.ts`, `users.ts`, `patients.ts`, `appointments.ts`, `billing.ts`)
-- `client/src/mocks/seedData.ts` and `client/src/mocks/db.ts` when a field's presence or shape is in question
+- `client/src/types/index.js`
+- every file in `client/src/api/` (`auth.js`, `users.js`, `doctors.js`, `patients.js`, `appointments.js`,
+  `billing.js`)
+- `client/src/mocks/seedData.js` and `client/src/mocks/db.js` when a field's presence or shape is in question
+
+`client/` is plain JavaScript: entity and `*Input` shapes are JSDoc `@typedef` blocks, not TypeScript
+declarations, and **nothing type-checks them**. A rename that a compiler would have caught reaches the
+contract only if you catch it, which is the reason this audit exists at all.
 
 ## What to check
 
-1. **Entity fields** — for each interface in the contract's `ts` blocks, compare against
-   `types/index.ts` field-by-field: missing fields, extra fields, renamed fields, **casing** differences,
-   `?` optionality mismatches, and type mismatches (`number` vs `string`, union members).
+1. **Entity fields** — for each interface in the contract's `ts` blocks, compare against the
+   `@typedef` blocks in `types/index.js` field-by-field: missing fields, extra fields, renamed fields,
+   **casing** differences, optionality mismatches (contract `field?:` ↔ JSDoc `@property {T} [field]`),
+   and type mismatches (`number` vs `string`, union members).
    Note: the contract inlines `"Male" | "Female" | "Other"` while the frontend names it `Sex`. That is a
    known, accepted divergence — the wire values match. Do not report it as drift.
 2. **Union members** — exact string values of `Role`, `AppointmentStatus`, `InvoiceStatus`.
-3. **Input aliases** — the contract declares e.g. `type PatientInput = Omit<Patient, "id" | "registeredAt">`.
-   Verify the api module's exported alias omits exactly the same keys. Verify `*Input` types live in the
-   api module and have not leaked into `types/index.ts`.
+3. **Input shapes** — the contract declares e.g. `type PatientInput = Omit<Patient, "id" | "registeredAt">`.
+   Verify the api module's `@typedef` omits exactly the same keys, and that `*Input` shapes live in the
+   api module and have not leaked into `types/index.js`. These typedefs are documentation only — nothing
+   imports them — so a stale one is invisible until the backend disagrees with it.
 4. **Endpoint coverage** — every endpoint bullet in the contract should have a corresponding exported
    function in `client/src/api/`, and every exported api function should map to a contract endpoint.
-   Report both directions. (`invoiceTotal` in `billing.ts` is a local helper, not an endpoint — ignore it.)
+   Report both directions. (`invoiceTotal` in `billing.js` is a local helper, not an endpoint — ignore it.)
 5. **Return shapes** — the contract's `→ X` versus the function's `Promise<...>`. Flag anywhere the
    contract says 404-on-missing but the function returns `T | undefined`.
 6. **Sort order** — contract says patients newest-registered first, invoices newest-issued first,
@@ -46,8 +53,12 @@ Always read all of these in full before reporting:
 
 ## Known findings (report them, they are real, but mark as known)
 
-- `getPatient` and `getInvoice` return `Patient | undefined` / `Invoice | undefined` while the contract
-  specifies 404. This is an unresolved swap-point decision.
+- `getPatient` and `getInvoice` resolve to `undefined` on an unknown id while the contract specifies
+  404. This is an unresolved swap-point decision.
+- The own-account endpoints (`PATCH /api/auth/me`, `POST /api/auth/me/password`) map to
+  `updateProfile(token, input)` and `changePassword(token, input)` — they take the session token where
+  every other function would take an id. That is deliberate, not drift: it is what makes "you may only
+  edit yourself" structural. Flag it only if an id parameter has appeared.
 
 ## Output format
 
