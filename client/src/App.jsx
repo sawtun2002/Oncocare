@@ -12,6 +12,7 @@ import { AppointmentsPage } from "./pages/appointments/AppointmentsPage";
 import { BillingPage } from "./pages/billing/BillingPage";
 import { BookAppointmentPage } from "./pages/booking/BookAppointmentPage";
 import { MyBookingsPage } from "./pages/booking/MyBookingsPage";
+import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
 
 function App() {
@@ -38,10 +39,12 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
           </Route>
 
-          {/* The doctor directory is the one section staff and patients share. */}
+          {/* Shared by staff and patients: the doctor directory, and the
+              signed-in account's own settings. */}
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorProfilePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={PATIENT_ROLES} />}>

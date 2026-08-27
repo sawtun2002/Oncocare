@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchCurrentUser, login as apiLogin, signup as apiSignup } from "../api/auth";
+import {
+  changePassword as apiChangePassword,
+  fetchCurrentUser,
+  login as apiLogin,
+  signup as apiSignup,
+  updateProfile as apiUpdateProfile,
+} from "../api/auth";
 
 const TOKEN_KEY = "cancer-hms-token";
 
@@ -40,7 +46,29 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, signup, logout }}>{children}</AuthContext.Provider>;
+  /**
+   * Own-account edits go through here rather than straight from the page, for
+   * the same reason login() does: the session token lives in this module, and
+   * the sidebar's name and initials have to follow the change immediately.
+   */
+  async function updateProfile(input) {
+    const updated = await apiUpdateProfile(localStorage.getItem(TOKEN_KEY), input);
+    setUser(updated);
+  }
+
+  // The token is unchanged by a password change -- this is not a re-login, and
+  // there is nothing to store.
+  async function changePassword(input) {
+    await apiChangePassword(localStorage.getItem(TOKEN_KEY), input);
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{ user, loading, login, signup, logout, updateProfile, changePassword }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

@@ -7,6 +7,18 @@ import { db, delay, nextId, persist } from "../mocks/db";
  */
 
 /**
+ * @typedef {Object} ProfileInput
+ * @property {string} name
+ * @property {string} email
+ */
+
+/**
+ * @typedef {Object} PasswordChangeInput
+ * @property {string} currentPassword
+ * @property {string} newPassword
+ */
+
+/**
  * @typedef {Object} SignupInput
  * @property {string} name
  * @property {string} email
@@ -24,6 +36,16 @@ function toUser(m) {
 
 function findByEmail(email) {
   return db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+}
+
+/**
+ * The account a session token belongs to. The token is the only thing that says
+ * whose account this is -- no function here takes a user id, which is what
+ * stops a caller editing someone else's login by passing a different one.
+ */
+function userForToken(token) {
+  const id = Number(String(token).replace("mock-token-", ""));
+  return db.users.find((u) => u.id === id);
 }
 
 export async function login(email, password) {
@@ -78,12 +100,61 @@ export async function signup(input) {
 }
 
 export async function fetchCurrentUser(token) {
-  const id = Number(token.replace("mock-token-", ""));
-  const match = db.users.find((u) => u.id === id);
+  const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
       throw new Error("Session expired");
     });
   }
   return delay(toUser(match));
+}
+
+/**
+ * Update the signed-in account's own details. Name and email only: a patient's
+ * phone and address belong to their Patient record, not to their login, and are
+ * edited from the patient register.
+ */
+export async function updateProfile(token, input) {
+  const match = userForToken(token);
+  if (!match) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Session expired");
+    });
+  }
+
+  const existing = findByEmail(input.email);
+  if (existing && existing.id !== match.id) {
+    return delay(undefined, 250).then(() => {
+      throw new Error("An account with this email already exists.");
+    });
+  }
+
+  match.name = input.name;
+  match.email = input.email;
+  persist();
+  return delay(toUser(match));
+}
+
+/**
+ * Change the signed-in account's own password. The current password is required
+ * even though the session already proves who this is -- it is what makes an
+ * unattended, still-signed-in screen not enough to take the account over.
+ */
+export async function changePassword(token, input) {
+  const match = userForToken(token);
+  if (!match) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Session expired");
+    });
+  }
+
+  if (match.password !== input.currentPassword) {
+    return delay(undefined, 250).then(() => {
+      throw new Error("Your current password is not correct.");
+    });
+  }
+
+  match.password = input.newPassword;
+  persist();
+  return delay(undefined);
 }

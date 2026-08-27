@@ -13,6 +13,15 @@ All endpoints are prefixed with `/api`. All authenticated endpoints expect `Auth
   plus a new `Patient` record in the same transaction, linked via the returned user's `patientId`, so the
   account can book immediately. `Patient.diagnosisType` is set to a placeholder (`"Not yet assessed"`);
   staff completes clinical fields at the first real visit. 409 if `email` is already registered.
+- `PATCH /api/auth/me` — body `ProfileInput` → updated `User`. Allowed roles: all, **own account only**.
+  The account to update is taken from the token; there is deliberately no id in the path or body, so
+  there is nothing for a caller to substitute. **`role` and `patientId` must not be updatable here** —
+  an account that could raise its own role would make every other role check decorative. 409 if `email`
+  already belongs to a different account.
+- `POST /api/auth/me/password` — body `PasswordChangeInput` → `204 No Content`. Allowed roles: all, own
+  account only. 400 if `currentPassword` does not match; requiring it is what stops an unattended,
+  still-signed-in screen being enough to take the account over. The token stays valid — this is not a
+  re-login and no new token is issued.
 
 ```ts
 type Role = "ADMIN" | "DOCTOR" | "NURSE" | "RECEPTIONIST" | "PATIENT";
@@ -31,7 +40,19 @@ interface SignupInput {
   sex: "Male" | "Female" | "Other";
   phone: string;
 }
+interface ProfileInput {
+  name: string;
+  email: string;
+}
+interface PasswordChangeInput {
+  currentPassword: string;
+  newPassword: string;
+}
 ```
+
+`ProfileInput` is name and email only. A patient's phone and address live on their `Patient` record, not
+on their login, and are edited through `PATCH /api/patients/:id` by staff — the two must not both be
+writable from the profile screen or they will disagree.
 
 `PATIENT` accounts are patients signing in to the booking portal. Every endpoint below is annotated with
 the roles allowed to call it — **`PATIENT` is not staff**, and silence is never permission.

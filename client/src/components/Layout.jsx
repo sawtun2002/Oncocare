@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
   { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
   { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
+  { to: "/profile", label: "My profile", roles: ALL_ROLES },
 ];
 
 const ROLE_LABEL = {
