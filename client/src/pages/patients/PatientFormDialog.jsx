@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
+import { isValidNrc } from "../../lib/validation";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -10,6 +11,7 @@ const EMPTY = {
   sex: "Female",
   phone: "",
   address: "",
+  nrc: "",
   emergencyContactName: "",
   emergencyContactPhone: "",
   diagnosisType: "",
@@ -40,6 +42,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           sex: initial.sex,
           phone: initial.phone,
           address: initial.address ?? "",
+          nrc: initial.nrc ?? "",
           emergencyContactName: initial.emergencyContactName ?? "",
           emergencyContactPhone: initial.emergencyContactPhone ?? "",
           diagnosisType: initial.diagnosisType,
@@ -67,12 +70,20 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
     (d) => d.id === form.assignedDoctorId && d.status === "INACTIVE"
   );
 
+  // NRC is a registrar field, so a DOCTOR (clinicalOnly) never edits it and the
+  // check is skipped for them. Optional -- only validated when something's typed.
+  const nrcError = !disabled && form.nrc.trim() !== "" && !isValidNrc(form.nrc);
+
   async function handleSubmit(e) {
     e.preventDefault();
+    if (nrcError) {
+      setError("Enter a valid NRC, e.g. 12/MABANA(N)123456, or leave it blank.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
-      await onSubmit(form);
+      await onSubmit({ ...form, nrc: form.nrc.trim() });
       modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -127,14 +138,31 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           </Field>
         </div>
 
-        <Field label="Address">
-          <input
-            disabled={disabled}
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            className={inputClass}
-          />
-        </Field>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Address">
+            <input
+              disabled={disabled}
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="NRC">
+            <input
+              disabled={disabled}
+              value={form.nrc}
+              onChange={(e) => setForm({ ...form, nrc: e.target.value })}
+              placeholder="12/MABANA(N)123456"
+              aria-invalid={nrcError}
+              className={inputClass}
+            />
+            {nrcError && (
+              <span className={`mt-1 block ${errorText}`}>
+                Format: region/township(type)number.
+              </span>
+            )}
+          </Field>
+        </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Emergency contact name">

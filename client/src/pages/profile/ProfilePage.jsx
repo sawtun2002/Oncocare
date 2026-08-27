@@ -172,6 +172,7 @@ function DetailsCard({ user }) {
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [department, setDepartment] = useState(user.department ?? "");
+  const [address, setAddress] = useState(user.address ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -179,14 +180,16 @@ function DetailsCard({ user }) {
     name === user.name &&
     email === user.email &&
     phone === (user.phone ?? "") &&
-    department === (user.department ?? "");
+    department === (user.department ?? "") &&
+    address === (user.address ?? "");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await updateProfile(isStaff ? { name, email, phone, department } : { name, email });
+      // `nrc` is not sent -- it is ADMIN-set and ProfileInput has no such field.
+      await updateProfile(isStaff ? { name, email, phone, department, address } : { name, email });
       toast.success("Your details have been saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -215,21 +218,31 @@ function DetailsCard({ user }) {
         </label>
 
         {isStaff && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className={labelClass}>
+                Phone
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+              </label>
+              <label className={labelClass}>
+                Department
+                <input
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g. Oncology Ward 3"
+                  className={inputClass}
+                />
+              </label>
+            </div>
             <label className={labelClass}>
-              Phone
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
-            </label>
-            <label className={labelClass}>
-              Department
+              Address
               <input
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                placeholder="e.g. Oncology Ward 3"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 className={inputClass}
               />
             </label>
-          </div>
+          </>
         )}
 
         {/* Read-only on purpose. A role is granted by an administrator on the

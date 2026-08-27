@@ -52,6 +52,8 @@ interface User {
   avatarUrl?: string;
   phone?: string;         // staff accounts only -- see the note below ProfileInput
   department?: string;    // staff accounts only, free text (e.g. "Oncology Ward 3")
+  address?: string;       // staff accounts only; ADMIN-set at creation, editable on own /profile
+  nrc?: string;           // staff accounts only; Myanmar NRC, e.g. "12/MABANA(N)123456". See note below.
   notifyAppointmentReminders: boolean;  // defaults true; mock-only preference
   lastLoginAt?: string;   // ISO datetime, set by POST /api/auth/login
   notificationsReadAt?: string;  // ISO datetime; see Notices. Unset = nothing read yet.
@@ -69,6 +71,7 @@ interface ProfileInput {
   email: string;
   phone?: string;         // staff accounts only -- omit for a PATIENT caller
   department?: string;    // staff accounts only -- omit for a PATIENT caller
+  address?: string;       // staff accounts only -- omit for a PATIENT caller. NRC is NOT here (below).
 }
 interface PasswordChangeInput {
   currentPassword: string;
@@ -79,12 +82,27 @@ interface NotificationPreferencesInput {
 }
 ```
 
-`ProfileInput` covers name/email for everyone and phone/department for staff only. A patient's phone and
-address live on their `Patient` record, not on their login, and are edited through
+`ProfileInput` covers name/email for everyone and phone/department/address for staff only. A patient's
+phone and address live on their `Patient` record, not on their login, and are edited through
 `PATCH /api/patients/:id` by staff — the two must not both be writable from the profile screen or they
 will disagree. Photo (`PATCH /api/auth/me/avatar`) and the reminders toggle
 (`PATCH /api/auth/me/notifications`) are deliberately separate endpoints rather than more `ProfileInput`
 fields: each is meant to save the instant it changes in the UI, not wait on this endpoint's own submit.
+
+### NRC
+
+`User.nrc` (staff) and `Patient.nrc` are the Myanmar National Registration Card, formatted
+`<region 1–14>/<township code, letters>(<citizenship type>)<6 digits>` — e.g. `12/MABANA(N)123456`.
+The frontend validates it in `client/src/lib/validation.js` (`isValidNrc`): strict on the region range
+and the 6-digit serial, permissive on the township code (letters, transliterations vary) and the type
+(1–3 letters). Backend should re-check and **400** on a malformed value.
+
+- **Staff:** `nrc` is **required** in `StaffUserInput` (set by an `ADMIN` at creation) and is **not** in
+  `ProfileInput` — it is an identity document, not a self-service field. There is no other endpoint that
+  changes it today; a future admin-edit endpoint would be where a correction goes.
+- **Patient:** `nrc` is **optional** — an emergency admission may arrive without ID. It is a registrar
+  field like `phone`/`address`: `PATCH /api/patients/:id` accepts it from `ADMIN`/`RECEPTIONIST`,
+  **never** from a `DOCTOR` (the same rule as `emergencyContactName`).
 
 ### Password policy
 
@@ -160,6 +178,8 @@ interface StaffUserInput {
   email: string;
   password: string;
   role: StaffRole;
+  nrc: string;            // required -- Myanmar NRC, see the NRC note above
+  address?: string;       // optional at creation; the account holder adds it via ProfileInput
 }
 ```
 
@@ -203,7 +223,7 @@ added later it belongs to `ADMIN` (any profile) and `DOCTOR` (their own).
 - `GET /api/patients/:id` — → `Patient`. 404 if missing. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`,
   `RECEPTIONIST`; a `PATIENT` may read only their own record (`id === their own patientId`).
 - `POST /api/patients` — body `PatientInput` → created `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to the clinical fields — `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`, `medicalHistory`, `notes` — on their assigned patients; **never** `emergencyContactName`/`emergencyContactPhone`, which are registrar territory like `phone`/`address` — enforce server-side).
+- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to the clinical fields — `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`, `medicalHistory`, `notes` — on their assigned patients; **never** `emergencyContactName`/`emergencyContactPhone`/`nrc`, which are registrar territory like `phone`/`address` — enforce server-side).
 
 ```ts
 type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
@@ -214,6 +234,7 @@ interface Patient {
   sex: "Male" | "Female" | "Other";
   phone: string;
   address?: string;
+  nrc?: string;                    // Myanmar NRC; optional; registrar field, not DOCTOR-editable -- see the NRC note
   emergencyContactName?: string;   // registrar field, not DOCTOR-editable -- see above
   emergencyContactPhone?: string;  // registrar field, not DOCTOR-editable -- see above
   diagnosisType: string;

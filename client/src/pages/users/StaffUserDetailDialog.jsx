@@ -38,7 +38,9 @@ export function StaffUserDetailDialog({ user, onClose }) {
       <dl className="mt-6 space-y-3 text-sm">
         <Row label="Email" value={user.email} />
         <Row label="Status" value={<Badge status={user.status ?? "ACTIVE"} />} />
+        <Row label="NRC" value={user.nrc || "—"} />
         <Row label="Phone" value={user.phone || "—"} />
+        <Row label="Address" value={user.address || "—"} />
         <Row label="Department" value={user.department || "—"} />
         <Row
           label="Last signed in"

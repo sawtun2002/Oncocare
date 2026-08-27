@@ -128,6 +128,7 @@ export function PatientDetailPage() {
           <h2 className="text-sm font-semibold text-ink-400">Contact</h2>
           <dl className="mt-2 space-y-1 text-sm">
             <Row label="Phone" value={patient.phone} />
+            <Row label="NRC" value={patient.nrc || "—"} />
             <Row label="Address" value={patient.address || "—"} />
             <Row
               label="Emergency contact"

@@ -31,10 +31,15 @@ reschedule or withdraw their own bookings, and read their own bill, itemized) an
 staff screen. The seeded patient login is linked to the "John Doe" patient record.
 
 Every account, staff or patient, gets a profile page: click your name/avatar at the bottom of the
-sidebar (not a nav link). It covers a photo, name/email (plus phone/department for staff — a patient's
-contact details live on their patient record instead), an appointment-reminders toggle, password, when
-you last signed in, and the light/dark/system theme. Changing a password in the mock API updates the
-seeded account, so note the new one — there is no reset flow.
+sidebar (not a nav link). It covers a photo, name/email (plus phone/department/address for staff — a
+patient's contact details live on their patient record instead), an appointment-reminders toggle,
+password, when you last signed in, and the light/dark/system theme. Changing a password in the mock API
+updates the seeded account, so note the new one — there is no reset flow.
+
+Staff records also carry an **NRC** (Myanmar National Registration Card, e.g. `12/MABANA(N)123456`),
+entered by an admin when the account is created and shown on the staff detail dialog (`/users` → click
+a name). It isn't editable from the profile page. Patient records carry an optional NRC too, on the
+patient form.
 
 An `ADMIN` can also deactivate a staff account from **Staff accounts** (`/users`) — it blocks that
 login and removes them from doctor pickers for new bookings, but never touches their existing patients

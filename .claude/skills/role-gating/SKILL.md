@@ -77,8 +77,9 @@ signed-in admin's own row, and `PATCH /api/users/:id/status` documents the same 
 server-side — deactivating the only admin who could undo it would lock everyone out.
 
 Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`,
-`medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone` are **not** in that set — they
-sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly` is true.
+`medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone`/`nrc` are **not** in that
+set — they sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly`
+is true. (`nrc` is the Myanmar National Registration Card; `isValidNrc` in `lib/validation.js` format-checks it. Staff also carry `nrc` — required in the "Add staff account" form, never editable from `/profile`.)
 The DOCTOR case is also **assignment-scoped**: `clinicalOnly` is true only when
 `patient.assignedDoctorId === user.id`, matching `PATCH /api/patients/:id`'s "on their assigned
 patients" clause — a doctor cannot open the editor on a patient who isn't theirs.

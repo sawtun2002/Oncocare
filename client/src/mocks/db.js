@@ -30,7 +30,11 @@ import {
 // v8 added the leaveRequests array (staff time-off) and its nextId kind. A v7
 // store has no leaveRequests key, which listLeaveRequests would spread as
 // undefined -- so the v7 store is dropped for the v8 seed like every bump before.
-const STORAGE_KEY = "cancer-hms-mock-db-v8";
+// v9 added address/nrc to staff users and nrc to patients -- all optional, so
+// nothing needs a defensive default, but the bump still applies so a returning
+// visitor picks up the seeded values the staff detail dialog and patient record
+// now display.
+const STORAGE_KEY = "cancer-hms-mock-db-v9";
 
 /**
  * @typedef {Object} MockDb

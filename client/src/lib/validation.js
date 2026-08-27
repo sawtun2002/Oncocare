@@ -110,3 +110,21 @@ export function isValidPhone(phone) {
   if (/^(\d)\1+$/.test(digits)) return false;
   return true;
 }
+
+// Myanmar NRC: <region 1-14>/<township code, letters>(<citizenship type>)<6 digits>
+// e.g. "12/MABANA(N)123456". Strict on the region range and the 6-digit serial;
+// permissive on the township code (2-12 letters -- transliterations vary) and
+// the type (1-3 letters: N/E/P/T/A/...). Case-insensitive; a single "/" is
+// accepted between region and township even if the user types spaces around it.
+const NRC_RE = /^(?:[1-9]|1[0-4])\/[A-Za-z]{2,12}\([A-Za-z]{1,3}\)\d{6}$/;
+
+/**
+ * Whether `nrc` matches the Myanmar National Registration Card format. Empty
+ * input is *invalid* here -- callers decide whether the field is required and
+ * skip the check when it's optional and blank.
+ * @param {string} nrc
+ * @returns {boolean}
+ */
+export function isValidNrc(nrc) {
+  return NRC_RE.test(String(nrc).replace(/\s*\/\s*/, "/").trim());
+}

@@ -31,6 +31,11 @@
  * @property {string} [phone] Staff accounts only. A patient's phone lives on their Patient record, not
  *   here -- see Patient.phone.
  * @property {string} [department] Staff accounts only, free text (e.g. "Oncology Ward 3").
+ * @property {string} [address] Staff accounts only. Set by an ADMIN at creation; the account holder can
+ *   change it on their own /profile. A patient's address lives on their Patient record.
+ * @property {string} [nrc] Staff accounts only -- Myanmar National Registration Card, e.g.
+ *   "12/MABANA(N)123456" (see lib/validation.js `isValidNrc`). ADMIN-set at creation only; not editable
+ *   from /profile -- it is an identity document, not a self-service field.
  * @property {boolean} notifyAppointmentReminders Defaults to true. Mock-only preference: there is no
  *   real email backend yet to act on it. Always present.
  * @property {string} [lastLoginAt] ISO datetime of the account's most recent successful login.
@@ -84,6 +89,9 @@
  * @property {Sex} sex
  * @property {string} phone
  * @property {string} [address]
+ * @property {string} [nrc] Myanmar National Registration Card, e.g. "12/MABANA(N)123456" (see
+ *   lib/validation.js `isValidNrc`). Registrar field, like phone/address -- not a DOCTOR's clinical
+ *   field; optional, since emergency admissions may arrive without ID.
  * @property {string} [emergencyContactName] Registrar-maintained, like phone/address -- not a DOCTOR's
  *   clinical field. See PatientFormDialog's `clinicalOnly` prop.
  * @property {string} [emergencyContactPhone]
