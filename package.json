@@ -3,7 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "pnpm --filter client dev",
-    "build": "pnpm --filter client build"
+    "dev": "corepack pnpm --filter client dev",
+    "build": "corepack pnpm --filter client build",
+    "lint": "corepack pnpm --filter client lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.102.7",
+    "axios": "^1.20.0"
   }
 }

@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Keep every page and nested app shell scrollable without showing a scrollbar. */
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* Dark mode is driven by `data-theme` on <html>, not by a media query alone --
    the app offers an explicit light/dark/system choice (see ThemeContext), and a
    media query cannot express "the user picked light while their OS is dark".
@@ -26,8 +40,19 @@
    ones descend. Every existing `bg-ice-100` / `border-ice-200` keeps meaning
    what it meant.
 --------------------------------------------------------------------------- */
+
+
+/* -------------------------------------------------------------------------- */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+
+  /* Serenity in Blue palette variables mapped from light to deep navy tones */
+  --serenity-100: #A4C8E1;
+  --serenity-300: #6FA3D8;
+  --serenity-500: #3B7A99;
+  --serenity-700: #1F4E79;
+  --serenity-900: #0D3B66;
+
 
   /* Surface: the icy page ground the frosted panels sit on. */
   --ice-50: #f7fbff;
@@ -131,6 +156,12 @@
    colour-mixes the variable rather than needing channel triplets.
 --------------------------------------------------------------------------- */
 @theme inline {
+  --color-serenity-100: var(--serenity-100);
+  --color-serenity-300: var(--serenity-300);
+  --color-serenity-500: var(--serenity-500);
+  --color-serenity-700: var(--serenity-700);
+  --color-serenity-900: var(--serenity-900);
+
   --color-ice-50: var(--ice-50);
   --color-ice-100: var(--ice-100);
   --color-ice-200: var(--ice-200);

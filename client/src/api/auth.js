@@ -1,4 +1,5 @@
-import { db, delay, nextId, persist } from "../mocks/db";
+// Use Vite's import.meta.env for environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 /**
  * @typedef {Object} LoginResponse
@@ -16,74 +17,150 @@ import { db, delay, nextId, persist } from "../mocks/db";
  * @property {string} phone
  */
 
-function toUser(m) {
-  // patientId must survive: it is how a PATIENT session knows which record is
-  // theirs. Password is the only field deliberately dropped.
-  return { id: m.id, name: m.name, email: m.email, role: m.role, patientId: m.patientId };
-}
-
-function findByEmail(email) {
-  return db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+function mapUser(account) {
+  return {
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    role: account.role,
+    patientId: account.patientId
+  };
 }
 
 export async function login(email, password) {
-  const match = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-  if (!match) {
-    return delay(undefined, 300).then(() => {
-      throw new Error("Invalid email or password");
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Invalid email or password');
+    }
+
+    const data = await response.json();
+    return {
+      token: data.token,
+      user: mapUser(data.user || data.account)
+    };
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
   }
-  return delay({ token: `mock-token-${match.id}`, user: toUser(match) });
 }
 
-/**
- * Public account creation for patients. Always produces a PATIENT account --
- * there is no role on the input. Staff accounts are created separately via
- * createStaffUser(), which only an ADMIN may call.
- *
- * Creates a matching Patient record in the same call so the new account can
- * book immediately: clinical fields start as placeholders and are filled in
- * by staff at the first real visit.
- */
 export async function signup(input) {
-  if (findByEmail(input.email)) {
-    return delay(undefined, 250).then(() => {
-      throw new Error("An account with this email already exists.");
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        dob: input.dob,
+        sex: input.sex,
+        phone: input.phone
+      }),
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Could not create account');
+    }
+
+    const data = await response.json();
+    return {
+      token: data.token,
+      user: mapUser(data.user || data.account)
+    };
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
   }
-
-  const patient = {
-    id: nextId("patient"),
-    name: input.name,
-    dob: input.dob,
-    sex: input.sex,
-    phone: input.phone,
-    diagnosisType: "Not yet assessed",
-    registeredAt: new Date().toISOString(),
-  };
-  db.patients.push(patient);
-
-  const user = {
-    id: nextId("user"),
-    name: input.name,
-    email: input.email,
-    password: input.password,
-    role: "PATIENT",
-    patientId: patient.id,
-  };
-  db.users.push(user);
-
-  persist();
-  return delay({ token: `mock-token-${user.id}`, user: toUser(user) });
 }
 
 export async function fetchCurrentUser(token) {
-  const id = Number(token.replace("mock-token-", ""));
-  const match = db.users.find((u) => u.id === id);
-  if (!match) {
-    return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
+
+    if (!response.ok) {
+      throw new Error('Session expired');
+    }
+
+    const data = await response.json();
+    return mapUser(data);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
   }
-  return delay(toUser(match));
+}
+
+export async function updateProfile(token, input) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Could not update profile');
+    }
+
+    const data = await response.json();
+    return mapUser(data);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
+  }
+}
+
+export async function changePassword(token, currentPassword, newPassword) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me/password`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Could not change password');
+    }
+
+    return true;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Network error. Please check your connection.');
+    }
+    throw error;
+  }
 }

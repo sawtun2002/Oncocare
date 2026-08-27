@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { listAppointments } from "../api/appointments";
-import { getBillingSummary } from "../api/billing";
-import { listPatients } from "../api/patients";
-import { Badge } from "../components/Badge";
-import { StatCard } from "../components/StatCard";
-import { useAuth } from "../context/AuthContext";
-import { formatCurrency, formatDateTime } from "../lib/format";
-import { pageTitle, tableHead, tableRow, tableWrap } from "../lib/ui";
+import { listAppointments } from "../../api/appointments";
+import { getBillingSummary } from "../../api/billing";
+import { listPatients } from "../../api/patients";
+import { Badge } from "../../components/Badge";
+import { StatCard } from "../../components/StatCard";
+import { useAuth } from "../../context/AuthContext";
+import { formatCurrency, formatDateTime } from "../../lib/format";
+import { pageTitle, tableHead, tableRow, tableWrap } from "../../lib/ui";
 
 export function DashboardPage() {
   const { user } = useAuth();

@@ -16,9 +16,9 @@ const DEMO_ACCOUNTS = [
 
 const MIN_PASSWORD_LENGTH = 6;
 
-export function LoginPage() {
-  const { user, login, signup } = useAuth();
-  const [mode, setMode] = useState("login");
+export function LoginPage({ initialMode = "login" }) {
+  const { user, loading, login, signup } = useAuth();
+  const [mode, setMode] = useState(initialMode);
 
   // Login fields
   const [email, setEmail] = useState("");
@@ -40,6 +40,10 @@ export function LoginPage() {
   // Also handles the post-login/signup redirect: both set the user, this
   // rerenders, and each role lands on its own home. No hardcoded "/" -- that
   // is the staff dashboard, which a patient may not see.
+  if (loading) {
+    return <div className="flex min-h-screen items-center justify-center text-sm text-ink-400">Loading…</div>;
+  }
+
   if (user) {
     return <Navigate to={homePathFor(user.role)} replace />;
   }

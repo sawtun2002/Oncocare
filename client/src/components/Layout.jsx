@@ -4,12 +4,13 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { initials } from "../lib/format";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
+import { BackToTop } from "./BackToTop";
 
 // Every entry carries an explicit `roles` list. These must stay identical to the
 // `allowedRoles` on the matching route in App.jsx -- hiding a link is not access
 // control, the route guard is.
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", roles: STAFF_ROLES },
+  { to: "/dashboard", label: "Dashboard", roles: STAFF_ROLES },
   { to: "/patients", label: "Patients", roles: STAFF_ROLES },
   { to: "/appointments", label: "Bookings", roles: STAFF_ROLES },
   { to: "/billing", label: "Billing", roles: ["ADMIN", "RECEPTIONIST"] },
@@ -46,7 +47,7 @@ export function Layout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/"}
+              end={item.to === "/dashboard"}
               className={({ isActive }) =>
                 `block rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
                   isActive
@@ -88,6 +89,7 @@ export function Layout() {
           <Outlet />
         </div>
       </main>
+      <BackToTop />
     </div>
   );
 }

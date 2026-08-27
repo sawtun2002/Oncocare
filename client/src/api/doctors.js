@@ -1,4 +1,5 @@
 import { db, delay } from "../mocks/db";
+import axios from "axios";
 
 /**
  * The patient-facing doctor directory. Deliberately separate from
@@ -8,9 +9,19 @@ import { db, delay } from "../mocks/db";
  *
  * @returns {Promise<import("../types").DoctorProfile[]>}
  */
+
+
 export async function listDoctorProfiles() {
   return delay([...db.doctorProfiles].sort((a, b) => a.name.localeCompare(b.name)));
 }
+
+
+// export async function listDoctorProfiles() {
+//   const response = await axios.get("/api/doctors");
+//   return response.data;
+// }
+
+
 
 /** @returns {Promise<import("../types").DoctorProfile>} */
 export async function getDoctorProfile(id) {
@@ -22,3 +33,12 @@ export async function getDoctorProfile(id) {
   }
   return delay(profile);
 }
+
+
+
+
+
+
+
+
+
