@@ -65,8 +65,14 @@ function describe(notice, user, names) {
  * leave queue for an ADMIN. The only stored state is `user.notificationsReadAt`,
  * stamped via `markNotificationsRead` the first time the panel is opened with
  * something unread.
+ *
+ * `align` is the side the 320px dropdown grows *from*: "right" (default) anchors
+ * its right edge to the bell and opens leftward -- correct for the mobile
+ * header, where the bell sits at the right of a full-width bar. "left" opens
+ * rightward -- used in the desktop sidebar, where the bell is near the right
+ * edge of a 240px rail and opening leftward would run off the screen.
  */
-export function NoticeBell() {
+export function NoticeBell({ align = "right" }) {
   const { user, markNotificationsRead } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
@@ -150,7 +156,11 @@ export function NoticeBell() {
       </button>
 
       {open && (
-        <div className="glass-panel-solid absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden text-sm">
+        <div
+          className={`glass-panel-solid absolute z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden text-sm ${
+            align === "left" ? "left-0" : "right-0"
+          }`}
+        >
           <div className="border-b border-hairline/60 px-4 py-2.5 font-semibold text-ink-900">
             Notifications
           </div>

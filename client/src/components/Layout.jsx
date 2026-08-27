@@ -166,7 +166,9 @@ function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
         <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
         {showBell && (
           <div className="ml-auto">
-            <NoticeBell />
+            {/* Opens rightward -- the rail is only 240px, so a leftward panel
+                would run off the screen. */}
+            <NoticeBell align="left" />
           </div>
         )}
       </div>
