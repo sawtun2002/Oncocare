@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm --filter client dev)",
+      "Bash(pnpm --filter client build)",
+      "Bash(pnpm --filter client preview)",
+      "Bash(pnpm --filter client lint:*)",
+      "Bash(pnpm --filter client exec oxlint:*)",
+      "Bash(pnpm --filter client exec tsc:*)",
+      "Bash(npx tsc -b:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ],
+    "deny": [
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm i:*)",
+      "Bash(npm run:*)",
+      "Bash(yarn:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/guard.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/lint-file.mjs",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/contract-reminder.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

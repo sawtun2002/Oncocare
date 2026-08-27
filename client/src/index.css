@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens. Tailwind v4 is configured here, in CSS -- there is no
+   tailwind.config.js (see CLAUDE.md). Every --color-* token below generates the
+   usual bg-/text-/border-/ring- utilities.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Surface: the icy page ground the frosted panels sit on. */
+  --color-ice-50: #f7fbff;
+  --color-ice-100: #eaf2fa;
+  --color-ice-200: #dbe9f6;
+  --color-ice-300: #c6dcf0;
+
+  /* Accent: buttons, active nav, focus rings, links. */
+  --color-frost-300: #b3d8f7;
+  --color-frost-400: #8fc4f0;
+  --color-frost-500: #6aa9e9;
+  --color-frost-600: #4a8fd4;
+  --color-frost-700: #3b74ae;
+  --color-aqua-400: #5ec8e5;
+
+  /* Ink: text. ink-700/900 are the only colours body copy may use -- both
+     clear 4.5:1 on every surface token above. ink-400 is for labels only. */
+  --color-ink-900: #1f2d3d;
+  --color-ink-700: #33475b;
+  --color-ink-400: #6b8199;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-ice-100);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 15% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 100% 10%, rgba(148, 197, 240, 0.35), transparent 60%),
+      linear-gradient(160deg, var(--color-ice-100) 0%, var(--color-ice-50) 55%, var(--color-ice-200) 100%);
+    background-attachment: fixed;
+    color: var(--color-ink-700);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Glass surfaces.
+
+   glass-panel       -- frosted, for shells, nav and decorative cards.
+   glass-panel-solid -- same frame, near-opaque, no blur. This is what data
+                        tables and form fields use: dense clinical text must
+                        never sit on a live blur of whatever is behind it.
+--------------------------------------------------------------------------- */
+/* Note: do NOT hand-write -webkit- prefixes here. Lightning CSS generates them
+   from the standard property; declaring the prefixed form afterwards makes it
+   drop the unprefixed one, which silently kills the blur in Chrome/Firefox. */
+@utility glass-panel {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 32px -8px rgba(31, 45, 61, 0.12);
+}
+
+@utility glass-panel-solid {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+    0 8px 32px -8px rgba(31, 45, 61, 0.1);
+}
+
+/* Chrome heading treatment from the reference. Page-level <h1> only -- never
+   body copy, never data: gradient-filled text is unreadable at small sizes. */
+@utility chrome-text {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #cddced 22%,
+    #7d97b0 48%,
+    #ffffff 62%,
+    #a9bed2 85%,
+    #6b8199 100%
+  );
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(31, 45, 61, 0.25));
+}
+
+/* Accessibility fallbacks ---------------------------------------------------
+   Readers who ask for less transparency, and browsers without backdrop-filter,
+   get the same layout on opaque surfaces rather than a wash of low-contrast
+   text. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel {
+    background: #ffffff;
+    backdrop-filter: none;
+    border-color: var(--color-ice-300);
+  }
+  .glass-panel-solid {
+    background: #ffffff;
+    border-color: var(--color-ice-300);
+  }
+  .chrome-text {
+    background-image: none;
+    color: var(--color-ink-900);
+    -webkit-text-fill-color: var(--color-ink-900);
+    filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.93);
+  }
+}

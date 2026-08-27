@@ -1,0 +1,86 @@
+import { NavLink, Outlet } from "react-router-dom";
+import logoMark from "../assets/logo-mark.png";
+import { useAuth } from "../context/AuthContext";
+import { PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
+import type { Role } from "../types";
+
+interface NavItem {
+  to: string;
+  label: string;
+  roles?: Role[];
+}
+
+// Every entry carries an explicit `roles` list. These must stay identical to the
+// `allowedRoles` on the matching route in App.tsx -- hiding a link is not access
+// control, the route guard is.
+const NAV_ITEMS: NavItem[] = [
+  { to: "/", label: "Dashboard", roles: STAFF_ROLES },
+  { to: "/patients", label: "Patients", roles: STAFF_ROLES },
+  { to: "/appointments", label: "Bookings", roles: STAFF_ROLES },
+  { to: "/billing", label: "Billing", roles: ["ADMIN", "RECEPTIONIST"] },
+  { to: "/users", label: "Staff accounts", roles: ["ADMIN"] },
+  { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
+  { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
+];
+
+const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: "Administrator",
+  DOCTOR: "Doctor",
+  NURSE: "Nurse",
+  RECEPTIONIST: "Receptionist",
+  PATIENT: "Patient",
+};
+
+export function Layout() {
+  const { user, logout } = useAuth();
+  if (!user) return null;
+
+  const visibleItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(user.role));
+
+  return (
+    <div className="flex h-screen p-3 sm:p-4">
+      <aside className="glass-panel flex w-60 shrink-0 flex-col p-4">
+        <div className="flex items-center gap-2.5 px-1 pb-6 pt-1">
+          <img src={logoMark} alt="Cancer HMS logo" className="h-8 w-8 rounded-lg object-contain" />
+          <span className="text-sm font-semibold tracking-wide text-ink-900">Cancer HMS</span>
+        </div>
+
+        <nav className="flex-1 space-y-1">
+          {visibleItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  isActive
+                    ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm shadow-frost-500/25"
+                    : "text-ink-700 hover:bg-white/60"
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-4 rounded-xl border border-white/70 bg-white/50 p-3">
+          <div className="text-sm font-medium text-ink-900">{user.name}</div>
+          <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
+          <button
+            onClick={logout}
+            className="mt-3 w-full rounded-lg border border-white/80 bg-white/70 px-3 py-1.5 text-sm text-ink-700 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-frost-400/50"
+          >
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.db
+*.db-journal
+.DS_Store
+
+# Claude Code: shared config is committed, personal permission grants are not
+.claude/settings.local.json

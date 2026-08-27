@@ -1,0 +1,9 @@
+{
+  "name": "cancer-hms",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "pnpm --filter client dev",
+    "build": "pnpm --filter client build"
+  }
+}
