@@ -6,6 +6,7 @@ import { Avatar } from "./Avatar";
 import { NoticeBell } from "./NoticeBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 
@@ -18,25 +19,17 @@ import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 // text link. The route itself is still guarded in App.jsx the same as
 // everything else -- only the nav entry is gone, not the access control.
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", roles: STAFF_ROLES },
-  { to: "/patients", label: "Patients", roles: STAFF_ROLES },
-  { to: "/appointments", label: "Bookings", roles: STAFF_ROLES },
-  { to: "/leave", label: "Leave", roles: STAFF_ROLES },
-  { to: "/billing", label: "Billing", roles: ["ADMIN", "RECEPTIONIST"] },
-  { to: "/users", label: "Staff accounts", roles: ["ADMIN"] },
-  { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
-  { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
-  { to: "/my-bills", label: "My bill", roles: PATIENT_ROLES },
-  { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
+  { to: "/", labelKey: "nav.dashboard", roles: STAFF_ROLES },
+  { to: "/patients", labelKey: "nav.patients", roles: STAFF_ROLES },
+  { to: "/appointments", labelKey: "nav.bookings", roles: STAFF_ROLES },
+  { to: "/leave", labelKey: "nav.leave", roles: STAFF_ROLES },
+  { to: "/billing", labelKey: "nav.billing", roles: ["ADMIN", "RECEPTIONIST"] },
+  { to: "/users", labelKey: "nav.users", roles: ["ADMIN"] },
+  { to: "/my-bookings", labelKey: "nav.myBookings", roles: PATIENT_ROLES },
+  { to: "/book", labelKey: "nav.book", roles: PATIENT_ROLES },
+  { to: "/my-bills", labelKey: "nav.myBills", roles: PATIENT_ROLES },
+  { to: "/doctors", labelKey: "nav.doctors", roles: ALL_ROLES },
 ];
-
-const ROLE_LABEL = {
-  ADMIN: "Administrator",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-  PATIENT: "Patient",
-};
 
 /**
  * The signed-in shell.
@@ -48,6 +41,7 @@ const ROLE_LABEL = {
  */
 export function Layout() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [navOpen, setNavOpen] = useState(false);
 
   // `useOutlet()` rather than `<Outlet />`: AnimatePresence keeps the outgoing
@@ -78,7 +72,7 @@ export function Layout() {
           inside this sidebar's stacking context -- paints under those cards.
           z-30 matches the mobile header. */}
       <aside className="glass-panel relative z-30 hidden w-60 shrink-0 flex-col p-4 lg:flex">
-        <SidebarBody items={visibleItems} user={user} logout={logout} pillId={NAV_PILL_ID} showBell />
+        <SidebarBody items={visibleItems} user={user} logout={logout} t={t} pillId={NAV_PILL_ID} showBell />
       </aside>
 
       <AnimatePresence>
@@ -106,6 +100,7 @@ export function Layout() {
                 items={visibleItems}
                 user={user}
                 logout={logout}
+                t={t}
                 pillId={`${NAV_PILL_ID}-drawer`}
                 // Following a link would otherwise leave the drawer standing
                 // over the page it just opened. The desktop rail passes nothing
@@ -124,7 +119,7 @@ export function Layout() {
           <button
             type="button"
             onClick={() => setNavOpen(true)}
-            aria-label="Open navigation"
+            aria-label={t("layout.openNav")}
             aria-expanded={navOpen}
             className="rounded-lg p-2 text-ink-700 transition hover:bg-surface/70 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
           >
@@ -163,7 +158,7 @@ export function Layout() {
  * shared-layout animation of the active-link pill to one of the two -- see the
  * note at the drawer.
  */
-function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
+function SidebarBody({ items, user, logout, t, pillId, onNavigate, showBell }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-1 pb-6 pt-1">
@@ -208,7 +203,7 @@ function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
                 )}
                 {/* Positioned, so it paints above the pill -- both are in the
                     same stacking context and the label comes second. */}
-                <span className="relative">{item.label}</span>
+                <span className="relative">{t(item.labelKey)}</span>
               </>
             )}
           </NavLink>
@@ -233,7 +228,7 @@ function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
           />
           <div className="min-w-0">
             <div className="truncate text-sm font-medium text-ink-900">{user.name}</div>
-            <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
+            <div className="text-xs text-ink-400">{t(`role.${user.role}`)}</div>
           </div>
         </Link>
         <ThemeToggle />
@@ -244,7 +239,7 @@ function SidebarBody({ items, user, logout, pillId, onNavigate, showBell }) {
           onClick={logout}
           className="mt-3 w-full rounded-lg border border-hairline/80 bg-surface/70 px-3 py-1.5 text-sm text-ink-700 transition duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300/60 dark:hover:border-rose-400/30 dark:hover:bg-rose-400/15 dark:hover:text-rose-300"
         >
-          Log out
+          {t("layout.logOut")}
         </button>
       </div>
     </>

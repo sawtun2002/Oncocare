@@ -162,6 +162,17 @@
     background-attachment: fixed;
     color: var(--ink-700);
   }
+
+  /* When the app is in Myanmar (set on <html lang> by LanguageContext), prefer a
+     Myanmar system font -- the default UI stack renders Burmese as tofu on some
+     platforms. No web download; every major OS ships one of these. Line-height
+     is bumped a touch because Burmese stacking marks need the room. */
+  :lang(my) {
+    font-family:
+      "Myanmar Text", "Noto Sans Myanmar", "Myanmar MN", "Myanmar Sangam MN", "Padauk",
+      ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.7;
+  }
 }
 
 /* ---------------------------------------------------------------------------

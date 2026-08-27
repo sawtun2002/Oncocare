@@ -98,6 +98,10 @@ All in `client/src/components/`, and all worth reusing rather than re-rolling:
 
 `Layout.jsx` renders a permanent sidebar from `lg` up and the same `<SidebarBody>` as an off-canvas drawer below it. Both are driven by one `NAV_ITEMS` list, so a nav entry cannot exist in one and not the other. Data tables scroll sideways rather than crushing their columns: the overflow is on `tableWrap`, the minimum width on `tableBase`.
 
+### Internationalisation
+
+`client/src/i18n/` — a dependency-free layer, same spirit as `lib/ui.js`: `en.js` and `my.js` are flat `{ "area.key": "string" }` catalogs (kept key-for-key in sync; `en.js` is the fallback), `index.js` has `translate(key, lang, vars)` with `{name}` interpolation. `client/src/context/LanguageContext.jsx` (`useLanguage()` → `{ lang, setLang, t }`) mirrors `ThemeContext` — per-device, `localStorage["cancer-hms-lang"]`, sets `<html lang>` (an inline script in `index.html` sets it pre-paint too, like the theme one). Components call `t("area.key")`; **never import a catalog directly**. `:lang(my)` in `index.css` swaps in a Myanmar system font. The picker lives on `/profile` (`LanguageCard`). Not every screen is wired yet — untranslated strings fall back to English automatically. `my.js` is a first pass pending native review. Seed *data* (diagnoses, names, reasons) is deliberately not translated — a real backend serves it.
+
 ## Claude Code tooling
 
 This repo ships its own commands, agents, skills and hooks in [`.claude/`](./.claude/) — see

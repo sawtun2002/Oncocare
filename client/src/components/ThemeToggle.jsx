@@ -1,9 +1,10 @@
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 
 const OPTIONS = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "Match system" },
+  { value: "light", key: "theme.light" },
+  { value: "dark", key: "theme.dark" },
+  { value: "system", key: "theme.system" },
 ];
 
 /**
@@ -16,22 +17,24 @@ const OPTIONS = [
  */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div
       role="radiogroup"
-      aria-label="Colour theme"
+      aria-label={t("theme.groupLabel")}
       className="mt-3 flex gap-0.5 rounded-lg border border-hairline/70 bg-surface/40 p-0.5"
     >
       {OPTIONS.map((option) => {
         const active = theme === option.value;
+        const label = t(option.key);
         return (
           <button
             key={option.value}
             type="button"
             role="radio"
             aria-checked={active}
-            title={option.label}
+            title={label}
             onClick={() => setTheme(option.value)}
             className={`flex flex-1 items-center justify-center rounded-md px-2 py-1.5 transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/60 ${
               active
@@ -40,7 +43,7 @@ export function ThemeToggle() {
             }`}
           >
             <ThemeIcon preference={option.value} />
-            <span className="sr-only">{option.label}</span>
+            <span className="sr-only">{label}</span>
           </button>
         );
       })}
