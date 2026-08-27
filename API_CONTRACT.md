@@ -194,27 +194,82 @@ type PatientInput = Omit<Patient, "id" | "registeredAt">;
 
 ## Appointments
 
+An appointment is a small state machine, not a free `status` field. Who creates it decides where it
+starts: a `PATIENT` booking lands in `REQUESTED` and waits for the doctor; a staff booking skips
+straight to `SCHEDULED`. `DECLINED` and `CANCELLED` are terminal — there is no transition out of them,
+you create a new appointment instead. Every transition **appends an `AppointmentEvent`** to `events`;
+the server sets `byUserId`/`byRole` from the token, never from the body.
+
+**A slot is blocked** by an appointment whose status is `SCHEDULED`, or `REQUESTED` and not past its
+`expiresAt`. `DECLINED`, `CANCELLED`, `NO_SHOW`, `COMPLETED` and expired `REQUESTED` free it.
+
+**Request expiry:** on `POST` by a `PATIENT`, the server sets `expiresAt` to the sooner of 48h from now
+and the slot start. A `GET` (or a scheduled sweep) that finds a `REQUESTED` appointment past `expiresAt`
+transitions it to `DECLINED` with a system event (`byUserId`/`byRole` null,
+`reason: "No response — the request expired"`).
+
 - `GET /api/appointments?patientId=` — → `Appointment[]`, sorted by `scheduledAt` ascending. `patientId`
   is an optional filter. Allowed roles: all. **A `PATIENT` caller is scoped to their own appointments
   server-side regardless of the `patientId` parameter** — the filter is a convenience, never the check.
 - `GET /api/appointments/availability?doctorId=&date=` — → `TimeSlot[]` for one doctor on one day.
   `date` is a local calendar date (`YYYY-MM-DD`) in clinic time. Slots are every 30 minutes from 09:00 up
-  to (not including) 17:00. `available` is `false` when the doctor already has a non-`CANCELLED`
-  appointment **overlapping** that slot, or when the slot is in the past. Allowed roles: all.
-- `POST /api/appointments` — body `AppointmentInput` → created `Appointment` (`status` defaults to
-  `SCHEDULED`). **409 if the requested time overlaps an existing non-`CANCELLED` appointment for that
-  doctor.** Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` for any patient; `PATIENT` only when
-  `patientId` equals their own — enforce server-side, never trust the body.
-- `PATCH /api/appointments/:id` — body `Partial<AppointmentInput>` → updated `Appointment`. Used to
-  reschedule. **409 on the same overlap rule**, ignoring the appointment being moved. Allowed roles:
-  `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`; `PATIENT` only on their own appointment.
+  to (not including) 17:00. `available` is `false` when the doctor already has a **slot-blocking**
+  appointment (see above) overlapping that slot, or when the slot is in the past. Allowed roles: all.
+- `POST /api/appointments` — body `AppointmentInput` → created `Appointment`. **The status is derived
+  from the caller's role, never read from the body:** `PATIENT` → `REQUESTED` (+ `expiresAt`), any staff
+  role → `SCHEDULED`. Appends the first event (`REQUESTED` or `ACCEPTED`). **409 if the time overlaps a
+  slot-blocking appointment for that doctor.** Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`
+  for any patient; `PATIENT` only when `patientId` equals their own — enforce server-side.
+- `POST /api/appointments/:id/accept` — no body → updated `Appointment` (`REQUESTED` → `SCHEDULED`).
+  Re-checks the overlap rule — 409 if the slot filled while the request sat. Appends an `ACCEPTED` event.
+  Allowed roles: `ADMIN`, `RECEPTIONIST`, and the `DOCTOR` the request is for (**not** a doctor accepting
+  their own self-made request, **not** `NURSE`) — enforce server-side. 409 if the appointment is not
+  `REQUESTED`.
+- `POST /api/appointments/:id/decline` — body `{ reason: string }` (**required, non-empty**) → updated
+  `Appointment` (`REQUESTED` → `DECLINED`). Appends a `DECLINED` event carrying the reason; frees the
+  slot. Allowed roles: same as `accept`. 409 if the appointment is not `REQUESTED`.
+- `PATCH /api/appointments/:id` — body `Partial<AppointmentInput> & { reason?: string }` → updated
+  `Appointment`. Reschedule only (time and/or doctor); the status does not change and only `REQUESTED`
+  or `SCHEDULED` may be moved. `reason` is **required when the caller is acting on an appointment that is
+  not their own** (any staff moving a patient's booking; ignored for a `PATIENT` moving their own).
+  Appends a `RESCHEDULED` event with `fromScheduledAt`/`toScheduledAt`. **409 on the overlap rule**,
+  ignoring the appointment being moved. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`;
+  `PATIENT` only on their own.
 - `PATCH /api/appointments/:id/status` — body `{ status: AppointmentStatus }` → updated `Appointment`.
-  Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` for any status; a `PATIENT` may set only
-  `CANCELLED`, and only on their own appointment. Moving a booking **out** of `CANCELLED` re-checks the
-  overlap rule (the slot was released on cancellation and may since have been taken) — 409 if it clashes.
+  Serves only `SCHEDULED` → `COMPLETED` or `NO_SHOW`, and only once the slot start is in the past.
+  Appends the matching event. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`. 409 for any
+  other transition.
+- `POST /api/appointments/:id/cancel` — body `{ reason?: string }` → updated `Appointment`
+  (`REQUESTED` or `SCHEDULED` → `CANCELLED`, terminal). `reason` is **required when acting on an
+  appointment that is not the caller's own** (any staff cancelling a patient's booking); optional for a
+  `PATIENT` cancelling their own. The `CANCELLED` event sets `lateNotice: true` when the cancellation
+  lands under 24h before the slot — a flag the history keeps, not a block. Allowed roles: `ADMIN`,
+  `DOCTOR`, `NURSE`, `RECEPTIONIST`; `PATIENT` only on their own. 409 if the appointment is already
+  terminal.
 
 ```ts
-type AppointmentStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+type AppointmentStatus =
+  | "REQUESTED"    // patient booking, awaiting the doctor. Staff bookings skip this.
+  | "SCHEDULED"
+  | "COMPLETED"
+  | "CANCELLED"    // terminal
+  | "NO_SHOW"
+  | "DECLINED";    // terminal -- doctor turned the request down, or it expired
+
+type AppointmentEventType =
+  | "REQUESTED" | "ACCEPTED" | "DECLINED" | "RESCHEDULED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
+
+interface AppointmentEvent {
+  type: AppointmentEventType;
+  byUserId: number | null;      // null for a system event (an expired request)
+  byRole: Role | null;
+  at: string;                   // ISO datetime
+  reason?: string;              // required on DECLINED, and on a CANCELLED/RESCHEDULED of someone else's
+  fromScheduledAt?: string;     // RESCHEDULED only
+  toScheduledAt?: string;       // RESCHEDULED only
+  lateNotice?: boolean;         // CANCELLED only: cancelled <24h before the slot
+}
+
 interface Appointment {
   id: number;
   patientId: number;
@@ -222,15 +277,21 @@ interface Appointment {
   scheduledAt: string;    // ISO datetime
   durationMinutes: number;
   status: AppointmentStatus;
-  reason?: string;
+  reason?: string;        // reason for the visit -- set at booking, distinct from an event reason
+  events: AppointmentEvent[];   // oldest first, never empty
+  expiresAt?: string;     // REQUESTED only
 }
-type AppointmentInput = Omit<Appointment, "id" | "status">;
+type AppointmentInput = Omit<Appointment, "id" | "status" | "events" | "expiresAt">;
 
 interface TimeSlot {
   start: string;          // ISO datetime
   available: boolean;
 }
 ```
+
+**NURSE, explicitly:** a nurse may create a booking (→ `SCHEDULED`), reschedule one, and mark a past
+appointment `COMPLETED`/`NO_SHOW`. A nurse may **not** accept or decline a request — committing a
+doctor's time to a new patient is not a nursing decision.
 
 ## Billing
 

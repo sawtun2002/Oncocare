@@ -5,6 +5,7 @@ import { listAppointments } from "../api/appointments";
 import { getBillingSummary } from "../api/billing";
 import { listPatients } from "../api/patients";
 import { Badge } from "../components/Badge";
+import { GlassCard } from "../components/GlassCard";
 import { TableSkeleton } from "../components/Skeleton";
 import { StatCard } from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
@@ -30,6 +31,14 @@ export function DashboardPage() {
     .filter((a) => a.status === "SCHEDULED" && new Date(a.scheduledAt).getTime() >= now)
     .slice(0, 5);
 
+  // A doctor's pending requests are invisible unless something surfaces them.
+  const myRequests =
+    user?.role === "DOCTOR"
+      ? (appointmentsQuery.data ?? []).filter(
+          (a) => a.status === "REQUESTED" && a.doctorId === user.id
+        )
+      : [];
+
   return (
     <div>
       <h1 className={pageTitle}>Welcome, {user?.name}</h1>
@@ -54,6 +63,20 @@ export function DashboardPage() {
           />
         )}
       </div>
+
+      {myRequests.length > 0 && (
+        <GlassCard className="mt-6 flex flex-wrap items-center justify-between gap-3 p-5">
+          <p className="text-sm text-ink-700">
+            <span className="font-semibold text-ink-900">
+              {myRequests.length} appointment {myRequests.length === 1 ? "request" : "requests"}
+            </span>{" "}
+            awaiting your response.
+          </p>
+          <Link to="/appointments" className="text-sm font-medium text-frost-600 hover:underline">
+            Review requests
+          </Link>
+        </GlassCard>
+      )}
 
       <div className="mt-8">
         <div className="flex items-center justify-between">

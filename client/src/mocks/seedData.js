@@ -169,6 +169,10 @@ export const seedPatients = [
   },
 ];
 
+// Every appointment carries a non-empty `events` history (see the Appointment
+// typedef). A staff-made booking's first event is ACCEPTED -- it never passed
+// through REQUESTED. Appointment 4 is a live patient request, left pending so
+// the accept/decline flow has something to act on out of the box.
 export const seedAppointments = [
   {
     id: 1,
@@ -178,6 +182,9 @@ export const seedAppointments = [
     durationMinutes: 30,
     status: "SCHEDULED",
     reason: "Follow-up consultation",
+    events: [
+      { type: "ACCEPTED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-08-15T10:00:00.000Z" },
+    ],
   },
   {
     id: 2,
@@ -187,6 +194,9 @@ export const seedAppointments = [
     durationMinutes: 45,
     status: "SCHEDULED",
     reason: "Chemotherapy cycle review",
+    events: [
+      { type: "ACCEPTED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-08-20T09:00:00.000Z" },
+    ],
   },
   {
     id: 3,
@@ -196,6 +206,23 @@ export const seedAppointments = [
     durationMinutes: 30,
     status: "COMPLETED",
     reason: "Initial consultation",
+    events: [
+      { type: "ACCEPTED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-08-10T09:00:00.000Z" },
+      { type: "COMPLETED", byUserId: 2, byRole: "DOCTOR", at: "2026-08-20T10:05:00.000Z" },
+    ],
+  },
+  {
+    id: 4,
+    patientId: 2,
+    doctorId: 2,
+    scheduledAt: "2026-09-10T10:30:00.000Z",
+    durationMinutes: 30,
+    status: "REQUESTED",
+    reason: "Second opinion on treatment plan",
+    expiresAt: "2026-08-29T09:00:00.000Z",
+    events: [
+      { type: "REQUESTED", byUserId: 7, byRole: "PATIENT", at: "2026-08-27T09:00:00.000Z" },
+    ],
   },
 ];
 

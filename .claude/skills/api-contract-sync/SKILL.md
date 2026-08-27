@@ -38,7 +38,11 @@ Entity types are referenced inline as `import("../types").Patient` inside a JSDo
 runtime import of `types/index.js` anywhere, and adding one would be dead weight in the bundle.
 
 - Function names and signatures mirror the contract exactly: `listPatients()`, `createInvoice(input)`,
-  `updateAppointmentStatus(id, status)`.
+  `updateAppointmentStatus(id, status, actor)`. The appointment mutators additionally take an `actor`
+  (`{ userId, role, patientId? }`) — the mock's stand-in for the auth token: it decides the derived
+  status on create, attributes each `AppointmentEvent`, and settles the own-vs-other reason rules. The
+  real backend reads all of that from the token instead; `actor` is the one appointment-API parameter
+  with no query-string or body equivalent in the contract, by design.
 - **`*Input` / request / response shapes are documented in the api module, never in `types/index.js`.**
   They are `@typedef`s derived with `Omit<>` from the entity — `PatientInput`, `AppointmentInput`,
   `CreateInvoiceInput`, `InvoiceItemInput`, `BillingSummary`, `LoginResponse`, `SignupInput`,

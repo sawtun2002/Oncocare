@@ -97,7 +97,34 @@
  */
 
 /**
- * @typedef {"SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW"} AppointmentStatus
+ * REQUESTED is a patient's booking waiting on the doctor; a staff-made booking
+ * skips it and starts SCHEDULED. DECLINED and CANCELLED are terminal -- you book
+ * again rather than reviving one.
+ *
+ * @typedef {"REQUESTED" | "SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "DECLINED"} AppointmentStatus
+ */
+
+/**
+ * @typedef {"REQUESTED" | "ACCEPTED" | "DECLINED" | "RESCHEDULED" | "CANCELLED" | "COMPLETED" | "NO_SHOW"} AppointmentEventType
+ */
+
+/**
+ * One entry in an appointment's history. Every state change appends one, so a
+ * booking rescheduled twice and then cancelled keeps all four stories rather
+ * than only the last. `byUserId`/`byRole` are null for a system event (a
+ * request that expired with no response).
+ *
+ * @typedef {Object} AppointmentEvent
+ * @property {AppointmentEventType} type
+ * @property {number | null} byUserId
+ * @property {Role | null} byRole
+ * @property {string} at ISO datetime.
+ * @property {string} [reason] Required on DECLINED, and on a CANCELLED/RESCHEDULED that acts on
+ *   someone else's booking. Free of the visit `reason` on the appointment itself.
+ * @property {string} [fromScheduledAt] RESCHEDULED only: the time it moved from.
+ * @property {string} [toScheduledAt] RESCHEDULED only: the time it moved to.
+ * @property {boolean} [lateNotice] CANCELLED only: set when the cancellation landed under 24h before
+ *   the slot. Not a block, just a flag the history keeps.
  */
 
 /**
@@ -108,7 +135,10 @@
  * @property {string} scheduledAt
  * @property {number} durationMinutes
  * @property {AppointmentStatus} status
- * @property {string} [reason]
+ * @property {string} [reason] Reason for the visit. Set at booking; unrelated to an event's `reason`.
+ * @property {AppointmentEvent[]} events Oldest first. Never empty -- creation appends the first entry.
+ * @property {string} [expiresAt] REQUESTED only: when an unanswered request auto-declines (48h after
+ *   the request, or the slot start, whichever is sooner).
  */
 
 /**

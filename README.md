@@ -26,9 +26,9 @@ Opens at `http://localhost:5173`.
 | Receptionist | reception@cancerhms.local      | reception123   |
 | Patient      | patient@cancerhms.local        | patient123     |
 
-Patients sign in to a self-service portal (book an appointment, view and manage their own bookings, and
-read their own bill, itemized) and
-cannot reach any staff screen. The seeded patient login is linked to the "John Doe" patient record.
+Patients sign in to a self-service portal (request an appointment — a doctor accepts or declines it —
+reschedule or withdraw their own bookings, and read their own bill, itemized) and cannot reach any
+staff screen. The seeded patient login is linked to the "John Doe" patient record.
 
 Every account, staff or patient, gets a profile page: click your name/avatar at the bottom of the
 sidebar (not a nav link). It covers a photo, name/email (plus phone/department for staff — a patient's

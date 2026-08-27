@@ -43,8 +43,11 @@ bug this skill exists to prevent.
 | Billing summary card on dashboard | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`, also gates the query via `enabled:`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |
 | Edit patient — all fields | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canEdit`) |
-| Edit patient — clinical fields only | DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly`) → `PatientFormDialog`'s `clinicalOnly` prop disables non-clinical inputs |
-| Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canManageBookings`) |
+| Edit patient — clinical fields only | the patient's **assigned** DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly = role==="DOCTOR" && patient.assignedDoctorId===user.id`) → `PatientFormDialog`'s `clinicalOnly` prop disables non-clinical inputs; an unassigned doctor sees no Edit button at all |
+| Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST (reason required) | `PatientDetailPage.jsx` (`canManageBookings`) |
+| Accept / decline an appointment request | ADMIN, RECEPTIONIST (any); DOCTOR (own appts only); **never NURSE** | `AppointmentsPage.jsx` (`canDecide(a)`) + `POST /api/appointments/:id/{accept,decline}` |
+| Mark appointment COMPLETED / NO_SHOW | any staff role, past-slot only | `AppointmentsPage.jsx` (`RowActions`) + `PATCH /api/appointments/:id/status` |
+| Cancel someone else's booking (reason required) | any staff role | `AppointmentsPage.jsx` / `PatientDetailPage.jsx` via `ReasonDialog` + `POST /api/appointments/:id/cancel` |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/my-bills` (own bill, read-only) | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
@@ -71,6 +74,16 @@ server-side — deactivating the only admin who could undo it would lock everyon
 Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`,
 `medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone` are **not** in that set — they
 sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly` is true.
+The DOCTOR case is also **assignment-scoped**: `clinicalOnly` is true only when
+`patient.assignedDoctorId === user.id`, matching `PATCH /api/patients/:id`'s "on their assigned
+patients" clause — a doctor cannot open the editor on a patient who isn't theirs.
+
+The appointment state machine (`REQUESTED → SCHEDULED → COMPLETED/NO_SHOW`, with `DECLINED`/`CANCELLED`
+terminal) carries its own role rules, all also stated in `API_CONTRACT.md`'s Appointments section:
+`POST /api/appointments` derives the status from the caller's role (`PATIENT` → `REQUESTED`, staff →
+`SCHEDULED`) — never trust a `status` in the body; accept/decline is barred to `NURSE`; and any staff
+action on a booking that is not the caller's own (all of them, since staff have no `patientId`) must
+carry a reason.
 
 ## The backend must enforce it too
 

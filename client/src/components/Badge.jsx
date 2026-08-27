@@ -4,9 +4,11 @@ import { pillBase, TONE } from "../lib/ui";
 // only changes the surface, not the semantics. The tone classes themselves live
 // in lib/ui.js so the doctor-directory pill can reuse them.
 const COLOR_MAP = {
+  REQUESTED: TONE.warning,
   SCHEDULED: TONE.info,
   COMPLETED: TONE.positive,
   CANCELLED: TONE.muted,
+  DECLINED: TONE.negative,
   NO_SHOW: TONE.negative,
   UNPAID: TONE.negative,
   PARTIAL: TONE.warning,

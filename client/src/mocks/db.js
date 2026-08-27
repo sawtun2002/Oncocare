@@ -20,7 +20,13 @@ import {
 // anywhere that reads them, but the bump still applies for the same reason
 // as v5: a returning visitor's v5 localStorage lacks the new seed content
 // (John Doe's allergy, Maria's blood type, etc.) that demos the feature.
-const STORAGE_KEY = "cancer-hms-mock-db-v6";
+// v7 turned appointments into a state machine: added REQUESTED/DECLINED
+// statuses, a required `events[]` history on every appointment, and an
+// `expiresAt` on requests. A v6 appointment has no `events` array, which the
+// timeline and the accept/decline flow both assume is present -- so, same as
+// every bump before, the v6 store is abandoned for the v7 seed rather than
+// migrated.
+const STORAGE_KEY = "cancer-hms-mock-db-v7";
 
 /**
  * @typedef {Object} MockDb
