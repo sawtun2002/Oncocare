@@ -40,6 +40,11 @@ An `ADMIN` can also deactivate a staff account from **Staff accounts** (`/users`
 login and removes them from doctor pickers for new bookings, but never touches their existing patients
 or appointments, and can be reversed at any time. An admin can't deactivate their own account.
 
+Any staff member can file and track time off at **Leave** (`/leave`). An `ADMIN` sees an extra
+"Awaiting your decision" section there and approves or declines requests (a note is required to
+decline); a pending request also shows on the admin's notice bell. An admin can't decide their own
+request.
+
 ## Mock data layer
 
 `client/src/mocks/` holds seed data and an in-memory store persisted to `localStorage`. `client/src/api/*.js` expose the same function signatures the real backend will be called through (`listPatients`, `createInvoice`, etc.). When the Spring Boot API is ready, only these `api/*.js` files need to change — swap the mock implementation for `axios` calls per [`API_CONTRACT.md`](./API_CONTRACT.md). No page or component code should need to change.

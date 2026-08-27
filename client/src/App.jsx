@@ -13,6 +13,7 @@ import { BillingPage } from "./pages/billing/BillingPage";
 import { BookAppointmentPage } from "./pages/booking/BookAppointmentPage";
 import { MyBookingsPage } from "./pages/booking/MyBookingsPage";
 import { MyBillsPage } from "./pages/billing/MyBillsPage";
+import { LeavePage } from "./pages/leave/LeavePage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="/patients" element={<PatientsListPage />} />
             <Route path="/patients/:id" element={<PatientDetailPage />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
+            <Route path="/leave" element={<LeavePage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />}>

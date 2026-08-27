@@ -165,4 +165,35 @@
  * @property {InvoiceItem[]} items
  */
 
+/**
+ * @typedef {"ANNUAL" | "SICK" | "TRAINING" | "OTHER"} LeaveType
+ */
+
+/**
+ * PENDING until an ADMIN decides it; WITHDRAWN if the requester pulls it first.
+ * APPROVED and DECLINED are terminal and carry `decidedByUserId`/`decidedAt`.
+ *
+ * @typedef {"PENDING" | "APPROVED" | "DECLINED" | "WITHDRAWN"} LeaveStatus
+ */
+
+/**
+ * A staff member's time-off request. `startDate`/`endDate` are inclusive
+ * calendar dates (`YYYY-MM-DD`), not datetimes -- half-days are out of scope.
+ * Any of the four staff roles may file one for themselves; only an ADMIN
+ * decides one, and not their own.
+ *
+ * @typedef {Object} LeaveRequest
+ * @property {number} id
+ * @property {number} userId The staff account the leave is for. Set from the session, not the body.
+ * @property {LeaveType} type
+ * @property {string} startDate Inclusive, `YYYY-MM-DD`.
+ * @property {string} endDate Inclusive, `YYYY-MM-DD`. Not before `startDate`.
+ * @property {string} reason Free text -- why the time off is needed.
+ * @property {LeaveStatus} status
+ * @property {string} requestedAt ISO datetime.
+ * @property {number} [decidedByUserId] The ADMIN who approved or declined it.
+ * @property {string} [decidedAt] ISO datetime of the decision.
+ * @property {string} [decisionNote] Required on DECLINED, optional on APPROVED.
+ */
+
 export {};

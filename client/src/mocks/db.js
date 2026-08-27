@@ -2,6 +2,7 @@ import {
   seedAppointments,
   seedDoctorProfiles,
   seedInvoices,
+  seedLeaveRequests,
   seedPatients,
   seedUsers,
 } from "./seedData";
@@ -26,7 +27,10 @@ import {
 // timeline and the accept/decline flow both assume is present -- so, same as
 // every bump before, the v6 store is abandoned for the v7 seed rather than
 // migrated.
-const STORAGE_KEY = "cancer-hms-mock-db-v7";
+// v8 added the leaveRequests array (staff time-off) and its nextId kind. A v7
+// store has no leaveRequests key, which listLeaveRequests would spread as
+// undefined -- so the v7 store is dropped for the v8 seed like every bump before.
+const STORAGE_KEY = "cancer-hms-mock-db-v8";
 
 /**
  * @typedef {Object} MockDb
@@ -35,7 +39,8 @@ const STORAGE_KEY = "cancer-hms-mock-db-v7";
  * @property {import("../types").Patient[]} patients
  * @property {import("../types").Appointment[]} appointments
  * @property {import("../types").Invoice[]} invoices
- * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number}} nextIds
+ * @property {import("../types").LeaveRequest[]} leaveRequests
+ * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number}} nextIds
  */
 
 /** @returns {MockDb} */
@@ -54,12 +59,14 @@ function loadInitial() {
     patients: seedPatients,
     appointments: seedAppointments,
     invoices: seedInvoices,
+    leaveRequests: seedLeaveRequests,
     nextIds: {
       user: seedUsers.length + 1,
       patient: seedPatients.length + 1,
       appointment: seedAppointments.length + 1,
       invoice: seedInvoices.length + 1,
       invoiceItem: seedInvoices.flatMap((i) => i.items).length + 1,
+      leaveRequest: seedLeaveRequests.length + 1,
     },
   };
 }

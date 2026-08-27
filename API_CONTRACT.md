@@ -1,6 +1,6 @@
 # API Contract — OncoCare
 
-The frontend (`/client`) currently runs against an in-browser mock API (`client/src/api/*.ts`, backed by `client/src/mocks/`). This document specifies the REST contract the real Spring Boot backend should implement so that swapping the mock functions for real `axios` calls requires no changes to any page/component — only to the internals of the files in `client/src/api/`.
+The frontend (`/client`) currently runs against an in-browser mock API (`client/src/api/*.js`, backed by `client/src/mocks/`). This document specifies the REST contract the real Spring Boot backend should implement so that swapping the mock functions for real `axios` calls requires no changes to any page/component — only to the internals of the files in `client/src/api/`.
 
 All endpoints are prefixed with `/api`. All authenticated endpoints expect `Authorization: Bearer <token>`.
 
@@ -118,10 +118,14 @@ must match it:
 | `PATIENT` | their own (`patientId`) | `ACCEPTED`, `DECLINED`, `RESCHEDULED`, `CANCELLED` | not events they caused |
 | `DOCTOR` | their own (`doctorId`) | `REQUESTED`, `RESCHEDULED`, `CANCELLED` | not events they caused |
 | `RECEPTIONIST` | all | `REQUESTED`, `RESCHEDULED`, `CANCELLED` | **only `byRole === "PATIENT"`** events (D6) — so they can triage requests and re-fill freed slots |
-| `ADMIN`, `NURSE` | — | — | no appointment notices (an `ADMIN` gets leave-approval notices once leave exists) |
+| `ADMIN` | — (no appointment notices) | — | one notice per **`PENDING` `LeaveRequest` not their own** (D6); `at` for sort/unread is `requestedAt` |
+| `NURSE` | — | — | nothing |
 
 A system event (an expired request: `byUserId`/`byRole` null) always counts as a notice for its
 appointment's patient and doctor.
+
+Every notice — appointment or leave — carries a common `{ at }` timestamp; the unread count is
+`at > notificationsReadAt` across both kinds.
 
 `GET /api/notifications` is **optional** for the backend: the v1 client derives notices from the
 `GET /api/appointments` result it already holds. A server-side endpoint returning the same derived list
@@ -342,6 +346,7 @@ exception `GET /api/appointments` already makes.
 
 ```ts
 type InvoiceStatus = "UNPAID" | "PARTIAL" | "PAID";
+type InvoiceItemInput = Omit<InvoiceItem, "id">;
 interface InvoiceItem { id: number; description: string; quantity: number; unitPrice: number; }
 interface Invoice {
   id: number;
@@ -352,11 +357,57 @@ interface Invoice {
 }
 ```
 
+## Leave
+
+Staff time off. Any of the four staff roles may file a request for themselves and withdraw it while it
+is still `PENDING`; **only an `ADMIN` decides one, and never their own** — the same self-exclusion as
+staff deactivation. `PATIENT` has no access here at all. `startDate`/`endDate` are inclusive calendar
+dates (`YYYY-MM-DD`), not datetimes — half-days are out of scope. `userId` and `decidedByUserId` are set
+from the caller's token, never the body.
+
+- `GET /api/leave-requests?userId=&status=` — → `LeaveRequest[]`, newest `requestedAt` first. Both query
+  params are optional filters. Allowed roles: `ADMIN` sees all; `DOCTOR`, `NURSE`, `RECEPTIONIST` are
+  **scoped server-side to their own** regardless of the `userId` param — the filter is a convenience,
+  never the check.
+- `POST /api/leave-requests` — body `LeaveRequestInput` → created `LeaveRequest` (`status` `PENDING`,
+  `requestedAt` and `userId` set server-side). 400 if `endDate` is before `startDate`. Allowed roles:
+  `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` — for themselves only.
+- `PATCH /api/leave-requests/:id/decision` — body `{ status: "APPROVED" | "DECLINED", note?: string }` →
+  updated `LeaveRequest` (`decidedByUserId`/`decidedAt` set server-side). `note` is **required when
+  `status` is `DECLINED`**. 409 if the request is not `PENDING`. Allowed roles: `ADMIN` only, **and not
+  on a request where `userId` is the caller** — enforce server-side.
+- `POST /api/leave-requests/:id/withdraw` — no body → updated `LeaveRequest` (`PENDING` → `WITHDRAWN`).
+  409 if not `PENDING`. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` — **only on their own
+  request**.
+
+```ts
+type LeaveType = "ANNUAL" | "SICK" | "TRAINING" | "OTHER";
+type LeaveStatus = "PENDING" | "APPROVED" | "DECLINED" | "WITHDRAWN";  // APPROVED/DECLINED terminal
+interface LeaveRequest {
+  id: number;
+  userId: number;         // the staff account the leave is for
+  type: LeaveType;
+  startDate: string;      // inclusive, YYYY-MM-DD
+  endDate: string;        // inclusive, YYYY-MM-DD, not before startDate
+  reason: string;
+  status: LeaveStatus;
+  requestedAt: string;    // ISO datetime
+  decidedByUserId?: number;
+  decidedAt?: string;     // ISO datetime
+  decisionNote?: string;  // required on DECLINED, optional on APPROVED
+}
+type LeaveRequestInput = Pick<LeaveRequest, "type" | "startDate" | "endDate" | "reason">;
+```
+
+Phase 4 will add `GET /api/leave-requests/:id/conflicts` (the appointments an approval would collide
+with) and have `GET /api/appointments/availability` return no slots on an approved-leave day. Neither
+exists yet.
+
 ## Notes for the merge
 
 - Field names/casing above are the source of truth the frontend was built against — matching them exactly avoids any frontend changes.
 - Error responses: the frontend expects a JSON body with an `error` message string on 4xx/5xx (`{ error: "..." }`) and surfaces it directly in forms.
-- Once the Spring Boot API is live, only `client/src/api/*.ts` need to change (replace mock-data calls with `axios` calls against `/api/...`); `client/src/mocks/` can then be deleted.
+- Once the Spring Boot API is live, only `client/src/api/*.js` need to change (replace mock-data calls with `axios` calls against `/api/...`); `client/src/mocks/` can then be deleted.
 - **Known gap, decide when wiring the real API:** an `INACTIVE` doctor is only kept out of new
   bookings/assignments by the frontend filtering them from `SlotPicker`'s and `PatientFormDialog`'s
   doctor pickers — the mock's `POST/PATCH /api/appointments` and `PATCH /api/patients/:id` accept a

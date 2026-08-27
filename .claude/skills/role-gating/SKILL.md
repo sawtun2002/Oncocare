@@ -50,6 +50,9 @@ bug this skill exists to prevent.
 | Cancel someone else's booking (reason required) | any staff role | `AppointmentsPage.jsx` / `PatientDetailPage.jsx` via `ReasonDialog` + `POST /api/appointments/:id/cancel` |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/my-bills` (own bill, read-only) | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| `/leave` (file + track own leave) | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| Approve / decline a leave request | ADMIN, **not own** (note required to decline) | `LeavePage.jsx` (`isAdmin` section + `enabled:` query) + `PATCH /api/leave-requests/:id/decision` |
+| Withdraw a leave request | the requester, while `PENDING` | `LeavePage.jsx` + `POST /api/leave-requests/:id/withdraw` |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/profile` (own account) | `ALL_ROLES` | `App.jsx` (guard) — see note below on the missing nav entry |
 | "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.jsx` (`user?.role === "PATIENT"`) |
@@ -84,6 +87,12 @@ terminal) carries its own role rules, all also stated in `API_CONTRACT.md`'s App
 `SCHEDULED`) — never trust a `status` in the body; accept/decline is barred to `NURSE`; and any staff
 action on a booking that is not the caller's own (all of them, since staff have no `patientId`) must
 carry a reason.
+
+**Leave** (`/leave`, `API_CONTRACT.md`'s Leave section) has two self-exclusion rules of the same
+family: `userId` on a new request is taken from the token, not the body (you file only for yourself),
+and an `ADMIN` may not decide a request where `userId` is their own — the same "can't act on yourself"
+shape as staff deactivation. Non-admin staff are scoped server-side to their own requests on
+`GET /api/leave-requests` regardless of the `userId` query param.
 
 ## The backend must enforce it too
 

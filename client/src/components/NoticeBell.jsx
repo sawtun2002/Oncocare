@@ -1,15 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { listAppointments } from "../api/appointments";
+import { listLeaveRequests } from "../api/leave";
 import { listPatients } from "../api/patients";
-import { listDoctors } from "../api/users";
+import { listDoctors, listUsers } from "../api/users";
 import { useAuth } from "../context/AuthContext";
-import { formatDateTime } from "../lib/format";
+import { formatDateOnly, formatDateTime } from "../lib/format";
 import { noticesFor, unreadCount } from "../lib/notices";
+
+const LEAVE_TYPE_WORD = { ANNUAL: "annual", SICK: "sick", TRAINING: "training", OTHER: "" };
 
 // One notice, as a sentence. The event log stays neutral ("DECLINED by the
 // doctor"); the phrasing that suits *this* viewer lives here.
 function describe(notice, user, names) {
+  if (notice.kind === "leave") {
+    const { request } = notice;
+    const word = LEAVE_TYPE_WORD[request.type];
+    const span =
+      request.startDate === request.endDate
+        ? formatDateOnly(request.startDate)
+        : `${formatDateOnly(request.startDate)}–${formatDateOnly(request.endDate)}`;
+    return `${names.user(request.userId)} requested ${word ? `${word} ` : ""}leave for ${span}`;
+  }
+
   const { appointment, event } = notice;
   const when = formatDateTime(appointment.scheduledAt);
   const dr = names.doctor(appointment.doctorId);
@@ -47,15 +60,18 @@ function describe(notice, user, names) {
 }
 
 /**
- * The header notice bell. Its list is derived from the `["appointments"]` query
- * the app already runs (see lib/notices.js) -- the only stored state is
- * `user.notificationsReadAt`, stamped via `markNotificationsRead` the first time
- * the panel is opened with something unread.
+ * The header notice bell. Its list is derived from queries the app already runs
+ * (see lib/notices.js) -- appointment events for most roles, plus the pending
+ * leave queue for an ADMIN. The only stored state is `user.notificationsReadAt`,
+ * stamped via `markNotificationsRead` the first time the panel is opened with
+ * something unread.
  */
 export function NoticeBell() {
   const { user, markNotificationsRead } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
+  const isStaff = !!user && user.role !== "PATIENT";
+  const isAdmin = user?.role === "ADMIN";
 
   const appointmentsQuery = useQuery({ queryKey: ["appointments"], queryFn: listAppointments });
   const doctorsQuery = useQuery({ queryKey: ["doctors"], queryFn: listDoctors });
@@ -64,12 +80,18 @@ export function NoticeBell() {
     queryFn: listPatients,
     // Staff only -- a PATIENT never needs the register, and "no user" is not
     // "not a patient".
-    enabled: !!user && user.role !== "PATIENT",
+    enabled: isStaff,
   });
+  const leaveQuery = useQuery({
+    queryKey: ["leave-requests"],
+    queryFn: () => listLeaveRequests({ userId: user.id, role: user.role }),
+    enabled: isAdmin,
+  });
+  const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers(), enabled: isAdmin });
 
   const notices = useMemo(
-    () => noticesFor(appointmentsQuery.data ?? [], user),
-    [appointmentsQuery.data, user]
+    () => noticesFor(appointmentsQuery.data ?? [], user, leaveQuery.data ?? []),
+    [appointmentsQuery.data, leaveQuery.data, user]
   );
   const unread = unreadCount(notices, user?.notificationsReadAt);
 
@@ -91,6 +113,7 @@ export function NoticeBell() {
 
   const doctorName = (id) => doctorsQuery.data?.find((d) => d.id === id)?.name ?? `Doctor #${id}`;
   const patientName = (id) => patientsQuery.data?.find((p) => p.id === id)?.name ?? `Patient #${id}`;
+  const staffName = (id) => usersQuery.data?.find((u) => u.id === id)?.name ?? `#${id}`;
 
   async function toggle() {
     const next = !open;
@@ -107,6 +130,7 @@ export function NoticeBell() {
   }
 
   const shown = notices.slice(0, 20);
+  const names = { doctor: doctorName, patient: patientName, user: staffName };
 
   return (
     <div ref={rootRef} className="relative">
@@ -136,9 +160,11 @@ export function NoticeBell() {
             <ul className="max-h-96 divide-y divide-hairline/50 overflow-y-auto">
               {shown.map((n) => (
                 <li key={n.key} className="px-4 py-3">
-                  <p className="text-ink-700">{describe(n, user, { doctor: doctorName, patient: patientName })}</p>
-                  {n.event.reason && <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>}
-                  <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.event.at)}</p>
+                  <p className="text-ink-700">{describe(n, user, names)}</p>
+                  {n.kind === "appointment" && n.event.reason && (
+                    <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
+                  )}
+                  <p className="mt-1 text-xs text-ink-400">{formatDateTime(n.at)}</p>
                 </li>
               ))}
             </ul>

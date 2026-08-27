@@ -249,3 +249,44 @@ export const seedInvoices = [
     ],
   },
 ];
+
+// userId 2 = Dr. Sarah Chen, 3 = Dr. Raj Patel, 4 = Nina Nurse. Request 1 is
+// left PENDING so the admin approval view has something to act on out of the box.
+export const seedLeaveRequests = [
+  {
+    id: 1,
+    userId: 3,
+    type: "ANNUAL",
+    startDate: "2026-09-14",
+    endDate: "2026-09-18",
+    reason: "Family holiday booked earlier this year.",
+    status: "PENDING",
+    requestedAt: "2026-08-25T11:00:00.000Z",
+  },
+  {
+    id: 2,
+    userId: 4,
+    type: "TRAINING",
+    startDate: "2026-09-01",
+    endDate: "2026-09-02",
+    reason: "Oncology nursing conference, two-day session.",
+    status: "APPROVED",
+    requestedAt: "2026-08-10T08:30:00.000Z",
+    decidedByUserId: 1,
+    decidedAt: "2026-08-12T09:15:00.000Z",
+    decisionNote: "Approved — ward cover arranged with the agency.",
+  },
+  {
+    id: 3,
+    userId: 2,
+    type: "ANNUAL",
+    startDate: "2026-08-28",
+    endDate: "2026-09-05",
+    reason: "Short break.",
+    status: "DECLINED",
+    requestedAt: "2026-08-18T14:00:00.000Z",
+    decidedByUserId: 1,
+    decidedAt: "2026-08-19T10:00:00.000Z",
+    decisionNote: "Clashes with two chemo review clinics that week — please refile for later in September.",
+  },
+];
