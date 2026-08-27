@@ -72,7 +72,12 @@ export function Layout() {
 
   return (
     <div className="flex h-screen p-3 sm:p-4">
-      <aside className="glass-panel hidden w-60 shrink-0 flex-col p-4 lg:flex">
+      {/* `relative z-30`: every GlassCard on a page is its own stacking context
+          (backdrop-filter), and this sidebar comes *before* <main> in the DOM,
+          so without a positioned z-index the notice dropdown -- z-50 but trapped
+          inside this sidebar's stacking context -- paints under those cards.
+          z-30 matches the mobile header. */}
+      <aside className="glass-panel relative z-30 hidden w-60 shrink-0 flex-col p-4 lg:flex">
         <SidebarBody items={visibleItems} user={user} logout={logout} pillId={NAV_PILL_ID} showBell />
       </aside>
 
