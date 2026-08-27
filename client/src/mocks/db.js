@@ -88,7 +88,13 @@ export function nextId(kind) {
   return id;
 }
 
-/** Simulates network latency so loading states behave like a real API. */
-export function delay(value, ms = 350) {
+/**
+ * Simulates network latency so loading states behave like a real API. Kept
+ * low -- enough that a skeleton renders and the layout doesn't jump on first
+ * load, without every click feeling like it stalls. The old 350ms default was
+ * slow enough to see on purpose, but it's the main reason the app felt laggy
+ * once several screens were fetching. A real fast backend lands around here.
+ */
+export function delay(value, ms = 90) {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }

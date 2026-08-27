@@ -14,6 +14,11 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      // Treat fetched data as fresh for 30s. Without this, every page mount
+      // refetches data it already holds (default staleTime is 0), so moving
+      // between pages re-runs queries and re-renders for no gain. Mutations
+      // still invalidate their keys explicitly, so a change is never missed.
+      staleTime: 30_000,
     },
   },
 })
