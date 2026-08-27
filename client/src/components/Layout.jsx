@@ -8,6 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
+import { BackToTop } from "./BackToTop";
 
 // Every entry carries an explicit `roles` list. These must stay identical to the
 // `allowedRoles` on the matching route in App.jsx -- hiding a link is not access
@@ -18,7 +19,7 @@ import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 // text link. The route itself is still guarded in App.jsx the same as
 // everything else -- only the nav entry is gone, not the access control.
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", roles: STAFF_ROLES },
+  { to: "/dashboard", label: "Dashboard", roles: STAFF_ROLES },
   { to: "/patients", label: "Patients", roles: STAFF_ROLES },
   { to: "/appointments", label: "Bookings", roles: STAFF_ROLES },
   { to: "/leave", label: "Leave", roles: STAFF_ROLES },

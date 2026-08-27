@@ -1,0 +1,69 @@
+import { createContext, useContext, useEffect, useState } from "react";
+import { fetchCurrentUser, login as apiLogin, signup as apiSignup } from "../api/auth";
+
+const TOKEN_KEY = "cancer-hms-token";
+const PROFILE_KEY = "cancer-hms-profile-overrides";
+
+const AuthContext = createContext(undefined);
+
+function withProfileOverrides(account) {
+  const raw = localStorage.getItem(PROFILE_KEY);
+  const overrides = raw ? JSON.parse(raw)[account.id] : undefined;
+  return overrides ? { ...account, ...overrides } : account;
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    fetchCurrentUser(token)
+      .then((account) => setUser(withProfileOverrides(account)))
+      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function login(email, password) {
+    const { token, user } = await apiLogin(email, password);
+    localStorage.setItem(TOKEN_KEY, token);
+    setUser(withProfileOverrides(user));
+  }
+
+  // Signup logs the account in immediately -- same token/user handling as
+  // login(), since the API returns the same shape.
+  async function signup(input) {
+    const { token, user } = await apiSignup(input);
+    localStorage.setItem(TOKEN_KEY, token);
+    setUser(withProfileOverrides(user));
+  }
+
+  async function updateProfile(input) {
+    if (!user) throw new Error("You must be signed in to update your profile.");
+    const profiles = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
+    profiles[user.id] = { name: input.name, email: input.email };
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
+    setUser((current) => ({ ...current, ...profiles[user.id] }));
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    setUser(null);
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, signup, updateProfile, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

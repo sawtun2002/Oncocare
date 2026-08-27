@@ -28,5 +28,17 @@ export const ALL_ROLES = [...STAFF_ROLES, ...PATIENT_ROLES];
  * to the staff dashboard at "/" would bounce them straight back here and loop.
  */
 export function homePathFor(role) {
-  return role === "PATIENT" ? "/my-bookings" : "/";
+  switch (role) {
+    case "PATIENT":
+      return "/my-bookings";
+    case "DOCTOR":
+      return "/doctor/dashboard";
+    case "ADMIN":
+      return "/admin/dashboard";
+    case "NURSE":
+    case "RECEPTIONIST":
+      return "/dashboard";
+    default:
+      return "/";
+  }
 }
