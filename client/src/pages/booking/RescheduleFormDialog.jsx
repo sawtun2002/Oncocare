@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText } from "../../lib/ui";
 import { formatDateTime } from "../../lib/format";
@@ -9,6 +9,7 @@ export function RescheduleFormDialog({ appointment, doctors, onClose, onSubmit }
   const [selectedStart, setSelectedStart] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,7 +18,7 @@ export function RescheduleFormDialog({ appointment, doctors, onClose, onSubmit }
     setSubmitting(true);
     try {
       await onSubmit({ doctorId: Number(doctorId), scheduledAt: selectedStart });
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -26,7 +27,7 @@ export function RescheduleFormDialog({ appointment, doctors, onClose, onSubmit }
   }
 
   return (
-    <Modal title="Reschedule booking" onClose={onClose}>
+    <Modal title="Reschedule booking" onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm text-ink-400">
           Currently {formatDateTime(appointment.scheduledAt)}. Pick a new time below.
@@ -43,7 +44,7 @@ export function RescheduleFormDialog({ appointment, doctors, onClose, onSubmit }
         {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className={btnGhost}>
+          <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
             Cancel
           </button>
           <button type="submit" disabled={submitting || !selectedStart} className={btnPrimary}>

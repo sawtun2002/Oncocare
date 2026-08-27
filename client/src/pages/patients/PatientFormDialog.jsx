@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 
@@ -37,6 +37,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   const disabled = Boolean(clinicalOnly);
 
@@ -46,7 +47,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
     setSubmitting(true);
     try {
       await onSubmit(form);
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -55,7 +56,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
   }
 
   return (
-    <Modal title={initial ? "Edit patient" : "Register patient"} onClose={onClose}>
+    <Modal title={initial ? "Edit patient" : "Register patient"} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Full name" required>
@@ -157,7 +158,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
         {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className={btnGhost}>
+          <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
             Cancel
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>

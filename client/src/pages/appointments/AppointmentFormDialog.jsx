@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { SLOT_MINUTES } from "../../api/appointments";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
@@ -12,6 +12,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -26,7 +27,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
         durationMinutes: SLOT_MINUTES,
         reason,
       });
-      onClose();
+      modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setSelectedStart(null);
@@ -36,7 +37,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
   }
 
   return (
-    <Modal title="Book appointment" onClose={onClose}>
+    <Modal title="Book appointment" onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
           Patient
@@ -76,7 +77,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
         {error && <p className={errorText}>{error}</p>}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className={btnGhost}>
+          <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
             Cancel
           </button>
           <button type="submit" disabled={submitting || !selectedStart} className={btnPrimary}>

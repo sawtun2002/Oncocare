@@ -1,8 +1,10 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { NavLink, useLocation, useOutlet } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { initials } from "../lib/format";
+import { NAV_PILL_ID, pageMotion } from "../lib/motion";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 
 // Every entry carries an explicit `roles` list. These must stay identical to the
@@ -29,6 +31,15 @@ const ROLE_LABEL = {
 
 export function Layout() {
   const { user, logout } = useAuth();
+
+  // `useOutlet()` rather than `<Outlet />`: AnimatePresence keeps the outgoing
+  // page's *element* around while it fades, and a bare <Outlet /> element would
+  // re-render against the new route context, so the exiting copy would show the
+  // page we just navigated to. useOutlet resolves the match now, so what leaves
+  // is what was actually there.
+  const outlet = useOutlet();
+  const location = useLocation();
+
   if (!user) return null;
 
   const visibleItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(user.role));
@@ -48,14 +59,31 @@ export function Layout() {
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) =>
-                `block rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
+                `relative block rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm shadow-frost-500/25"
+                    ? "text-white"
                     : "text-ink-700 hover:translate-x-0.5 hover:bg-surface/60 hover:text-ink-900"
                 }`
               }
             >
-              {item.label}
+              {({ isActive }) => (
+                <>
+                  {/* The accent behind the active link is one shared element,
+                      not a class on each link: a common `layoutId` makes Framer
+                      Motion slide it from the old link to the new one instead of
+                      cross-fading two separate backgrounds. */}
+                  {isActive && (
+                    <motion.span
+                      layoutId={NAV_PILL_ID}
+                      transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-frost-500/90 to-aqua-400/80 shadow-sm shadow-frost-500/25"
+                    />
+                  )}
+                  {/* Positioned, so it paints above the pill -- both are in the
+                      same stacking context and the label comes second. */}
+                  <span className="relative">{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -85,7 +113,20 @@ export function Layout() {
 
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8">
-          <Outlet />
+          {/* mode="wait" so the two pages never overlap and shift the scroll
+              height mid-transition; `initial={false}` keeps the first paint
+              after login static rather than fading the whole app in. */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              variants={pageMotion}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {outlet}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

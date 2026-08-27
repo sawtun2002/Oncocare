@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'framer-motion'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -19,13 +20,19 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
+      {/* `reducedMotion="user"` is the single place prefers-reduced-motion is
+          honoured: Framer Motion then drops transform and layout animation
+          everywhere in the app on its own, keeping only opacity. Without it,
+          every variant in lib/motion.js would need its own branch. */}
+      <MotionConfig reducedMotion="user">
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </MotionConfig>
     </ThemeProvider>
   </StrictMode>,
 )
