@@ -6,16 +6,85 @@
  * @property {string} password
  * @property {import("../types").Role} role
  * @property {number} [patientId] PATIENT accounts only: the seedPatients record this login belongs to.
+ * @property {import("../types").UserStatus} status
+ * @property {string} [avatarUrl]
+ * @property {string} [phone] Staff accounts only.
+ * @property {string} [department] Staff accounts only.
+ * @property {boolean} notifyAppointmentReminders
+ * @property {string} [lastLoginAt] Left unset in the seed -- nobody has "signed in" until they actually do.
  */
 
+// status/notifyAppointmentReminders are spelled out on every row rather than
+// defaulted in code, so the seed reads as a complete, honest starting state --
+// no seeded phone/department/avatarUrl, since inventing fake contact details
+// nobody asked for would be worse than leaving the fields empty for people to
+// fill in from their own profile page.
 export const seedUsers = [
-  { id: 1, name: "Alex Admin", email: "admin@cancerhms.local", password: "admin123", role: "ADMIN" },
-  { id: 2, name: "Dr. Sarah Chen", email: "doctor@cancerhms.local", password: "doctor123", role: "DOCTOR" },
-  { id: 3, name: "Dr. Raj Patel", email: "doctor2@cancerhms.local", password: "doctor123", role: "DOCTOR" },
-  { id: 4, name: "Nina Nurse", email: "nurse@cancerhms.local", password: "nurse123", role: "NURSE" },
-  { id: 5, name: "Rita Receptionist", email: "reception@cancerhms.local", password: "reception123", role: "RECEPTIONIST" },
-  { id: 6, name: "John Doe", email: "patient@cancerhms.local", password: "patient123", role: "PATIENT", patientId: 1 },
-  { id: 7, name: "Maria Garcia", email: "patient2@cancerhms.local", password: "patient123", role: "PATIENT", patientId: 2 },
+  {
+    id: 1,
+    name: "Alex Admin",
+    email: "admin@cancerhms.local",
+    password: "admin123",
+    role: "ADMIN",
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 2,
+    name: "Dr. Sarah Chen",
+    email: "doctor@cancerhms.local",
+    password: "doctor123",
+    role: "DOCTOR",
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 3,
+    name: "Dr. Raj Patel",
+    email: "doctor2@cancerhms.local",
+    password: "doctor123",
+    role: "DOCTOR",
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 4,
+    name: "Nina Nurse",
+    email: "nurse@cancerhms.local",
+    password: "nurse123",
+    role: "NURSE",
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 5,
+    name: "Rita Receptionist",
+    email: "reception@cancerhms.local",
+    password: "reception123",
+    role: "RECEPTIONIST",
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 6,
+    name: "John Doe",
+    email: "patient@cancerhms.local",
+    password: "patient123",
+    role: "PATIENT",
+    patientId: 1,
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
+  {
+    id: 7,
+    name: "Maria Garcia",
+    email: "patient2@cancerhms.local",
+    password: "patient123",
+    role: "PATIENT",
+    patientId: 2,
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+  },
 ];
 
 /** Keyed by the doctor's seedUsers id -- 2 and 3 are the DOCTOR accounts. */

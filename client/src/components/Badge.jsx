@@ -11,6 +11,8 @@ const COLOR_MAP = {
   UNPAID: TONE.negative,
   PARTIAL: TONE.warning,
   PAID: TONE.positive,
+  ACTIVE: TONE.positive,
+  INACTIVE: TONE.muted,
 };
 
 export function Badge({ status }) {

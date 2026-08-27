@@ -6,7 +6,11 @@ All endpoints are prefixed with `/api`. All authenticated endpoints expect `Auth
 
 ## Auth
 
-- `POST /api/auth/login` — body `{ email, password }` → `{ token, user: User }`. 401 on bad credentials.
+- `POST /api/auth/login` — body `{ email, password }` → `{ token, user: User }`. 401 on bad credentials,
+  and 401 (with a distinct message, e.g. "This account has been deactivated") if the credentials are
+  correct but `user.status` is `INACTIVE` — checked only *after* the credentials already match, so a
+  wrong-password guess and a deactivated account are never distinguishable from each other. On success,
+  sets `User.lastLoginAt` to now.
 - `GET /api/auth/me` — → `User` for the current token. 401 if invalid/expired.
 - `POST /api/auth/signup` — body `SignupInput` → `{ token, user: User }`. **No auth required** — this is
   the public account-creation endpoint. Always creates a `PATIENT` account (there is no role on the input)
@@ -22,15 +26,30 @@ All endpoints are prefixed with `/api`. All authenticated endpoints expect `Auth
   account only. 400 if `currentPassword` does not match; requiring it is what stops an unattended,
   still-signed-in screen being enough to take the account over. The token stays valid — this is not a
   re-login and no new token is issued.
+- `PATCH /api/auth/me/avatar` — body `{ avatarUrl?: string }` → updated `User`. Allowed roles: all, own
+  account only. Omitting `avatarUrl` (or sending it as `undefined`/`null`) removes the photo. The mock
+  sends a `data:` URI directly; a real backend would more plausibly want a signed-upload flow that
+  returns a plain URL to store instead — treat this endpoint's request shape as a swap point, the same
+  as the `getPatient`/`getInvoice` 404-vs-`undefined` one below.
+- `PATCH /api/auth/me/notifications` — body `NotificationPreferencesInput` → updated `User`. Allowed
+  roles: all, own account only. Mock-only for now — there is no real email backend to act on the
+  preference yet, so the backend only needs to persist and return it.
 
 ```ts
 type Role = "ADMIN" | "DOCTOR" | "NURSE" | "RECEPTIONIST" | "PATIENT";
+type UserStatus = "ACTIVE" | "INACTIVE";
 interface User {
   id: number;
   name: string;
   email: string;
   role: Role;
   patientId?: number;     // PATIENT accounts only: the Patient record this login owns
+  status: UserStatus;     // defaults ACTIVE; see PATCH /api/users/:id/status
+  avatarUrl?: string;
+  phone?: string;         // staff accounts only -- see the note below ProfileInput
+  department?: string;    // staff accounts only, free text (e.g. "Oncology Ward 3")
+  notifyAppointmentReminders: boolean;  // defaults true; mock-only preference
+  lastLoginAt?: string;   // ISO datetime, set by POST /api/auth/login
 }
 interface SignupInput {
   name: string;
@@ -43,16 +62,24 @@ interface SignupInput {
 interface ProfileInput {
   name: string;
   email: string;
+  phone?: string;         // staff accounts only -- omit for a PATIENT caller
+  department?: string;    // staff accounts only -- omit for a PATIENT caller
 }
 interface PasswordChangeInput {
   currentPassword: string;
   newPassword: string;
 }
+interface NotificationPreferencesInput {
+  notifyAppointmentReminders: boolean;
+}
 ```
 
-`ProfileInput` is name and email only. A patient's phone and address live on their `Patient` record, not
-on their login, and are edited through `PATCH /api/patients/:id` by staff — the two must not both be
-writable from the profile screen or they will disagree.
+`ProfileInput` covers name/email for everyone and phone/department for staff only. A patient's phone and
+address live on their `Patient` record, not on their login, and are edited through
+`PATCH /api/patients/:id` by staff — the two must not both be writable from the profile screen or they
+will disagree. Photo (`PATCH /api/auth/me/avatar`) and the reminders toggle
+(`PATCH /api/auth/me/notifications`) are deliberately separate endpoints rather than more `ProfileInput`
+fields: each is meant to save the instant it changes in the UI, not wait on this endpoint's own submit.
 
 `PATIENT` accounts are patients signing in to the booking portal. Every endpoint below is annotated with
 the roles allowed to call it — **`PATIENT` is not staff**, and silence is never permission.
@@ -62,9 +89,17 @@ the roles allowed to call it — **`PATIENT` is not staff**, and silence is neve
 - `GET /api/users?role=DOCTOR` — → `User[]`, optional role filter (used to populate doctor pickers).
   Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `PATIENT`. When the caller is a `PATIENT`,
   only `role=DOCTOR` may be requested — a patient must not be able to enumerate staff or other patients.
-- `POST /api/users` — body `StaffUserInput` → created `User`. Allowed roles: `ADMIN` only. **`role` must
-  not be `PATIENT`** — patient accounts are created only via `POST /api/auth/signup`; enforce this
-  server-side, not just by omitting a role picker in the UI. 409 if `email` is already registered.
+- `POST /api/users` — body `StaffUserInput` → created `User` (`status` defaults to `ACTIVE`). Allowed
+  roles: `ADMIN` only. **`role` must not be `PATIENT`** — patient accounts are created only via
+  `POST /api/auth/signup`; enforce this server-side, not just by omitting a role picker in the UI. 409 if
+  `email` is already registered.
+- `PATCH /api/users/:id/status` — body `{ status: UserStatus }` → updated `User`. Allowed roles: `ADMIN`
+  only, and **not on the caller's own account** — enforce server-side; deactivating your own last-admin
+  account by accident would lock everyone out with no one left able to undo it. Deactivating a staff
+  account only blocks that login (see `POST /api/auth/login`) and drops it out of the frontend's doctor
+  pickers for *new* appointments/assignments — it does **not** touch the `User` record otherwise, or
+  anything that already references it (a doctor's assigned `Patient`s, past or future `Appointment`s).
+  That's the reason this is a status flip rather than `DELETE /api/users/:id`, which does not exist.
 
 ```ts
 type StaffRole = Exclude<Role, "PATIENT">;
@@ -203,3 +238,9 @@ interface Invoice {
 - Field names/casing above are the source of truth the frontend was built against — matching them exactly avoids any frontend changes.
 - Error responses: the frontend expects a JSON body with an `error` message string on 4xx/5xx (`{ error: "..." }`) and surfaces it directly in forms.
 - Once the Spring Boot API is live, only `client/src/api/*.ts` need to change (replace mock-data calls with `axios` calls against `/api/...`); `client/src/mocks/` can then be deleted.
+- **Known gap, decide when wiring the real API:** an `INACTIVE` doctor is only kept out of new
+  bookings/assignments by the frontend filtering them from `SlotPicker`'s and `PatientFormDialog`'s
+  doctor pickers — the mock's `POST/PATCH /api/appointments` and `PATCH /api/patients/:id` accept a
+  `doctorId`/`assignedDoctorId` pointing at a deactivated doctor without complaint. A real backend should
+  almost certainly reject that server-side (409, same spirit as the overlap check) rather than rely on
+  the picker alone, since nothing stops a direct API call bypassing it.

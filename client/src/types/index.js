@@ -7,12 +7,33 @@
  */
 
 /**
+ * Whether an account can sign in. Only staff accounts (non-PATIENT) are ever
+ * set to INACTIVE, and only by an ADMIN -- see PATCH /api/users/:id/status.
+ * Deactivating never touches the record itself or anything referencing it
+ * (a doctor's assigned patients, past and future appointments); it only blocks
+ * login and, in the frontend, excludes the account from pickers for *new*
+ * assignments -- see the note at SlotPicker.
+ *
+ * @typedef {"ACTIVE" | "INACTIVE"} UserStatus
+ */
+
+/**
  * @typedef {Object} User
  * @property {number} id
  * @property {string} name
  * @property {string} email
  * @property {Role} role
  * @property {number} [patientId] Set only on PATIENT accounts: the Patient record this login belongs to.
+ * @property {UserStatus} [status] Defaults to ACTIVE.
+ * @property {string} [avatarUrl] A photo the account holder uploaded. The mock stores this as a `data:`
+ *   URI; a real backend would more likely serve it from object storage and return a plain URL instead --
+ *   a swap point when wiring the real API, like the 404-vs-undefined one below.
+ * @property {string} [phone] Staff accounts only. A patient's phone lives on their Patient record, not
+ *   here -- see Patient.phone.
+ * @property {string} [department] Staff accounts only, free text (e.g. "Oncology Ward 3").
+ * @property {boolean} [notifyAppointmentReminders] Defaults to true. Mock-only preference: there is no
+ *   real email backend yet to act on it.
+ * @property {string} [lastLoginAt] ISO datetime of the account's most recent successful login.
  */
 
 /**

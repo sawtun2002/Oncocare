@@ -41,6 +41,15 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
 
   const disabled = Boolean(clinicalOnly);
 
+  // Same rule as the appointment doctor picker (SlotPicker): a deactivated
+  // doctor drops out of the choices for a *new* assignment, but if this
+  // patient is already assigned to one, that name stays visible rather than
+  // silently blanking the select.
+  const activeDoctors = doctors.filter((d) => d.status !== "INACTIVE");
+  const assignedInactiveDoctor = doctors.find(
+    (d) => d.id === form.assignedDoctorId && d.status === "INACTIVE"
+  );
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -138,7 +147,12 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
             className={inputClass}
           >
             <option value="">Unassigned</option>
-            {doctors.map((d) => (
+            {assignedInactiveDoctor && (
+              <option value={assignedInactiveDoctor.id} disabled>
+                {assignedInactiveDoctor.name} (inactive)
+              </option>
+            )}
+            {activeDoctors.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>

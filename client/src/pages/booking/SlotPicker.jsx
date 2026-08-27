@@ -25,6 +25,14 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
   const slots = availabilityQuery.data ?? [];
   const openSlots = slots.filter((s) => s.available);
 
+  // A deactivated doctor drops out of the picker for *new* choices -- but if
+  // this booking (a reschedule, say) already points at one, their name has to
+  // stay visible rather than silently blank out the selected value.
+  const activeDoctors = doctors.filter((d) => d.status !== "INACTIVE");
+  const currentInactiveDoctor = doctors.find(
+    (d) => d.id === Number(doctorId) && d.status === "INACTIVE"
+  );
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -42,7 +50,12 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
             <option value="" disabled>
               Select a doctor
             </option>
-            {doctors.map((d) => (
+            {currentInactiveDoctor && (
+              <option value={currentInactiveDoctor.id} disabled>
+                {currentInactiveDoctor.name} (inactive)
+              </option>
+            )}
+            {activeDoctors.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>

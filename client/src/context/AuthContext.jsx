@@ -4,6 +4,8 @@ import {
   fetchCurrentUser,
   login as apiLogin,
   signup as apiSignup,
+  updateAvatar as apiUpdateAvatar,
+  updateNotificationPreferences as apiUpdateNotificationPreferences,
   updateProfile as apiUpdateProfile,
 } from "../api/auth";
 
@@ -62,9 +64,32 @@ export function AuthProvider({ children }) {
     await apiChangePassword(localStorage.getItem(TOKEN_KEY), input);
   }
 
+  // Photo and notification preferences are separate from updateProfile() on
+  // purpose -- each is meant to save the instant it changes (a file picked, a
+  // toggle flipped), not wait on the details form's own Save button.
+  async function updateAvatar(avatarUrl) {
+    const updated = await apiUpdateAvatar(localStorage.getItem(TOKEN_KEY), avatarUrl);
+    setUser(updated);
+  }
+
+  async function updateNotificationPreferences(input) {
+    const updated = await apiUpdateNotificationPreferences(localStorage.getItem(TOKEN_KEY), input);
+    setUser(updated);
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, updateProfile, changePassword }}
+      value={{
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        updateProfile,
+        changePassword,
+        updateAvatar,
+        updateNotificationPreferences,
+      }}
     >
       {children}
     </AuthContext.Provider>

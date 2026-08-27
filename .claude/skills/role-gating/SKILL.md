@@ -47,14 +47,25 @@ bug this skill exists to prevent.
 | Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canManageBookings`) |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
-| `/profile` (own account) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| `/profile` (own account) | `ALL_ROLES` | `App.jsx` (guard) — see note below on the missing nav entry |
 | "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.jsx` (`user?.role === "PATIENT"`) |
+| Deactivate/reactivate a staff account | ADMIN, not on own account | `UsersPage.jsx` (own-row check) + `PATCH /api/users/:id/status` |
 
-`/profile` is the one page with **no** in-page role check, and that is deliberate: it takes no user id
-and can only ever edit the account the session token belongs to, so there is no one else's data for a
-check to protect. What it must keep is the read-only `role` — an account that could raise its own would
-make every row above decorative. The same goes for the API: `PATCH /api/auth/me` must reject `role` and
+`/profile` has **no `NAV_ITEMS` entry** — it's reached by clicking the identity card (avatar + name) at
+the bottom of the sidebar, in `Layout.jsx`'s `SidebarBody`, not a nav link. The route guard in `App.jsx`
+still applies exactly like every other row in this table; only the nav *link* is gone. Don't read the
+missing `NAV_ITEMS` line as a hole — check `App.jsx` instead.
+
+`/profile` also has **no in-page role check**, and that is deliberate: it takes no user id and can only
+ever edit the account the session token belongs to, so there is no one else's data for a check to
+protect. What it must keep is the read-only `role` — an account that could raise its own would make
+every row above decorative. The same goes for the API: `PATCH /api/auth/me` must reject `role` and
 `patientId`.
+
+Deactivating a staff account is the one row above with a **self-exclusion** rule instead of a role list:
+any `ADMIN` may deactivate any *other* staff account, but `UsersPage.jsx` hides the action on the
+signed-in admin's own row, and `PATCH /api/users/:id/status` documents the same restriction
+server-side — deactivating the only admin who could undo it would lock everyone out.
 
 Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `notes`.
 

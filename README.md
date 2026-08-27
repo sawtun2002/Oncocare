@@ -29,9 +29,15 @@ Opens at `http://localhost:5173`.
 Patients sign in to a self-service portal (book an appointment, view and manage their own bookings) and
 cannot reach any staff screen. The seeded patient login is linked to the "John Doe" patient record.
 
-Every account, staff or patient, gets **My profile** (`/profile`): change your own name, email and
-password, and pick a light/dark/system theme. Changing a password in the mock API updates the seeded
-account, so note the new one — there is no reset flow.
+Every account, staff or patient, gets a profile page: click your name/avatar at the bottom of the
+sidebar (not a nav link). It covers a photo, name/email (plus phone/department for staff — a patient's
+contact details live on their patient record instead), an appointment-reminders toggle, password, when
+you last signed in, and the light/dark/system theme. Changing a password in the mock API updates the
+seeded account, so note the new one — there is no reset flow.
+
+An `ADMIN` can also deactivate a staff account from **Staff accounts** (`/users`) — it blocks that
+login and removes them from doctor pickers for new bookings, but never touches their existing patients
+or appointments, and can be reversed at any time. An admin can't deactivate their own account.
 
 ## Mock data layer
 

@@ -10,12 +10,24 @@ import { db, delay, nextId, persist } from "../mocks/db";
  * @typedef {Object} ProfileInput
  * @property {string} name
  * @property {string} email
+ * @property {string} [phone] Staff accounts only -- omit for a PATIENT.
+ * @property {string} [department] Staff accounts only -- omit for a PATIENT.
  */
 
 /**
  * @typedef {Object} PasswordChangeInput
  * @property {string} currentPassword
  * @property {string} newPassword
+ */
+
+/**
+ * @typedef {Object} AvatarInput
+ * @property {string} [avatarUrl] Omit (or send undefined) to remove the photo.
+ */
+
+/**
+ * @typedef {Object} NotificationPreferencesInput
+ * @property {boolean} notifyAppointmentReminders
  */
 
 /**
@@ -31,7 +43,19 @@ import { db, delay, nextId, persist } from "../mocks/db";
 function toUser(m) {
   // patientId must survive: it is how a PATIENT session knows which record is
   // theirs. Password is the only field deliberately dropped.
-  return { id: m.id, name: m.name, email: m.email, role: m.role, patientId: m.patientId };
+  return {
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    role: m.role,
+    patientId: m.patientId,
+    status: m.status,
+    avatarUrl: m.avatarUrl,
+    phone: m.phone,
+    department: m.department,
+    notifyAppointmentReminders: m.notifyAppointmentReminders,
+    lastLoginAt: m.lastLoginAt,
+  };
 }
 
 function findByEmail(email) {
@@ -55,6 +79,17 @@ export async function login(email, password) {
       throw new Error("Invalid email or password");
     });
   }
+  // Checked only after the credentials already match -- a wrong password gets
+  // the same generic "Invalid email or password" either way, so failing here
+  // never tells a guesser that this email belongs to a real, deactivated
+  // account.
+  if (match.status === "INACTIVE") {
+    return delay(undefined, 300).then(() => {
+      throw new Error("This account has been deactivated. Contact an administrator.");
+    });
+  }
+  match.lastLoginAt = new Date().toISOString();
+  persist();
   return delay({ token: `mock-token-${match.id}`, user: toUser(match) });
 }
 
@@ -92,6 +127,11 @@ export async function signup(input) {
     password: input.password,
     role: "PATIENT",
     patientId: patient.id,
+    status: "ACTIVE",
+    notifyAppointmentReminders: true,
+    // Signup logs the account in immediately (see AuthContext.signup()), so
+    // this is genuinely their first sign-in, not a placeholder.
+    lastLoginAt: new Date().toISOString(),
   };
   db.users.push(user);
 
@@ -110,9 +150,16 @@ export async function fetchCurrentUser(token) {
 }
 
 /**
- * Update the signed-in account's own details. Name and email only: a patient's
- * phone and address belong to their Patient record, not to their login, and are
- * edited from the patient register.
+ * Update the signed-in account's own details: name, email, and -- for staff --
+ * phone and department. A patient's phone and address belong to their Patient
+ * record, not to their login, and are edited from the patient register instead;
+ * the frontend simply never sends phone/department for a PATIENT, and this
+ * function stores whatever it's given without re-deriving the role itself.
+ *
+ * Photo (updateAvatar) and the reminders toggle (updateNotificationPreferences)
+ * are deliberately separate functions/endpoints, not extra fields here: each is
+ * meant to save the instant it changes, rather than waiting on this form's Save
+ * button.
  */
 export async function updateProfile(token, input) {
   const match = userForToken(token);
@@ -131,6 +178,42 @@ export async function updateProfile(token, input) {
 
   match.name = input.name;
   match.email = input.email;
+  match.phone = input.phone;
+  match.department = input.department;
+  persist();
+  return delay(toUser(match));
+}
+
+/**
+ * Replace the signed-in account's photo. `avatarUrl` is a `data:` URI in the
+ * mock -- see the note on User.avatarUrl for how a real backend would differ.
+ * Passing undefined removes the photo.
+ */
+export async function updateAvatar(token, avatarUrl) {
+  const match = userForToken(token);
+  if (!match) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Session expired");
+    });
+  }
+  match.avatarUrl = avatarUrl;
+  persist();
+  return delay(toUser(match));
+}
+
+/**
+ * The signed-in account's own notification preferences. One field today
+ * (appointment reminders); mock-only, since there is no real email backend yet
+ * to act on it.
+ */
+export async function updateNotificationPreferences(token, input) {
+  const match = userForToken(token);
+  if (!match) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Session expired");
+    });
+  }
+  match.notifyAppointmentReminders = input.notifyAppointmentReminders;
   persist();
   return delay(toUser(match));
 }

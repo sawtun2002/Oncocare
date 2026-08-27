@@ -10,7 +10,12 @@ import {
 // DB from localStorage. v2 added PATIENT accounts with a `patientId` link.
 // v3 added a "user" nextId kind for account creation (signup / staff accounts).
 // v4 added doctorProfiles (the patient-facing doctor directory).
-const STORAGE_KEY = "cancer-hms-mock-db-v4";
+// v5 added status/avatarUrl/phone/department/notifyAppointmentReminders/
+// lastLoginAt to users. Same pattern as every bump before it: a returning
+// visitor's v4 localStorage is simply abandoned in favour of the v5 seed, not
+// migrated -- so toUser() in api/auth.js and api/users.js can trust every
+// field is present without a defensive default.
+const STORAGE_KEY = "cancer-hms-mock-db-v5";
 
 /**
  * @typedef {Object} MockDb

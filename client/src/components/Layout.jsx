@@ -1,16 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { NavLink, useLocation, useOutlet } from "react-router-dom";
+import { Link, NavLink, useLocation, useOutlet } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
+import { Avatar } from "./Avatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
-import { initials } from "../lib/format";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 
 // Every entry carries an explicit `roles` list. These must stay identical to the
 // `allowedRoles` on the matching route in App.jsx -- hiding a link is not access
 // control, the route guard is.
+//
+// /profile is deliberately not listed here: it's reached by clicking the
+// identity card at the bottom of the sidebar (see SidebarBody) instead of a
+// text link. The route itself is still guarded in App.jsx the same as
+// everything else -- only the nav entry is gone, not the access control.
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", roles: STAFF_ROLES },
   { to: "/patients", label: "Patients", roles: STAFF_ROLES },
@@ -20,7 +25,6 @@ const NAV_ITEMS = [
   { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
   { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
   { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
-  { to: "/profile", label: "My profile", roles: ALL_ROLES },
 ];
 
 const ROLE_LABEL = {
@@ -194,15 +198,26 @@ function SidebarBody({ items, user, logout, pillId, onNavigate }) {
       </nav>
 
       <div className="group mt-4 rounded-xl border border-hairline/70 bg-surface/50 p-3 transition duration-200 hover:border-frost-300/70 hover:bg-surface/75 hover:shadow-md hover:shadow-frost-500/10">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-frost-400 to-aqua-400 text-xs font-semibold text-white shadow-sm transition duration-200 group-hover:scale-105">
-            {initials(user.name)}
-          </div>
+        {/* This is how /profile is reached now -- the identity row itself is
+            the link, not a separate "My profile" line in the nav list above.
+            Only the avatar + name/role are inside it: ThemeToggle and Log out
+            stay siblings, not children, so no interactive control ends up
+            nested inside the <a> this renders as. */}
+        <Link
+          to="/profile"
+          onClick={onNavigate}
+          className="-m-1 flex items-center gap-2.5 rounded-lg p-1 transition duration-200 hover:bg-surface/60 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
+        >
+          <Avatar
+            name={user.name}
+            avatarUrl={user.avatarUrl}
+            className="transition duration-200 group-hover:scale-105"
+          />
           <div className="min-w-0">
             <div className="truncate text-sm font-medium text-ink-900">{user.name}</div>
             <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
           </div>
-        </div>
+        </Link>
         <ThemeToggle />
 
         {/* Rose on hover: logging out ends the session, so it should not look

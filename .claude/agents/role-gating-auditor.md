@@ -55,7 +55,9 @@ used in only one of two places, is a finding.
 | `/billing` route | ADMIN, RECEPTIONIST | `Layout.jsx` + `App.jsx` |
 | `/users` staff accounts | ADMIN | `Layout.jsx` + `App.jsx` |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` + `App.jsx` |
-| `/doctors`, `/doctors/:id`, `/profile` | `ALL_ROLES` | `Layout.jsx` + `App.jsx` |
+| `/doctors`, `/doctors/:id` | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| `/profile` | `ALL_ROLES` | `App.jsx` (guard) only — no `NAV_ITEMS` entry, see below |
+| Deactivate/reactivate a staff account | ADMIN, not own account | `UsersPage.jsx` (own-row check) + `PATCH /api/users/:id/status` |
 | Dashboard billing card + `["billing-summary"]` query | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |
 | Edit patient, all fields | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canEdit`) |
@@ -65,8 +67,11 @@ used in only one of two places, is a finding.
 
 Anchors are symbol names, not line numbers, on purpose — cite `path:line` from what you actually read.
 
-Two deliberate exceptions, so do not report either as a hole:
+Three deliberate exceptions, so do not report any of them as a hole:
 
+- **`/profile` has no `NAV_ITEMS` entry.** It's reached by clicking the identity card (avatar + name) at
+  the bottom of the sidebar (`Layout.jsx`'s `SidebarBody`), not a nav link. `App.jsx`'s route guard still
+  applies as normal — check that, not `NAV_ITEMS`, before calling this a MISMATCH.
 - **`/profile` has no in-page role check.** It takes no user id and can only edit the account the token
   belongs to. What it *must* keep is `role` displayed read-only, and `PATCH /api/auth/me` refusing
   `role` and `patientId` — an account that could raise its own role voids every row above. Check that,
