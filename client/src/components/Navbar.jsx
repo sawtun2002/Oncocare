@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext' // Adjust import path as needed
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar({ onMenuClick }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
