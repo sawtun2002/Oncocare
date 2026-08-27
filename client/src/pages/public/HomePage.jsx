@@ -257,7 +257,7 @@ export default function HomePage() {
       </section>
 
       {/* Custom animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

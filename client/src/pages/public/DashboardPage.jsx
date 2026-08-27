@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { listAppointments } from "../api/appointments";
-import { getBillingSummary } from "../api/billing";
-import { listPatients } from "../api/patients";
-import { Badge } from "../components/Badge";
-import { GlassCard } from "../components/GlassCard";
-import { TableSkeleton } from "../components/Skeleton";
-import { StatCard } from "../components/StatCard";
-import { useAuth } from "../context/AuthContext";
-import { formatCurrency, formatDateTime } from "../lib/format";
-import { pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../lib/ui";
+import { listAppointments } from "../../api/appointments";
+import { getBillingSummary } from "../../api/billing";
+import { listPatients } from "../../api/patients";
+import { Badge } from "../../components/Badge";
+import { GlassCard } from "../../components/GlassCard";
+import { TableSkeleton } from "../../components/Skeleton";
+import { StatCard } from "../../components/StatCard";
+import { useAuth } from "../../context/AuthContext";
+import { formatCurrency, formatDateTime } from "../../lib/format";
+import { pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
 
 export function DashboardPage() {
   const { user } = useAuth();
