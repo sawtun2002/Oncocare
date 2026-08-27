@@ -1,9 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { PATIENT_ROLES, STAFF_ROLES } from "./lib/roles";
+import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "./lib/roles";
 import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { DoctorsPage } from "./pages/doctors/DoctorsPage";
+import { DoctorProfilePage } from "./pages/doctors/DoctorProfilePage";
 import { PatientsListPage } from "./pages/patients/PatientsListPage";
 import { PatientDetailPage } from "./pages/patients/PatientDetailPage";
 import { AppointmentsPage } from "./pages/appointments/AppointmentsPage";
@@ -34,6 +36,12 @@ function App() {
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
             <Route path="/users" element={<UsersPage />} />
+          </Route>
+
+          {/* The doctor directory is the one section staff and patients share. */}
+          <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
+            <Route path="/doctors" element={<DoctorsPage />} />
+            <Route path="/doctors/:id" element={<DoctorProfilePage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={PATIENT_ROLES} />}>

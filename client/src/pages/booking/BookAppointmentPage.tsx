@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { createAppointment, SLOT_MINUTES, type AppointmentInput } from "../../api/appointments";
 import { listDoctors } from "../../api/users";
 import { GlassCard } from "../../components/GlassCard";
@@ -14,7 +14,13 @@ export function BookAppointmentPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [doctorId, setDoctorId] = useState<number | "">("");
+  // `?doctorId=` lets "Book with Dr. X" on a doctor's profile land here with the
+  // doctor already chosen. Read once as the initial value -- after that the
+  // picker owns it.
+  const [searchParams] = useSearchParams();
+  const [doctorId, setDoctorId] = useState<number | "">(
+    () => Number(searchParams.get("doctorId")) || ""
+  );
   const [selectedStart, setSelectedStart] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +75,12 @@ export function BookAppointmentPage() {
     <div>
       <h1 className={pageTitle}>Book an appointment</h1>
       <p className="mt-2 text-sm text-ink-400">
-        Choose a doctor and a time that suits you. Appointments run {SLOT_MINUTES} minutes.
+        Choose a doctor and a time that suits you. Appointments run {SLOT_MINUTES} minutes. Not sure who
+        to see?{" "}
+        <Link to="/doctors" className="font-medium text-frost-600 transition hover:underline">
+          Browse doctor profiles
+        </Link>
+        .
       </p>
 
       <GlassCard className="mt-6 p-6">

@@ -1,4 +1,4 @@
-import type { Appointment, Invoice, Patient, Role } from "../types";
+import type { Appointment, DoctorProfile, Invoice, Patient, Role } from "../types";
 
 export interface MockUser {
   id: number;
@@ -18,6 +18,40 @@ export const seedUsers: MockUser[] = [
   { id: 5, name: "Rita Receptionist", email: "reception@cancerhms.local", password: "reception123", role: "RECEPTIONIST" },
   { id: 6, name: "John Doe", email: "patient@cancerhms.local", password: "patient123", role: "PATIENT", patientId: 1 },
   { id: 7, name: "Maria Garcia", email: "patient2@cancerhms.local", password: "patient123", role: "PATIENT", patientId: 2 },
+];
+
+/** Keyed by the doctor's seedUsers id -- 2 and 3 are the DOCTOR accounts. */
+export const seedDoctorProfiles: DoctorProfile[] = [
+  {
+    id: 2,
+    name: "Dr. Sarah Chen",
+    specialty: "Medical Oncology",
+    yearsOfExperience: 14,
+    education: [
+      { degree: "Fellowship, Hematology & Medical Oncology", institution: "Memorial Cancer Institute", year: 2014 },
+      { degree: "Residency, Internal Medicine", institution: "St. Anne's University Hospital", year: 2011 },
+      { degree: "MD", institution: "University of Edinburgh Medical School", year: 2008 },
+    ],
+    certifications: ["Board Certified in Medical Oncology", "Board Certified in Internal Medicine"],
+    languages: ["English", "Mandarin"],
+    bio: "Sarah leads our breast and lymphoma programme, with a focus on targeted therapy and long-term survivorship care. She sees patients through the whole course of treatment, from diagnosis to follow-up.",
+    acceptingNewPatients: true,
+  },
+  {
+    id: 3,
+    name: "Dr. Raj Patel",
+    specialty: "Radiation Oncology",
+    yearsOfExperience: 9,
+    education: [
+      { degree: "Fellowship, Stereotactic Radiosurgery", institution: "Northfield Cancer Centre", year: 2019 },
+      { degree: "Residency, Radiation Oncology", institution: "Queen's Medical Centre", year: 2017 },
+      { degree: "MBBS", institution: "All India Institute of Medical Sciences", year: 2012 },
+    ],
+    certifications: ["Board Certified in Radiation Oncology"],
+    languages: ["English", "Hindi", "Gujarati"],
+    bio: "Raj specialises in image-guided and stereotactic radiotherapy for prostate and lung cancers, and works closely with the surgical team on combined treatment plans.",
+    acceptingNewPatients: true,
+  },
 ];
 
 export const seedPatients: Patient[] = [

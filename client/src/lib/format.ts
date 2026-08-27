@@ -30,6 +30,19 @@ export function toDateInputValue(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/**
+ * Up to two initials for an avatar: "Dr. Sarah Chen" -> "SC". Honorifics are
+ * dropped first, otherwise every doctor renders as "D".
+ */
+export function initials(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  const named = words.filter((w) => !/^(dr|mr|mrs|ms|prof)\.?$/i.test(w));
+  return (named.length ? named : words)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+}
+
 export function calculateAge(dob: string): number {
   const birth = new Date(dob);
   const today = new Date();

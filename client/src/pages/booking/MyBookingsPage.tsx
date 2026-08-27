@@ -94,8 +94,13 @@ export function MyBookingsPage() {
                 <div>
                   <div className="text-base font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
                   <div className="mt-1 text-sm text-ink-400">
-                    {doctorName(a.doctorId)} · {a.durationMinutes} min
-                    {a.reason ? ` · ${a.reason}` : ""}
+                    <Link
+                      to={`/doctors/${a.doctorId}`}
+                      className="font-medium text-ink-700 transition hover:text-frost-600 hover:underline"
+                    >
+                      {doctorName(a.doctorId)}
+                    </Link>{" "}
+                    · {a.durationMinutes} min{a.reason ? ` · ${a.reason}` : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -130,7 +135,12 @@ export function MyBookingsPage() {
                 <div>
                   <div className="text-sm font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
                   <div className="mt-1 text-sm text-ink-400">
-                    {doctorName(a.doctorId)}
+                    <Link
+                      to={`/doctors/${a.doctorId}`}
+                      className="transition hover:text-frost-600 hover:underline"
+                    >
+                      {doctorName(a.doctorId)}
+                    </Link>
                     {a.reason ? ` · ${a.reason}` : ""}
                   </div>
                 </div>

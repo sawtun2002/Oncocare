@@ -1,13 +1,22 @@
-import type { Appointment, Invoice, Patient } from "../types";
-import { type MockUser, seedAppointments, seedInvoices, seedPatients, seedUsers } from "./seedData";
+import type { Appointment, DoctorProfile, Invoice, Patient } from "../types";
+import {
+  type MockUser,
+  seedAppointments,
+  seedDoctorProfiles,
+  seedInvoices,
+  seedPatients,
+  seedUsers,
+} from "./seedData";
 
 // Bump this whenever the seeded shape changes, or returning users load a stale
 // DB from localStorage. v2 added PATIENT accounts with a `patientId` link.
 // v3 added a "user" nextId kind for account creation (signup / staff accounts).
-const STORAGE_KEY = "cancer-hms-mock-db-v3";
+// v4 added doctorProfiles (the patient-facing doctor directory).
+const STORAGE_KEY = "cancer-hms-mock-db-v4";
 
 interface MockDb {
   users: MockUser[];
+  doctorProfiles: DoctorProfile[];
   patients: Patient[];
   appointments: Appointment[];
   invoices: Invoice[];
@@ -25,6 +34,7 @@ function loadInitial(): MockDb {
   }
   return {
     users: seedUsers,
+    doctorProfiles: seedDoctorProfiles,
     patients: seedPatients,
     appointments: seedAppointments,
     invoices: seedInvoices,

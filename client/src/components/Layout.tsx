@@ -1,7 +1,8 @@
 import { NavLink, Outlet } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
 import { useAuth } from "../context/AuthContext";
-import { PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
+import { initials } from "../lib/format";
+import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 import type { Role } from "../types";
 
 interface NavItem {
@@ -21,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/users", label: "Staff accounts", roles: ["ADMIN"] },
   { to: "/my-bookings", label: "My bookings", roles: PATIENT_ROLES },
   { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
+  { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
 ];
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -52,10 +54,10 @@ export function Layout() {
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) =>
-                `block rounded-lg px-3 py-2 text-sm font-medium transition ${
+                `block rounded-lg px-3 py-2 text-sm font-medium transition duration-200 ${
                   isActive
                     ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm shadow-frost-500/25"
-                    : "text-ink-700 hover:bg-white/60"
+                    : "text-ink-700 hover:translate-x-0.5 hover:bg-white/60 hover:text-ink-900"
                 }`
               }
             >
@@ -64,12 +66,21 @@ export function Layout() {
           ))}
         </nav>
 
-        <div className="mt-4 rounded-xl border border-white/70 bg-white/50 p-3">
-          <div className="text-sm font-medium text-ink-900">{user.name}</div>
-          <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
+        <div className="group mt-4 rounded-xl border border-white/70 bg-white/50 p-3 transition duration-200 hover:border-frost-300/70 hover:bg-white/75 hover:shadow-md hover:shadow-frost-500/10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-frost-400 to-aqua-400 text-xs font-semibold text-white shadow-sm transition duration-200 group-hover:scale-105">
+              {initials(user.name)}
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-ink-900">{user.name}</div>
+              <div className="text-xs text-ink-400">{ROLE_LABEL[user.role]}</div>
+            </div>
+          </div>
+          {/* Rose on hover: logging out ends the session, so it should not look
+              like just another neutral button once you are on it. */}
           <button
             onClick={logout}
-            className="mt-3 w-full rounded-lg border border-white/80 bg-white/70 px-3 py-1.5 text-sm text-ink-700 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-frost-400/50"
+            className="mt-3 w-full rounded-lg border border-white/80 bg-white/70 px-3 py-1.5 text-sm text-ink-700 transition duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300/60"
           >
             Log out
           </button>

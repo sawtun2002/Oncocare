@@ -18,6 +18,13 @@ export const STAFF_ROLES: StaffRole[] = ["ADMIN", "DOCTOR", "NURSE", "RECEPTIONI
 export const PATIENT_ROLES: Role[] = ["PATIENT"];
 
 /**
+ * Everyone who can sign in. For sections both staff and patients may see (the
+ * doctor directory). Spelled out rather than left off a route or nav entry, so
+ * "all roles" is a stated decision and not an oversight.
+ */
+export const ALL_ROLES: Role[] = [...STAFF_ROLES, ...PATIENT_ROLES];
+
+/**
  * Where a role belongs after signing in, and where to send someone who lands on
  * a route they may not see.
  *

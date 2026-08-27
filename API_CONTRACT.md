@@ -55,6 +55,39 @@ interface StaffUserInput {
 }
 ```
 
+## Doctors
+
+The patient-facing doctor directory. Kept separate from `GET /api/users?role=DOCTOR` on purpose: that
+one returns **account** records and is staff-oriented, this one returns **profile/CV** information and is
+the only doctor data a `PATIENT` may read. Never include account or credential fields here.
+
+- `GET /api/doctors` — → `DoctorProfile[]`, sorted by `name` ascending. Allowed roles: `ADMIN`, `DOCTOR`,
+  `NURSE`, `RECEPTIONIST`, `PATIENT`.
+- `GET /api/doctors/:id` — → `DoctorProfile`. 404 if the id is not a doctor with a profile. Allowed
+  roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST`, `PATIENT`.
+
+```ts
+interface DoctorEducation {
+  degree: string;
+  institution: string;
+  year: number;                    // graduation / completion year
+}
+interface DoctorProfile {
+  id: number;                      // the doctor's User id
+  name: string;                    // duplicated from User so the profile is self-contained
+  specialty: string;
+  yearsOfExperience: number;
+  education: DoctorEducation[];    // newest first
+  certifications?: string[];
+  languages?: string[];
+  bio?: string;
+  acceptingNewPatients: boolean;
+}
+```
+
+There is no write endpoint for profiles yet — they are read-only in the frontend. If profile editing is
+added later it belongs to `ADMIN` (any profile) and `DOCTOR` (their own).
+
 ## Patients
 
 - `GET /api/patients` — → `Patient[]`, newest registered first. Allowed roles: `ADMIN`, `DOCTOR`,

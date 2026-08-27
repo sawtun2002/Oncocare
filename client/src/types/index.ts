@@ -9,6 +9,35 @@ export interface User {
   patientId?: number;
 }
 
+/** One line of a doctor's training history. */
+export interface DoctorEducation {
+  degree: string;
+  institution: string;
+  /** Graduation / completion year. */
+  year: number;
+}
+
+/**
+ * The public-facing profile of a DOCTOR account -- what a patient sees when
+ * choosing who to book with. `id` is the doctor's User id.
+ *
+ * Deliberately separate from `User`: this is CV information served to patients,
+ * while `User` is the account record. `name` is duplicated here so the profile
+ * endpoint is self-contained and a patient never needs to read the user list.
+ */
+export interface DoctorProfile {
+  id: number;
+  name: string;
+  specialty: string;
+  yearsOfExperience: number;
+  /** Newest first. */
+  education: DoctorEducation[];
+  certifications?: string[];
+  languages?: string[];
+  bio?: string;
+  acceptingNewPatients: boolean;
+}
+
 export type Sex = "Male" | "Female" | "Other";
 
 export interface Patient {

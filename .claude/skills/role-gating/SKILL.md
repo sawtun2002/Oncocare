@@ -34,7 +34,9 @@ bug this skill exists to prevent.
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.tsx:24` (`canRegister`) |
 | Edit patient — all fields | ADMIN, RECEPTIONIST | `PatientDetailPage.tsx:33` (`canEdit`) |
 | Edit patient — clinical fields only | DOCTOR | `PatientDetailPage.tsx:34` (`clinicalOnly`) → `PatientFormDialog`'s `clinicalOnly` prop disables non-clinical inputs |
-| Everything else (dashboard, patients list/detail, appointments) | all four roles | — |
+| `/doctors`, `/doctors/:id` (doctor directory) | all roles incl. PATIENT (`ALL_ROLES`) | `Layout.tsx` (nav) + `App.tsx` (guard) |
+| "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.tsx` (`user?.role === "PATIENT"`) |
+| Everything else (dashboard, patients list/detail, appointments) | all four staff roles | — |
 
 Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `notes`.
 
