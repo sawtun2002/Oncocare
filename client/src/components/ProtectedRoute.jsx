@@ -1,6 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { homePathFor } from "../lib/roles";
 
 export function ProtectedRoute({ allowedRoles }) {
   const { user, loading } = useAuth();
@@ -17,9 +16,7 @@ export function ProtectedRoute({ allowedRoles }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
   if (!isRoleAllowed) {
-    // Send them to their own home, not a hardcoded "/" -- for a PATIENT that
-    // would be the staff dashboard, which redirects here again, forever.
-    return <Navigate to={homePathFor(user.role)} replace />;
+    return <Navigate to="/403" replace />;
   }
   return <Outlet />;
 }

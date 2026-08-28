@@ -1,4 +1,5 @@
 import { db, delay, nextId, persist } from "../mocks/db";
+import { ApiError } from "./errors";
 
 /**
  * List equipment posts.
@@ -84,7 +85,7 @@ export async function getEquipment(id) {
  */
 export async function createEquipment(input, actor) {
   if (actor?.role !== "ADMIN") {
-    throw new Error("Only administrators can create equipment posts");
+    throw new ApiError(403, "Only administrators can create equipment posts");
   }
 
   if (!input.title || !input.title.trim()) {
@@ -125,7 +126,7 @@ export async function createEquipment(input, actor) {
  */
 export async function updateEquipment(id, input, actor) {
   if (actor?.role !== "ADMIN") {
-    throw new Error("Only administrators can update equipment posts");
+    throw new ApiError(403, "Only administrators can update equipment posts");
   }
 
   const numId = Number(id);
@@ -162,7 +163,7 @@ export async function updateEquipment(id, input, actor) {
  */
 export async function deleteEquipment(id, actor) {
   if (actor?.role !== "ADMIN") {
-    throw new Error("Only administrators can delete equipment posts");
+    throw new ApiError(403, "Only administrators can delete equipment posts");
   }
 
   const numId = Number(id);

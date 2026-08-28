@@ -9,6 +9,7 @@ import { LanguageProvider } from './context/LanguageContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import {LoadingBarProvider} from './context/LoadingBarContext'
+import { handleApiError } from './api/errors'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -16,6 +17,10 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      onError: handleApiError,
+    },
+    mutations: {
+      onError: handleApiError,
       // Treat fetched data as fresh for 30s. Without this, every page mount
       // refetches data it already holds (default staleTime is 0), so moving
       // between pages re-runs queries and re-renders for no gain. Mutations
