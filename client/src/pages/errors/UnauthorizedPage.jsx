@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function UnauthorizedPage() {
   const location = useLocation()
+  const { t } = useLanguage()
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
@@ -12,23 +14,21 @@ export default function UnauthorizedPage() {
           </svg>
         </div>
         <h1 className="text-4xl font-extrabold text-serenity-900">401</h1>
-        <h2 className="mt-2 text-xl font-bold text-serenity-700">Authentication Required</h2>
-        <p className="mt-2 text-sm text-serenity-700">
-          You must be logged in to view this medical portal feature.
-        </p>
+        <h2 className="mt-2 text-xl font-bold text-serenity-700">{t('err.401Title')}</h2>
+        <p className="mt-2 text-sm text-serenity-700">{t('err.401Body')}</p>
         <div className="mt-6 flex flex-col gap-2">
           <Link
             to="/login"
             state={{ from: location }}
             className="w-full rounded-xl bg-serenity-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-serenity-700"
           >
-            Log In to Access
+            {t('err.login')}
           </Link>
           <Link
             to="/"
             className="w-full rounded-xl border border-serenity-300 px-5 py-2.5 text-sm font-medium text-serenity-700 hover:bg-serenity-100"
           >
-            Back to Home
+            {t('err.backHome')}
           </Link>
         </div>
       </div>

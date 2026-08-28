@@ -52,6 +52,8 @@ interface User {
   avatarUrl?: string;
   phone?: string;         // staff accounts only -- see the note below ProfileInput
   department?: string;    // staff accounts only, free text (e.g. "Oncology Ward 3")
+  address?: string;       // staff accounts only; ADMIN-set at creation, editable on own /profile
+  nrc?: string;           // staff accounts only; Myanmar NRC, e.g. "12/MABANA(N)123456". See note below.
   notifyAppointmentReminders: boolean;  // defaults true; mock-only preference
   lastLoginAt?: string;   // ISO datetime, set by POST /api/auth/login
   notificationsReadAt?: string;  // ISO datetime; see Notices. Unset = nothing read yet.
@@ -69,6 +71,7 @@ interface ProfileInput {
   email: string;
   phone?: string;         // staff accounts only -- omit for a PATIENT caller
   department?: string;    // staff accounts only -- omit for a PATIENT caller
+  address?: string;       // staff accounts only -- omit for a PATIENT caller. NRC is NOT here (below).
 }
 interface PasswordChangeInput {
   currentPassword: string;
@@ -79,12 +82,27 @@ interface NotificationPreferencesInput {
 }
 ```
 
-`ProfileInput` covers name/email for everyone and phone/department for staff only. A patient's phone and
-address live on their `Patient` record, not on their login, and are edited through
+`ProfileInput` covers name/email for everyone and phone/department/address for staff only. A patient's
+phone and address live on their `Patient` record, not on their login, and are edited through
 `PATCH /api/patients/:id` by staff — the two must not both be writable from the profile screen or they
 will disagree. Photo (`PATCH /api/auth/me/avatar`) and the reminders toggle
 (`PATCH /api/auth/me/notifications`) are deliberately separate endpoints rather than more `ProfileInput`
 fields: each is meant to save the instant it changes in the UI, not wait on this endpoint's own submit.
+
+### NRC
+
+`User.nrc` (staff) and `Patient.nrc` are the Myanmar National Registration Card, formatted
+`<region 1–14>/<township code, letters>(<citizenship type>)<6 digits>` — e.g. `12/MABANA(N)123456`.
+The frontend validates it in `client/src/lib/validation.js` (`isValidNrc`): strict on the region range
+and the 6-digit serial, permissive on the township code (letters, transliterations vary) and the type
+(1–3 letters). Backend should re-check and **400** on a malformed value.
+
+- **Staff:** `nrc` is **required** in `StaffUserInput` (set by an `ADMIN` at creation) and is **not** in
+  `ProfileInput` — it is an identity document, not a self-service field. There is no other endpoint that
+  changes it today; a future admin-edit endpoint would be where a correction goes.
+- **Patient:** `nrc` is **optional** — an emergency admission may arrive without ID. It is a registrar
+  field like `phone`/`address`: `PATCH /api/patients/:id` accepts it from `ADMIN`/`RECEPTIONIST`,
+  **never** from a `DOCTOR` (the same rule as `emergencyContactName`).
 
 ### Password policy
 
@@ -160,6 +178,8 @@ interface StaffUserInput {
   email: string;
   password: string;
   role: StaffRole;
+  nrc: string;            // required -- Myanmar NRC, see the NRC note above
+  address?: string;       // optional at creation; the account holder adds it via ProfileInput
 }
 ```
 
@@ -203,7 +223,7 @@ added later it belongs to `ADMIN` (any profile) and `DOCTOR` (their own).
 - `GET /api/patients/:id` — → `Patient`. 404 if missing. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`,
   `RECEPTIONIST`; a `PATIENT` may read only their own record (`id === their own patientId`).
 - `POST /api/patients` — body `PatientInput` → created `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to the clinical fields — `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`, `medicalHistory`, `notes` — on their assigned patients; **never** `emergencyContactName`/`emergencyContactPhone`, which are registrar territory like `phone`/`address` — enforce server-side).
+- `PATCH /api/patients/:id` — body `Partial<PatientInput>` → updated `Patient`. Allowed roles: `ADMIN`, `RECEPTIONIST` (any field), `DOCTOR` (limited to the clinical fields — `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`, `medicalHistory`, `notes` — on their assigned patients; **never** `emergencyContactName`/`emergencyContactPhone`/`nrc`, which are registrar territory like `phone`/`address` — enforce server-side).
 
 ```ts
 type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
@@ -214,6 +234,7 @@ interface Patient {
   sex: "Male" | "Female" | "Other";
   phone: string;
   address?: string;
+  nrc?: string;                    // Myanmar NRC; optional; registrar field, not DOCTOR-editable -- see the NRC note
   emergencyContactName?: string;   // registrar field, not DOCTOR-editable -- see above
   emergencyContactPhone?: string;  // registrar field, not DOCTOR-editable -- see above
   diagnosisType: string;
@@ -250,7 +271,14 @@ transitions it to `DECLINED` with a system event (`byUserId`/`byRole` null,
 - `GET /api/appointments/availability?doctorId=&date=` — → `TimeSlot[]` for one doctor on one day.
   `date` is a local calendar date (`YYYY-MM-DD`) in clinic time. Slots are every 30 minutes from 09:00 up
   to (not including) 17:00. `available` is `false` when the doctor already has a **slot-blocking**
-  appointment (see above) overlapping that slot, or when the slot is in the past. Allowed roles: all.
+  appointment (see above) overlapping that slot, when the slot is in the past, **or when the doctor has
+  an `APPROVED` `LeaveRequest` covering `date`** (every slot that day comes back unavailable). Allowed
+  roles: all.
+- `GET /api/appointments/leave-clashes` — → `Appointment[]` — still-live bookings (`SCHEDULED`, or
+  `REQUESTED` and not past `expiresAt`) that now fall on one of their doctor's `APPROVED`-leave days,
+  sorted by `scheduledAt` ascending. This is reception's "needs rescheduling" list — approving leave
+  never auto-cancels (see the Leave section), it surfaces the affected bookings here. An expired
+  `REQUESTED` has already freed its slot and is **not** listed. Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `POST /api/appointments` — body `AppointmentInput` → created `Appointment`. **The status is derived
   from the caller's role, never read from the body:** `PATIENT` → `REQUESTED` (+ `expiresAt`), any staff
   role → `SCHEDULED`. Appends the first event (`REQUESTED` or `ACCEPTED`). **409 if the time overlaps a
@@ -341,23 +369,47 @@ exception `GET /api/appointments` already makes.
   invoices server-side regardless of the `patientId` parameter — the filter is a convenience, never the
   check, same as the equivalent appointments rule.
 - `GET /api/invoices/:id` — → `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status` defaults to `UNPAID`, `issuedAt` set server-side). Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus }` → updated `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `POST /api/invoices/:id/payment-proof` — body `{ amount, note, receiptDataUrl }` → updated `Invoice` with a pending `paymentSubmission`. Allowed roles: `PATIENT` for their own invoice only; staff verifies the proof and changes invoice status separately.
+- `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status`
+  defaults to `UNPAID`, `issuedAt` set server-side, `events` seeded with one `ISSUED` entry whose
+  `byUserId`/`byRole` come from the token). Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus, note?: string }` → updated `Invoice`.
+  **Appends an `InvoiceEvent`** (`MARKED_PAID` / `MARKED_PARTIAL` / `MARKED_UNPAID`) stamped with the
+  caller's id and role **from the token, never the body** — this is the accountability record for who
+  took the money. `note` is optional free text kept on the event. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `POST /api/invoices/:id/payment-proof` — body `{ amount, note, receiptDataUrl }` → updated `Invoice`
+  with a pending `paymentSubmission`. Allowed roles: `PATIENT` for their own invoice only; staff verifies
+  the proof and changes invoice status (`PATCH /api/invoices/:id/status`) separately.
 - `GET /api/billing/summary` — → `{ totalRevenue: number; outstanding: number; invoiceCount: number }`. `totalRevenue` sums `PAID` invoices; `outstanding` sums non-`PAID` invoices. Allowed roles: `ADMIN`, `RECEPTIONIST`. **Not** `PATIENT` — this is the clinic-wide total, not theirs; a patient's own outstanding/paid totals are computed client-side from their own `GET /api/invoices` result on `/my-bills`.
+
+**"Received by"** is not a stored field: it is the `byUserId` of the most recent `MARKED_PAID` event on
+the invoice. If a bill is reverted to `UNPAID` and later re-marked `PAID` by someone else, the history
+holds both and "received by" follows the latest. `GET /api/invoices` for a `PATIENT` returns `events`
+too — their own receipt shows who took their payment. **Swap point:** the frontend resolves
+`byUserId` → a name via `GET /api/users`, which a `PATIENT` cannot call for staff; a real patient-facing
+`GET /api/invoices` response should therefore include the receiver's display name on the invoice (or on
+the `MARKED_PAID` event) so `/my-bills` can render it without a second call.
 
 ```ts
 type InvoiceStatus = "UNPAID" | "PARTIAL" | "PAID";
 type PaymentProofStatus = "PENDING" | "REJECTED";
+type InvoiceEventType = "ISSUED" | "MARKED_PAID" | "MARKED_PARTIAL" | "MARKED_UNPAID";
 type InvoiceItemInput = Omit<InvoiceItem, "id">;
 interface InvoiceItem { id: number; description: string; quantity: number; unitPrice: number; }
 interface PaymentProof { amount: number; note: string; receiptDataUrl: string; submittedAt: string; status: PaymentProofStatus; }
+interface InvoiceEvent {
+  type: InvoiceEventType;
+  byUserId: number;       // from the token
+  byRole: Role;
+  at: string;             // ISO datetime
+  note?: string;
+}
 interface Invoice {
   id: number;
   patientId: number;
   issuedAt: string;       // ISO datetime
   status: InvoiceStatus;
   items: InvoiceItem[];
+  events: InvoiceEvent[]; // oldest first, never empty (ISSUED seeded at creation)
   paymentSubmission?: PaymentProof;
 }
 ```
@@ -384,6 +436,11 @@ from the caller's token, never the body.
 - `POST /api/leave-requests/:id/withdraw` — no body → updated `LeaveRequest` (`PENDING` → `WITHDRAWN`).
   409 if not `PENDING`. Allowed roles: `ADMIN`, `DOCTOR`, `NURSE`, `RECEPTIONIST` — **only on their own
   request**.
+- `GET /api/leave-requests/:id/conflicts` — → `Appointment[]` — still-live bookings (`SCHEDULED`, or
+  `REQUESTED` and not past `expiresAt`) for the requesting staff member (as `doctorId`) whose day falls
+  inside `[startDate, endDate]`, sorted by `scheduledAt` ascending. Shown to the admin before they
+  approve, so they see what an approval commits to; approval is **not** blocked by a non-empty result
+  (D4). 404 if the request id is unknown. Allowed roles: `ADMIN`.
 
 ```ts
 type LeaveType = "ANNUAL" | "SICK" | "TRAINING" | "OTHER";
@@ -404,9 +461,11 @@ interface LeaveRequest {
 type LeaveRequestInput = Pick<LeaveRequest, "type" | "startDate" | "endDate" | "reason">;
 ```
 
-Phase 4 will add `GET /api/leave-requests/:id/conflicts` (the appointments an approval would collide
-with) and have `GET /api/appointments/availability` return no slots on an approved-leave day. Neither
-exists yet.
+An `APPROVED` `LeaveRequest` acts on the calendar in two places, both **derived, never a data change**:
+`GET /api/appointments/availability` returns nothing bookable for that doctor on a covered day, and
+`GET /api/appointments/leave-clashes` lists the already-booked appointments that now sit on one — the
+approval itself cancels nothing (D4). `GET /api/leave-requests/:id/conflicts` is the same list scoped to
+one pending request, shown to the admin before they approve.
 
 ## Equipment Posts
 

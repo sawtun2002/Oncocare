@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useLanguage } from "../context/LanguageContext";
 import { backdropMotion, panelMotion } from "../lib/motion";
 
 /**
@@ -29,6 +30,7 @@ const FOCUSABLE =
  *   `pages/` does exactly that.
  */
 export function Modal({ title, onClose, children, ref }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(true);
   const panelRef = useRef(null);
   const backdropDownRef = useRef(false);
@@ -146,7 +148,7 @@ export function Modal({ title, onClose, children, ref }) {
                 data-modal-close
                 onClick={requestClose}
                 className="rounded-full p-1 text-ink-400 transition hover:bg-surface/70 hover:text-ink-700 focus:outline-none focus:ring-2 focus:ring-frost-400/50 cursor-pointer"
-                aria-label="Close"
+                aria-label={t("common.close")}
               >
                 ✕
               </button>

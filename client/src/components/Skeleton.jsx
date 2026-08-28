@@ -10,6 +10,8 @@
  * a dozen announced grey bars is worse than no announcement at all.
  */
 
+import { useLanguage } from "../context/LanguageContext";
+
 /** Matches `tableHead` in lib/ui.js, minus the text styling nothing renders here. */
 const SKELETON_HEAD = "border-b border-ice-200 bg-ice-100/70";
 
@@ -26,9 +28,10 @@ export function Skeleton({ className = "" }) {
  * `tableWrap` the real table does.
  */
 export function TableSkeleton({ columns = 4, rows = 5 }) {
+  const { t } = useLanguage();
   return (
     <div role="status">
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">{t("common.loading")}</span>
       <div className={`${SKELETON_HEAD} flex gap-4 px-4 py-2.5`} aria-hidden="true">
         {Array.from({ length: columns }, (_, i) => (
           <Skeleton key={i} className="h-3 w-16" />
@@ -49,9 +52,10 @@ export function TableSkeleton({ columns = 4, rows = 5 }) {
 
 /** Stand-in for a `GlassCard` -- the doctor grid, a booking row. */
 export function CardSkeleton({ lines = 2, className = "" }) {
+  const { t } = useLanguage();
   return (
     <div role="status" className={`glass-panel p-5 ${className}`}>
-      <span className="sr-only">Loading…</span>
+      <span className="sr-only">{t("common.loading")}</span>
       <Skeleton className="h-4 w-2/5" />
       {Array.from({ length: lines }, (_, i) => (
         <Skeleton key={i} className={`mt-3 h-3 ${i % 2 === 0 ? "w-4/5" : "w-3/5"}`} />

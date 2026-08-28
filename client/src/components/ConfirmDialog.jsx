@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Modal } from "./Modal";
+import { useLanguage } from "../context/LanguageContext";
 import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
 
 /**
@@ -7,8 +8,9 @@ import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
  * Owns its own submitting/error state and closes itself on success, like the
  * form dialogs.
  *
- * Props: title, message, confirmLabel ("Confirm"), danger (style the confirm
- * button as destructive -- cancelling a booking, deleting), onClose, onConfirm.
+ * Props: title, message, confirmLabel (defaults to the translated "Confirm"),
+ * danger (style the confirm button as destructive -- cancelling a booking,
+ * deleting), onClose, onConfirm.
  *
  * Like every dialog here it closes itself through the Modal's ref rather than by
  * calling `onClose` directly, so the exit animation gets to run before the page
@@ -17,11 +19,12 @@ import { btnDanger, btnGhost, btnPrimary, errorText } from "../lib/ui";
 export function ConfirmDialog({
   title,
   message,
-  confirmLabel = "Confirm",
+  confirmLabel,
   danger = false,
   onClose,
   onConfirm,
 }) {
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const modalRef = useRef(null);
@@ -50,7 +53,7 @@ export function ConfirmDialog({
           className={btnGhost}
           disabled={submitting}
         >
-          Keep it
+          {t("confirm.keepIt")}
         </button>
         <button
           type="button"
@@ -58,7 +61,7 @@ export function ConfirmDialog({
           disabled={submitting}
           className={danger ? btnDanger : btnPrimary}
         >
-          {submitting ? "Working…" : confirmLabel}
+          {submitting ? t("common.working") : (confirmLabel ?? t("common.confirm"))}
         </button>
       </div>
     </Modal>

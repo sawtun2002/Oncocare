@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Modal } from "./Modal";
+import { useLanguage } from "../context/LanguageContext";
 import { btnDanger, btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 
 const OTHER = "Other";
@@ -21,11 +22,12 @@ export function ReasonDialog({
   title,
   intro,
   presets = [],
-  confirmLabel = "Confirm",
+  confirmLabel,
   danger = false,
   onClose,
   onSubmit,
 }) {
+  const { t } = useLanguage();
   const [preset, setPreset] = useState(presets.length ? "" : OTHER);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,11 +40,11 @@ export function ReasonDialog({
 
   async function handleConfirm() {
     if (presets.length && !preset) {
-      setError("Choose a reason.");
+      setError(t("reason.chooseReason"));
       return;
     }
     if (noteRequired && !note.trim()) {
-      setError("Add a short note.");
+      setError(t("reason.addNote"));
       return;
     }
     setError(null);
@@ -63,32 +65,32 @@ export function ReasonDialog({
 
       {presets.length > 0 && (
         <label className={`${labelClass} mt-4`}>
-          Reason
+          {t("reason.label")}
           <select
             value={preset}
             onChange={(e) => setPreset(e.target.value)}
             className={inputClass}
           >
             <option value="" disabled>
-              Select a reason…
+              {t("reason.selectPlaceholder")}
             </option>
             {presets.map((p) => (
               <option key={p} value={p}>
                 {p}
               </option>
             ))}
-            <option value={OTHER}>{OTHER}</option>
+            <option value={OTHER}>{t("reason.other")}</option>
           </select>
         </label>
       )}
 
       <label className={`${labelClass} mt-4`}>
-        {noteRequired ? "Note" : "Note (optional)"}
+        {noteRequired ? t("reason.note") : t("reason.noteOptional")}
         <textarea
           rows={3}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Shared with the other party"
+          placeholder={t("resched.reasonPlaceholder")}
           className={inputClass}
         />
       </label>
@@ -102,7 +104,7 @@ export function ReasonDialog({
           className={btnGhost}
           disabled={submitting}
         >
-          Back
+          {t("common.back")}
         </button>
         <button
           type="button"
@@ -110,7 +112,7 @@ export function ReasonDialog({
           disabled={submitting}
           className={danger ? btnDanger : btnPrimary}
         >
-          {submitting ? "Working…" : confirmLabel}
+          {submitting ? t("common.working") : confirmLabel ?? t("common.confirm")}
         </button>
       </div>
     </Modal>

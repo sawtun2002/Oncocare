@@ -1,17 +1,19 @@
 import { NavLink } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { homePathFor } from "../lib/roles";
 
 const publicLinks = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About Us" },
-  { to: "/doctors", label: "Our Doctors" },
-  { to: "/contact", label: "Contact Us" },
+  { to: "/", labelKey: "pub.linkHome" },
+  { to: "/about", labelKey: "pub.linkAbout" },
+  { to: "/our-doctors", labelKey: "pub.linkDoctors" },
+  { to: "/contact", labelKey: "pub.linkContact" },
 ];
 
 export default function PublicSidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -36,7 +38,7 @@ export default function PublicSidebar({ isOpen, onClose }) {
             <button
               onClick={onClose}
               className="rounded-lg p-2 text-serenity-700 hover:bg-serenity-300/30"
-              aria-label="Close menu"
+              aria-label={t("pub.closeMenu")}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -58,7 +60,7 @@ export default function PublicSidebar({ isOpen, onClose }) {
                   }`
                 }
               >
-                {link.label}
+                {t(link.labelKey)}
               </NavLink>
             ))}
           </nav>
@@ -66,15 +68,13 @@ export default function PublicSidebar({ isOpen, onClose }) {
           <div className="border-t border-serenity-300/50 p-4 bg-serenity-50/50">
             {user ? (
               <div className="space-y-3">
-                <div className="text-xs text-serenity-700">
-                  Signed in as <span className="font-semibold text-serenity-900">{user.name}</span>
-                </div>
+                <div className="text-xs text-serenity-700">{t("pub.signedInAs", { name: user.name })}</div>
                 <NavLink
                   to={homePathFor(user.role)}
                   onClick={onClose}
                   className="block w-full rounded-lg bg-serenity-500 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-serenity-700"
                 >
-                  Go to Dashboard
+                  {t("pub.goToDashboard")}
                 </NavLink>
                 <button
                   onClick={() => {
@@ -83,7 +83,7 @@ export default function PublicSidebar({ isOpen, onClose }) {
                   }}
                   className="block w-full rounded-lg border border-serenity-300 px-4 py-2 text-center text-sm font-medium text-serenity-700 hover:bg-serenity-200"
                 >
-                  Log out
+                  {t("layout.logOut")}
                 </button>
               </div>
             ) : (
@@ -92,7 +92,7 @@ export default function PublicSidebar({ isOpen, onClose }) {
                 onClick={onClose}
                 className="block w-full rounded-lg bg-serenity-500 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-serenity-700"
               >
-                Patient / Staff Login
+                {t("pub.staffLogin")}
               </NavLink>
             )}
           </div>

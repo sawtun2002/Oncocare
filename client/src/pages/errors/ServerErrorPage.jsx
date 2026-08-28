@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function ServerErrorPage({ onRetry }) {
+  const { t } = useLanguage()
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
       <div className="rounded-2xl border border-serenity-300/40 bg-white p-8 shadow-lg max-w-md w-full">
@@ -10,24 +12,22 @@ export default function ServerErrorPage({ onRetry }) {
           </svg>
         </div>
         <h1 className="text-4xl font-extrabold text-serenity-900">500</h1>
-        <h2 className="mt-2 text-xl font-bold text-amber-600">Internal Server Error</h2>
-        <p className="mt-2 text-sm text-serenity-700">
-          Something went wrong on our server while processing your request. Please try again or return home.
-        </p>
+        <h2 className="mt-2 text-xl font-bold text-amber-600">{t('err.500Title')}</h2>
+        <p className="mt-2 text-sm text-serenity-700">{t('err.500Body')}</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           {onRetry && (
             <button
               onClick={onRetry}
               className="w-full rounded-xl border border-serenity-300 px-4 py-2.5 text-sm font-semibold text-serenity-700 hover:bg-serenity-100"
             >
-              Try Again
+              {t('err.tryAgain')}
             </button>
           )}
           <Link
             to="/"
             className="w-full rounded-xl bg-serenity-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-serenity-700"
           >
-            Return Home
+            {t('err.returnHome')}
           </Link>
         </div>
       </div>

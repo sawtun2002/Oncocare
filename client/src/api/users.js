@@ -11,6 +11,8 @@ import { db, delay, nextId, persist } from "../mocks/db";
  * @property {string} email
  * @property {string} password
  * @property {StaffRole} role
+ * @property {string} nrc Myanmar NRC -- required at creation (see lib/validation.js `isValidNrc`).
+ * @property {string} [address] Optional at creation; the account holder fills it in from /profile.
  */
 
 function toUser(m) {
@@ -24,6 +26,8 @@ function toUser(m) {
     avatarUrl: m.avatarUrl,
     phone: m.phone,
     department: m.department,
+    address: m.address,
+    nrc: m.nrc,
     notifyAppointmentReminders: m.notifyAppointmentReminders,
     lastLoginAt: m.lastLoginAt,
     notificationsReadAt: m.notificationsReadAt,
@@ -57,6 +61,8 @@ export async function createStaffUser(input) {
     password: input.password,
     role: input.role,
     status: "ACTIVE",
+    nrc: input.nrc,
+    ...(input.address ? { address: input.address } : {}),
     notifyAppointmentReminders: true,
   };
   db.users.push(user);

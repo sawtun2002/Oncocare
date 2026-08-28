@@ -1,25 +1,27 @@
 import React from "react";
+import { useLanguage } from "../context/LanguageContext";
 import heartRate from "../assets/images/heart-rate.jpg";
 
 export default function Footer() {
+  const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
-    { label: "About Us", href: "#about" },
-    { label: "Our Services", href: "#services" },
-    { label: "Medical Team", href: "#team" },
-    { label: "Patient Portal", href: "#portal" },
-    { label: "Careers", href: "#careers" },
-    { label: "News & Events", href: "#news" },
+    { labelKey: "ft.qlAbout", href: "#about" },
+    { labelKey: "ft.qlServices", href: "#services" },
+    { labelKey: "ft.qlTeam", href: "#team" },
+    { labelKey: "ft.qlPortal", href: "#portal" },
+    { labelKey: "ft.qlCareers", href: "#careers" },
+    { labelKey: "ft.qlNews", href: "#news" },
   ];
 
   const patientResources = [
-    { label: "Book Appointment", href: "#appointment" },
-    { label: "Insurance Information", href: "#insurance" },
-    { label: "Patient Forms", href: "#forms" },
-    { label: "Billing & Payments", href: "#billing" },
-    { label: "Test Results", href: "#results" },
-    { label: "FAQs", href: "#faqs" },
+    { labelKey: "ft.prBook", href: "#appointment" },
+    { labelKey: "ft.prInsurance", href: "#insurance" },
+    { labelKey: "ft.prForms", href: "#forms" },
+    { labelKey: "ft.prBilling", href: "#billing" },
+    { labelKey: "ft.prResults", href: "#results" },
+    { labelKey: "ft.prFaqs", href: "#faqs" },
   ];
 
   const socialLinks = [
@@ -118,20 +120,19 @@ export default function Footer() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-center">
               <div className="md:col-span-2">
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-2">
-                  Stay Updated with <span className="opacity-90 underline decoration-white/40 decoration-2">OncoCare</span>
+                  {t("ft.stayUpdated")}{" "}
+                  <span className="opacity-90 underline decoration-white/40 decoration-2">OncoCare</span>
                 </h3>
-                <p className="text-slate-200 text-sm">
-                  Get the latest health tips, oncology news, and platform updates delivered to your inbox.
-                </p>
+                <p className="text-slate-200 text-sm">{t("ft.newsletterBlurb")}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 md:mt-0">
-                <input 
-                  type="email" 
-                  placeholder="your@email.com" 
+                <input
+                  type="email"
+                  placeholder={t("ft.emailPlaceholder")}
                   className="flex-1 px-4 py-2 lg:py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-white focus:bg-white/20 transition-all duration-300 text-sm"
                 />
                 <button className="bg-white text-blue-900 hover:bg-slate-100 px-6 py-2 lg:py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 transform whitespace-nowrap text-sm">
-                  Subscribe
+                  {t("ft.subscribe")}
                 </button>
               </div>
             </div>
@@ -156,15 +157,13 @@ export default function Footer() {
                       OncoCare
                     </span>
                     <span className="text-[10px] sm:text-xs lg:text-sm text-gray-200 font-light">
-                      Compassionate Oncology Care
+                      {t("ft.tagline")}
                     </span>
                   </div>
                 </div>
               </div>
-              
-              <p className="text-slate-200 text-sm leading-relaxed max-w-md">
-                World-class cancer treatment and support services with cutting-edge technology and a patient-centered approach. Your health, our priority.
-              </p>
+
+              <p className="text-slate-200 text-sm leading-relaxed max-w-md">{t("ft.brandBlurb")}</p>
               
               {/* Trust Badges */}
               <div className="flex flex-wrap gap-3 pt-2">
@@ -172,13 +171,13 @@ export default function Footer() {
                   <svg className="w-4 h-4 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                   </svg>
-                  HIPAA Compliant
+                  {t("ft.hipaa")}
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 text-xs text-slate-100 border border-white/10">
                   <svg className="w-4 h-4 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                   </svg>
-                  ISO 27001 Certified
+                  {t("ft.iso")}
                 </span>
               </div>
 
@@ -200,16 +199,16 @@ export default function Footer() {
             {/* Column 2: Quick Links */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-5 border-b border-white/20 pb-2 inline-block">
-                Quick Links
+                {t("ft.quickLinks")}
               </h4>
               <ul className="space-y-3">
                 {quickLinks.map((link) => (
-                  <li key={link.label}>
+                  <li key={link.labelKey}>
                     <a href={link.href} className="text-slate-200 hover:text-white transition-colors text-sm flex items-center gap-2 group">
                       <svg className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                       </svg>
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   </li>
                 ))}
@@ -219,16 +218,16 @@ export default function Footer() {
             {/* Column 3: Patient Resources */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-5 border-b border-white/20 pb-2 inline-block">
-                Patient Resources
+                {t("ft.patientResources")}
               </h4>
               <ul className="space-y-3">
                 {patientResources.map((link) => (
-                  <li key={link.label}>
+                  <li key={link.labelKey}>
                     <a href={link.href} className="text-slate-200 hover:text-white transition-colors text-sm flex items-center gap-2 group">
                       <svg className="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                       </svg>
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   </li>
                 ))}
@@ -238,7 +237,7 @@ export default function Footer() {
             {/* Column 4: Locations */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-5 border-b border-white/20 pb-2 inline-block">
-                Our Locations
+                {t("ft.ourLocations")}
               </h4>
               <ul className="space-y-4">
                 {locations.map((location) => (
@@ -265,19 +264,19 @@ export default function Footer() {
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-6 text-center">
               <div>
                 <div className="text-xl md:text-2xl font-black text-white">10K+</div>
-                <p className="text-xs text-slate-300 mt-1">Patients Served</p>
+                <p className="text-xs text-slate-300 mt-1">{t("ft.statPatients")}</p>
               </div>
               <div>
                 <div className="text-xl md:text-2xl font-black text-white">50+</div>
-                <p className="text-xs text-slate-300 mt-1">Specialist Doctors</p>
+                <p className="text-xs text-slate-300 mt-1">{t("ft.statDoctors")}</p>
               </div>
               <div>
                 <div className="text-xl md:text-2xl font-black text-white">24/7</div>
-                <p className="text-xs text-slate-300 mt-1">Emergency Support</p>
+                <p className="text-xs text-slate-300 mt-1">{t("ft.statEmergency")}</p>
               </div>
               <div>
                 <div className="text-xl md:text-2xl font-black text-white">98%</div>
-                <p className="text-xs text-slate-300 mt-1">Patient Satisfaction</p>
+                <p className="text-xs text-slate-300 mt-1">{t("ft.statSatisfaction")}</p>
               </div>
             </div>
           </div>
@@ -288,25 +287,25 @@ export default function Footer() {
           <div className="container mx-auto px-4 md:px-6 py-5">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-300">
               <div className="flex items-center gap-2">
-                <span>© {currentYear} OncoCare HMIS. All rights reserved.</span>
+                <span>{t("ft.copyright", { year: currentYear })}</span>
               </div>
-              
+
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-                <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#privacy" className="hover:text-white transition-colors">{t("ft.privacy")}</a>
                 <span className="text-white/20">|</span>
-                <a href="#terms" className="hover:text-white transition-colors">Terms of Service</a>
+                <a href="#terms" className="hover:text-white transition-colors">{t("ft.terms")}</a>
                 <span className="text-white/20">|</span>
-                <a href="#cookies" className="hover:text-white transition-colors">Cookie Settings</a>
+                <a href="#cookies" className="hover:text-white transition-colors">{t("ft.cookies")}</a>
                 <span className="text-white/20">|</span>
-                <a href="#contact" className="hover:text-white transition-colors">Report Issue</a>
+                <a href="#contact" className="hover:text-white transition-colors">{t("ft.reportIssue")}</a>
               </div>
 
               <p className="flex items-center gap-1">
-                Made with 
+                {t("ft.madeWith")}
                 <svg className="w-4 h-4 text-red-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"/>
                 </svg>
-                for Cancer Care
+                {t("ft.forCancerCare")}
               </p>
             </div>
           </div>

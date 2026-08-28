@@ -1,30 +1,19 @@
+import { useLanguage } from "../context/LanguageContext";
 import { formatDateTime } from "../lib/format";
 import { pillBase, TONE } from "../lib/ui";
 
-const ROLE_WORD = {
-  ADMIN: "an administrator",
-  DOCTOR: "the doctor",
-  NURSE: "a nurse",
-  RECEPTIONIST: "reception",
-  PATIENT: "the patient",
-};
-
-// verb shown per event type. The first ACCEPTED on an appointment is its
+// verb key shown per event type. The first ACCEPTED on an appointment is its
 // creation by staff, which reads better as "Booked" than "Accepted".
-function verbFor(type, isFirst) {
-  if (type === "ACCEPTED") return isFirst ? "Booked" : "Accepted";
+function verbKey(type, isFirst) {
+  if (type === "ACCEPTED") return isFirst ? "tl.booked" : "tl.accepted";
   return {
-    REQUESTED: "Requested",
-    DECLINED: "Declined",
-    RESCHEDULED: "Rescheduled",
-    CANCELLED: "Cancelled",
-    COMPLETED: "Marked complete",
-    NO_SHOW: "Marked no-show",
-  }[type] ?? type;
-}
-
-function byPhrase(role) {
-  return role ? `by ${ROLE_WORD[role] ?? role.toLowerCase()}` : "automatically";
+    REQUESTED: "tl.requested",
+    DECLINED: "tl.declined",
+    RESCHEDULED: "tl.rescheduled",
+    CANCELLED: "tl.cancelled",
+    COMPLETED: "tl.completed",
+    NO_SHOW: "tl.noShow",
+  }[type];
 }
 
 /**
@@ -33,7 +22,18 @@ function byPhrase(role) {
  * given change the same way. Read-only -- it renders history, it does not act.
  */
 export function AppointmentTimeline({ events }) {
+  const { t } = useLanguage();
   if (!events?.length) return null;
+
+  function verbFor(type, isFirst) {
+    const key = verbKey(type, isFirst);
+    return key ? t(key) : type;
+  }
+  function byPhrase(role) {
+    if (!role) return t("tl.automatically");
+    const who = t(`tl.role${role}`);
+    return t("tl.by", { who: who === `tl.role${role}` ? role.toLowerCase() : who });
+  }
 
   return (
     <ol className="space-y-3">
@@ -51,7 +51,7 @@ export function AppointmentTimeline({ events }) {
             <span className="font-medium text-ink-900">{verbFor(ev.type, i === 0)}</span>
             <span className="text-ink-400">{byPhrase(ev.byRole)}</span>
             {ev.lateNotice && (
-              <span className={`${pillBase} ${TONE.warning}`}>under 24h</span>
+              <span className={`${pillBase} ${TONE.warning}`}>{t("tl.lateNotice")}</span>
             )}
             <span className="ml-auto text-xs text-ink-400">{formatDateTime(ev.at)}</span>
           </div>

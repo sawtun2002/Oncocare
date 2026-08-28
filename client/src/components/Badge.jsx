@@ -1,3 +1,4 @@
+import { useLanguage } from "../context/LanguageContext";
 import { pillBase, TONE } from "../lib/ui";
 
 // Translucent status pills. Colour still carries the meaning -- the glass theme
@@ -21,7 +22,13 @@ const COLOR_MAP = {
 };
 
 export function Badge({ status }) {
+  const { t } = useLanguage();
+  // `status.<KEY>` falls back to a de-underscored English label if the key is
+  // ever missing, matching the previous behaviour.
+  const label = t(`status.${status}`, undefined);
   return (
-    <span className={`${pillBase} ${COLOR_MAP[status] ?? TONE.muted}`}>{status.replace("_", " ")}</span>
+    <span className={`${pillBase} ${COLOR_MAP[status] ?? TONE.muted}`}>
+      {label === `status.${status}` ? status.replace("_", " ") : label}
+    </span>
   );
 }

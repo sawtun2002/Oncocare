@@ -31,8 +31,18 @@ import {
 // v8 added the leaveRequests array (staff time-off) and its nextId kind. A v7
 // store has no leaveRequests key, which listLeaveRequests would spread as
 // undefined -- so the v7 store is dropped for the v8 seed like every bump before.
-// v9 added equipmentPosts array (hospital equipment catalog) and nextIds.equipmentPost.
-const STORAGE_KEY = "cancer-hms-mock-db-v9";
+// v9 added address/nrc to staff users and nrc to patients -- all optional, so
+// nothing needs a defensive default, but the bump still applies so a returning
+// visitor picks up the seeded values the staff detail dialog and patient record
+// now display.
+// v10 gave invoices a required `events[]` history (who marked it paid/unpaid, and
+// when). A v9 invoice has no `events` array, which the receipt dialog assumes is
+// present -- so the v9 store is dropped for the v10 seed like every bump before.
+// v11 added the equipmentPosts array (hospital equipment catalog) and its
+// nextIds.equipmentPost kind. A v10 store has no equipmentPosts key, which the
+// equipment list would spread as undefined -- so the v10 store is dropped for the
+// v11 seed like every bump before.
+const STORAGE_KEY = "cancer-hms-mock-db-v11";
 
 /**
  * @typedef {Object} MockDb
@@ -93,7 +103,13 @@ export function nextId(kind) {
   return id;
 }
 
-/** Simulates network latency so loading states behave like a real API. */
-export function delay(value, ms = 350) {
+/**
+ * Simulates network latency so loading states behave like a real API. Kept
+ * low -- enough that a skeleton renders and the layout doesn't jump on first
+ * load, without every click feeling like it stalls. The old 350ms default was
+ * slow enough to see on purpose, but it's the main reason the app felt laggy
+ * once several screens were fetching. A real fast backend lands around here.
+ */
+export function delay(value, ms = 90) {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }

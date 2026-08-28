@@ -18,8 +18,13 @@
             stored === "dark" ||
             (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
           document.documentElement.dataset.theme = dark ? "dark" : "light";
+          /* Same idea for language: set <html lang> before paint so assistive
+             tech and the :lang() font rule apply immediately. Mirrors
+             readStoredLanguage() in src/context/LanguageContext.jsx. */
+          var lang = localStorage.getItem("cancer-hms-lang");
+          document.documentElement.lang = lang === "MY" ? "my" : "en";
         } catch (e) {
-          /* Private mode with storage blocked: fall through to the light default. */
+          /* Private mode with storage blocked: fall through to the defaults. */
         }
       })();
     </script>

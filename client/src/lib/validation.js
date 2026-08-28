@@ -32,46 +32,32 @@ const COMMON_PASSWORDS = new Set([
 
 /**
  * Each individual password requirement and whether `pw` meets it, in the order
- * the form lists them.
+ * the form lists them. `id` maps to a `pw.rule*` message key in the catalogs;
+ * `n` fills the `{n}` placeholder in the two rules that carry a number. This
+ * module stays pure -- the human-readable label lives in `PasswordStrength.jsx`.
  * @param {string} pw
- * @returns {{ id: string, label: string, ok: boolean }[]}
+ * @returns {{ id: string, ok: boolean, n?: number }[]}
  */
 function passwordRules(pw) {
   return [
-    {
-      id: "length",
-      label: `At least ${MIN_PASSWORD_LENGTH} characters`,
-      ok: pw.length >= MIN_PASSWORD_LENGTH,
-    },
-    { id: "lower", label: "A lowercase letter", ok: /[a-z]/.test(pw) },
-    { id: "upper", label: "An uppercase letter", ok: /[A-Z]/.test(pw) },
-    { id: "number", label: "A number", ok: /\d/.test(pw) },
-    { id: "symbol", label: "A symbol (!, ?, @, #, …)", ok: /[^A-Za-z0-9]/.test(pw) },
-    {
-      id: "distinct",
-      label: `${MIN_DISTINCT_CHARS}+ different characters`,
-      ok: new Set(pw).size >= MIN_DISTINCT_CHARS,
-    },
-    { id: "no-run", label: "No character 3+ times in a row", ok: !/(.)\1\1/.test(pw) },
-    {
-      id: "not-common",
-      label: "Not a commonly used password",
-      ok: pw.length > 0 && !COMMON_PASSWORDS.has(pw.toLowerCase()),
-    },
+    { id: "length", n: MIN_PASSWORD_LENGTH, ok: pw.length >= MIN_PASSWORD_LENGTH },
+    { id: "lower", ok: /[a-z]/.test(pw) },
+    { id: "upper", ok: /[A-Z]/.test(pw) },
+    { id: "number", ok: /\d/.test(pw) },
+    { id: "symbol", ok: /[^A-Za-z0-9]/.test(pw) },
+    { id: "distinct", n: MIN_DISTINCT_CHARS, ok: new Set(pw).size >= MIN_DISTINCT_CHARS },
+    { id: "no-run", ok: !/(.)\1\1/.test(pw) },
+    { id: "not-common", ok: pw.length > 0 && !COMMON_PASSWORDS.has(pw.toLowerCase()) },
   ];
 }
 
 /**
  * Rolls the rules into what the form needs: the checklist (`rules`), a 0-4
- * `score` for the strength meter, a `label` for it, and an `ok` gate that is
- * true only when every rule passes.
+ * `score` for the strength meter, and an `ok` gate that is true only when every
+ * rule passes. The score's word ("Weak"/"Strong"/…) is looked up by
+ * `PasswordStrength.jsx` from the `pw.*` keys.
  * @param {string} pw
- * @returns {{
- *   rules: { id: string, label: string, ok: boolean }[],
- *   score: number,
- *   label: string,
- *   ok: boolean,
- * }}
+ * @returns {{ rules: { id: string, ok: boolean, n?: number }[], score: number, ok: boolean }}
  */
 export function evaluatePassword(pw) {
   const rules = passwordRules(pw);
@@ -85,12 +71,7 @@ export function evaluatePassword(pw) {
   else if (met >= 4) score = 2;
   else score = 1;
 
-  return {
-    rules,
-    score,
-    label: ["Too short", "Weak", "Fair", "Good", "Strong"][score],
-    ok,
-  };
+  return { rules, score, ok };
 }
 
 /**
@@ -109,4 +90,22 @@ export function isValidPhone(phone) {
   // A single digit repeated ("0000000") is never a real number.
   if (/^(\d)\1+$/.test(digits)) return false;
   return true;
+}
+
+// Myanmar NRC: <region 1-14>/<township code, letters>(<citizenship type>)<6 digits>
+// e.g. "12/MABANA(N)123456". Strict on the region range and the 6-digit serial;
+// permissive on the township code (2-12 letters -- transliterations vary) and
+// the type (1-3 letters: N/E/P/T/A/...). Case-insensitive; a single "/" is
+// accepted between region and township even if the user types spaces around it.
+const NRC_RE = /^(?:[1-9]|1[0-4])\/[A-Za-z]{2,12}\([A-Za-z]{1,3}\)\d{6}$/;
+
+/**
+ * Whether `nrc` matches the Myanmar National Registration Card format. Empty
+ * input is *invalid* here -- callers decide whether the field is required and
+ * skip the check when it's optional and blank.
+ * @param {string} nrc
+ * @returns {boolean}
+ */
+export function isValidNrc(nrc) {
+  return NRC_RE.test(String(nrc).replace(/\s*\/\s*/, "/").trim());
 }

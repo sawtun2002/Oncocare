@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getAvailability } from "../../api/appointments";
 import { Skeleton } from "../../components/Skeleton";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatTime, toDateInputValue } from "../../lib/format";
 import { errorText, inputClass, labelClass } from "../../lib/ui";
 
@@ -14,6 +15,7 @@ import { errorText, inputClass, labelClass } from "../../lib/ui";
  * from choices made inside this component, so it is queried here.
  */
 export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, onSelectStart }) {
+  const { t } = useLanguage();
   const [date, setDate] = useState(toDateInputValue());
 
   const availabilityQuery = useQuery({
@@ -37,7 +39,7 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className={labelClass}>
-          Doctor
+          {t("patients.colDoctor")}
           <select
             required
             value={doctorId}
@@ -48,11 +50,11 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
             className={inputClass}
           >
             <option value="" disabled>
-              Select a doctor
+              {t("slot.selectDoctor")}
             </option>
             {currentInactiveDoctor && (
               <option value={currentInactiveDoctor.id} disabled>
-                {currentInactiveDoctor.name} (inactive)
+                {t("pform.inactive", { name: currentInactiveDoctor.name })}
               </option>
             )}
             {activeDoctors.map((d) => (
@@ -64,7 +66,7 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
         </label>
 
         <label className={labelClass}>
-          Date
+          {t("slot.date")}
           <input
             type="date"
             required
@@ -80,10 +82,10 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
       </div>
 
       <div>
-        <span className={labelClass}>Available times</span>
+        <span className={labelClass}>{t("slot.availableTimes")}</span>
 
         {!doctorId ? (
-          <p className="mt-2 text-sm text-ink-400">Choose a doctor to see open times.</p>
+          <p className="mt-2 text-sm text-ink-400">{t("slot.chooseDoctor")}</p>
         ) : availabilityQuery.isLoading ? (
           // Same grid as the real slots, so picking a time doesn't make the
           // form below jump the moment availability arrives.
@@ -93,9 +95,9 @@ export function SlotPicker({ doctors, doctorId, onDoctorChange, selectedStart, o
             ))}
           </div>
         ) : availabilityQuery.isError ? (
-          <p className={`mt-2 ${errorText}`}>Could not load availability.</p>
+          <p className={`mt-2 ${errorText}`}>{t("slot.loadError")}</p>
         ) : openSlots.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-400">No times left on this day. Try another date.</p>
+          <p className="mt-2 text-sm text-ink-400">{t("slot.noTimes")}</p>
         ) : (
           <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
             {slots.map((slot) => {

@@ -5,16 +5,11 @@ import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { btnPrimary, dangerAction, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
+import { StaffUserDetailDialog } from "./StaffUserDetailDialog";
 import { StaffUserFormDialog } from "./StaffUserFormDialog";
-
-const ROLE_LABEL = {
-  ADMIN: "Administrator",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-};
 
 function isStaff(user) {
   return user.role !== "PATIENT";
@@ -22,9 +17,11 @@ function isStaff(user) {
 
 export function UsersPage() {
   const { user: currentUser } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
+  const [viewing, setViewing] = useState(null);
   const [deactivating, setDeactivating] = useState(null);
 
   const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers() });
@@ -33,7 +30,7 @@ export function UsersPage() {
     mutationFn: (input) => createStaffUser(input),
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success(`${user.name} can now sign in.`);
+      toast.success(t("users.canSignIn", { name: user.name }));
     },
   });
 
@@ -43,8 +40,8 @@ export function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success(
         status === "INACTIVE"
-          ? `${updated.name}'s account has been deactivated.`
-          : `${updated.name}'s account has been reactivated.`
+          ? t("users.deactivated", { name: updated.name })
+          : t("users.reactivated", { name: updated.name })
       );
     },
   });
@@ -56,38 +53,43 @@ export function UsersPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className={pageTitle}>Staff accounts</h1>
+        <h1 className={pageTitle}>{t("users.title")}</h1>
         <button onClick={() => setShowForm(true)} className={btnPrimary}>
-          + Add staff account
+          {t("users.add")}
         </button>
       </div>
-      <p className="mt-2 text-sm text-ink-400">
-        Administrator, Doctor, Nurse and Receptionist logins. Patients create their own accounts from the
-        login page.
-      </p>
+      <p className="mt-2 text-sm text-ink-400">{t("users.subtitle")}</p>
 
       <div className={`mt-6 ${tableWrap}`}>
         {usersQuery.isLoading ? (
           <TableSkeleton columns={5} />
         ) : staff.length === 0 ? (
-          <p className="p-4 text-sm text-ink-400">No staff accounts yet.</p>
+          <p className="p-4 text-sm text-ink-400">{t("users.none")}</p>
         ) : (
           <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
-                <th className="px-4 py-2.5">Name</th>
-                <th className="px-4 py-2.5">Email</th>
-                <th className="px-4 py-2.5">Role</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5">Actions</th>
+                <th className="px-4 py-2.5">{t("users.colName")}</th>
+                <th className="px-4 py-2.5">{t("users.colEmail")}</th>
+                <th className="px-4 py-2.5">{t("users.colRole")}</th>
+                <th className="px-4 py-2.5">{t("users.colStatus")}</th>
+                <th className="px-4 py-2.5">{t("users.colActions")}</th>
               </tr>
             </thead>
             <tbody>
               {staff.map((u) => (
                 <tr key={u.id} className={tableRow}>
-                  <td className="px-4 py-2.5 font-medium text-ink-900">{u.name}</td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setViewing(u)}
+                      className="font-medium text-ink-900 transition hover:text-frost-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+                    >
+                      {u.name}
+                    </button>
+                  </td>
                   <td className="px-4 py-2.5 text-ink-400">{u.email}</td>
-                  <td className="px-4 py-2.5 text-ink-700">{ROLE_LABEL[u.role]}</td>
+                  <td className="px-4 py-2.5 text-ink-700">{t(`role.${u.role}`)}</td>
                   <td className="px-4 py-2.5">
                     <Badge status={u.status ?? "ACTIVE"} />
                   </td>
@@ -97,19 +99,19 @@ export function UsersPage() {
                       // here since you're clearly signed in) your own account is
                       // blocked -- doing it by accident would lock everyone out
                       // with no other admin able to undo it.
-                      <span className="text-xs text-ink-400">You</span>
+                      <span className="text-xs text-ink-400">{t("users.you")}</span>
                     ) : u.status === "INACTIVE" ? (
                       <button
                         type="button"
                         onClick={() =>
                           statusMutation.mutate(
                             { id: u.id, status: "ACTIVE" },
-                            { onError: () => toast.error("Could not reactivate that account.") }
+                            { onError: () => toast.error(t("users.couldNotReactivate")) }
                           )
                         }
                         className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                       >
-                        Reactivate
+                        {t("users.reactivate")}
                       </button>
                     ) : (
                       <button
@@ -117,7 +119,7 @@ export function UsersPage() {
                         onClick={() => setDeactivating(u)}
                         className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
                       >
-                        Deactivate
+                        {t("users.deactivate")}
                       </button>
                     )}
                   </td>
@@ -127,6 +129,8 @@ export function UsersPage() {
           </table>
         )}
       </div>
+
+      {viewing && <StaffUserDetailDialog user={viewing} onClose={() => setViewing(null)} />}
 
       {showForm && (
         <StaffUserFormDialog
@@ -139,9 +143,9 @@ export function UsersPage() {
 
       {deactivating && (
         <ConfirmDialog
-          title="Deactivate this account?"
-          message={`${deactivating.name} will no longer be able to sign in. Their record, and anything already tied to it -- assigned patients, past and future appointments -- stays exactly as it is, and you can reactivate them at any time.`}
-          confirmLabel="Deactivate"
+          title={t("users.deactivateTitle")}
+          message={t("users.deactivateMsg", { name: deactivating.name })}
+          confirmLabel={t("users.deactivateConfirm")}
           danger
           onClose={() => setDeactivating(null)}
           onConfirm={async () => {

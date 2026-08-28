@@ -3,20 +3,19 @@ import { Link } from "react-router-dom";
 import { listDoctorProfiles } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
 import { CardSkeleton } from "../../components/Skeleton";
+import { useLanguage } from "../../context/LanguageContext";
 import { initials } from "../../lib/format";
 import { errorText, pageTitle, pillBase, TONE } from "../../lib/ui";
 
 export function DoctorsPage() {
+  const { t } = useLanguage();
   const doctorsQuery = useQuery({ queryKey: ["doctor-profiles"], queryFn: listDoctorProfiles });
   const doctors = doctorsQuery.data ?? [];
 
   return (
     <div>
-      <h1 className={pageTitle}>Our doctors</h1>
-      <p className="mt-2 text-sm text-ink-400">
-        Meet the specialists in our cancer care team. Open a profile to see their training, experience
-        and areas of focus.
-      </p>
+      <h1 className={pageTitle}>{t("docs.title")}</h1>
+      <p className="mt-2 text-sm text-ink-400">{t("docs.subtitle")}</p>
 
       {doctorsQuery.isLoading ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -25,15 +24,15 @@ export function DoctorsPage() {
           ))}
         </div>
       ) : doctorsQuery.isError ? (
-        <p className={`mt-6 ${errorText}`}>Could not load the doctor directory.</p>
+        <p className={`mt-6 ${errorText}`}>{t("docs.loadError")}</p>
       ) : doctors.length === 0 ? (
         <GlassCard className="mt-6 p-6">
-          <p className="text-sm text-ink-400">No doctor profiles are published yet.</p>
+          <p className="text-sm text-ink-400">{t("docs.nonePublished")}</p>
         </GlassCard>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {doctors.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} />
+            <DoctorCard key={doctor.id} doctor={doctor} t={t} />
           ))}
         </div>
       )}
@@ -41,7 +40,7 @@ export function DoctorsPage() {
   );
 }
 
-function DoctorCard({ doctor }) {
+function DoctorCard({ doctor, t }) {
   return (
     <Link
       to={`/doctors/${doctor.id}`}
@@ -56,7 +55,7 @@ function DoctorCard({ doctor }) {
             <div className="text-base font-semibold text-ink-900">{doctor.name}</div>
             <div className="text-sm text-frost-600">{doctor.specialty}</div>
             <div className="mt-1 text-xs text-ink-400">
-              {doctor.yearsOfExperience} years of experience
+              {t("docs.yearsExperience", { n: doctor.yearsOfExperience })}
               {doctor.languages?.length ? ` · ${doctor.languages.join(", ")}` : ""}
             </div>
           </div>
@@ -65,8 +64,8 @@ function DoctorCard({ doctor }) {
         {doctor.bio && <p className="mt-4 line-clamp-3 text-sm text-ink-700">{doctor.bio}</p>}
 
         <div className="mt-4 flex items-center justify-between">
-          <AcceptingBadge accepting={doctor.acceptingNewPatients} />
-          <span className="text-sm font-medium text-frost-600">View profile →</span>
+          <AcceptingBadge accepting={doctor.acceptingNewPatients} t={t} />
+          <span className="text-sm font-medium text-frost-600">{t("docs.viewProfile")}</span>
         </div>
       </GlassCard>
     </Link>
@@ -75,10 +74,10 @@ function DoctorCard({ doctor }) {
 
 // Not a `Badge` -- that one is keyed by appointment/invoice status strings. It
 // shares the same pill shape and tones, from lib/ui.js.
-function AcceptingBadge({ accepting }) {
+function AcceptingBadge({ accepting, t }) {
   return (
     <span className={`${pillBase} ${accepting ? TONE.positive : TONE.muted}`}>
-      {accepting ? "Accepting new patients" : "Not taking new patients"}
+      {accepting ? t("docs.accepting") : t("docs.notAccepting")}
     </span>
   );
 }
