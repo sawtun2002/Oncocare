@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatCurrency } from "../../lib/format";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import Payment_QR from "../../assets/images/payment-qr.jpg";
@@ -15,6 +16,7 @@ function readAsDataUrl(file) {
 }
 
 export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
+  const { t } = useLanguage();
   const fileInputRef = useRef(null);
   const total = invoice.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
   const [amount, setAmount] = useState(String(total));
@@ -29,11 +31,11 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
     event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
-      setError("Please upload an image or PDF receipt.");
+      setError(t("pay.badFileType"));
       return;
     }
     if (file.size > MAX_RECEIPT_BYTES) {
-      setError("The receipt size must be under 3 MB.");
+      setError(t("pay.tooBig"));
       return;
     }
 
@@ -41,8 +43,8 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
       setError(null);
       setReceiptDataUrl(await readAsDataUrl(file));
       setReceiptName(file.name);
-    } catch (readError) {
-      setError(readError instanceof Error ? readError.message : "Could not read the receipt file.");
+    } catch {
+      setError(t("pay.readError"));
     }
   }
 
@@ -50,15 +52,15 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
     event.preventDefault();
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > total) {
-      setError(`Enter an amount between 0 and ${formatCurrency(total)}.`);
+      setError(t("pay.badAmount", { max: formatCurrency(total) }));
       return;
     }
     if (!note.trim()) {
-      setError("Add the transaction note or reference number.");
+      setError(t("pay.noteRequired"));
       return;
     }
     if (!receiptDataUrl) {
-      setError("Upload the payment receipt or screenshot.");
+      setError(t("pay.receiptRequired"));
       return;
     }
 
@@ -67,7 +69,7 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
     try {
       await onSubmit({ amount: numericAmount, note: note.trim(), receiptDataUrl });
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not submit payment proof.");
+      setError(submitError instanceof Error ? submitError.message : t("pay.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -76,41 +78,43 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
   return (
     <div className="mx-auto max-w-5xl">
       <button type="button" onClick={onCancel} className={`${btnGhost} mb-6`}>
-        Back to My Bills
+        {t("pay.back")}
       </button>
-      <h1 className="text-3xl font-bold text-ink-900">Pay invoice #{invoice.id}</h1>
-      <p className="mt-2 text-sm text-ink-400">Scan the clinic QR code, then submit your payment proof.</p>
+      <h1 className="text-3xl font-bold text-ink-900">{t("pay.title", { id: invoice.id })}</h1>
+      <p className="mt-2 text-sm text-ink-400">{t("pay.subtitle")}</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <section className="glass-panel p-6 text-center">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-400">Clinic payment QR</h2>
-          <img 
-            src={Payment_QR} 
-            alt="Clinic payment QR code" 
-            className="mx-auto mt-4 aspect-square w-full object-contain shadow-sm" 
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-400">{t("pay.qrHeading")}</h2>
+          <img
+            src={Payment_QR}
+            alt={t("pay.qrAlt")}
+            className="mx-auto mt-4 aspect-square w-full object-contain shadow-sm"
           />
-          <p className="mt-4 text-sm text-ink-700">Amount due: <strong className="text-ink-900">{formatCurrency(total)}</strong></p>
+          <p className="mt-4 text-sm text-ink-700">
+            {t("pay.amountDue")} <strong className="text-ink-900">{formatCurrency(total)}</strong>
+          </p>
         </section>
 
         <form onSubmit={handleSubmit} className="glass-panel space-y-5 p-6">
           <label className={labelClass}>
-            Amount paid
+            {t("pay.amountPaid")}
             <input type="number" min="0.01" max={total} step="0.01" required value={amount} onChange={(event) => setAmount(event.target.value)} className={inputClass} />
           </label>
           <label className={labelClass}>
-            Transaction note or reference
-            <input required value={note} onChange={(event) => setNote(event.target.value)} placeholder="e.g. MMQR transaction ID" className={inputClass} />
+            {t("pay.txNote")}
+            <input required value={note} onChange={(event) => setNote(event.target.value)} placeholder={t("pay.txNotePlaceholder")} className={inputClass} />
           </label>
           <label className={labelClass}>
-            E-receipt or payment screenshot
+            {t("pay.receipt")}
             <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" required onChange={handleReceipt} className={inputClass} />
-            <span className="mt-1 block text-xs text-ink-400">Image or PDF, up to 3 MB.</span>
+            <span className="mt-1 block text-xs text-ink-400">{t("pay.receiptHint")}</span>
           </label>
-          {receiptName && <p className="text-xs text-emerald-600">Attached: {receiptName}</p>}
+          {receiptName && <p className="text-xs text-emerald-600">{t("pay.attached", { name: receiptName })}</p>}
           {error && <p className={errorText}>{error}</p>}
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onCancel} className={btnGhost}>Cancel</button>
-            <button type="submit" disabled={submitting} className={btnPrimary}>{submitting ? "Submitting…" : "Submit payment proof"}</button>
+            <button type="button" onClick={onCancel} className={btnGhost}>{t("common.cancel")}</button>
+            <button type="submit" disabled={submitting} className={btnPrimary}>{submitting ? t("pay.submitting") : t("pay.submit")}</button>
           </div>
         </form>
       </div>

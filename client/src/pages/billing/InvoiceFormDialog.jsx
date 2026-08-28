@@ -1,10 +1,12 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 
 const EMPTY_ITEM = { description: "", quantity: 1, unitPrice: 0 };
 
 export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
+  const { t } = useLanguage();
   const [patientId, setPatientId] = useState(patients[0]?.id ?? "");
   const [items, setItems] = useState([{ ...EMPTY_ITEM }]);
   const [submitting, setSubmitting] = useState(false);
@@ -26,17 +28,17 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
       await onSubmit({ patientId: Number(patientId), items: items.filter((i) => i.description.trim()) });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title="New invoice" onClose={onClose} ref={modalRef}>
+    <Modal title={t("bill.newInvoice")} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
-          Patient
+          {t("invForm.patient")}
           <select
             required
             value={patientId}
@@ -53,13 +55,13 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
 
         <div>
           <div className="flex items-center justify-between">
-            <span className={labelClass}>Line items</span>
+            <span className={labelClass}>{t("invForm.lineItems")}</span>
             <button
               type="button"
               onClick={() => setItems((prev) => [...prev, { ...EMPTY_ITEM }])}
               className="text-xs font-medium text-frost-600 hover:underline"
             >
-              + Add item
+              {t("invForm.addItem")}
             </button>
           </div>
           <div className="mt-2 space-y-2">
@@ -67,7 +69,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
               <div key={index} className="flex items-center gap-2">
                 <input
                   required
-                  placeholder="Description"
+                  placeholder={t("invForm.description")}
                   value={item.description}
                   onChange={(e) => updateItem(index, { description: e.target.value })}
                   className={`${inputClass} mt-0 min-w-0 flex-1`}
@@ -92,7 +94,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
                     type="button"
                     onClick={() => setItems((prev) => prev.filter((_, i) => i !== index))}
                     className="text-ink-400 transition hover:text-rose-500 dark:hover:text-rose-400"
-                    aria-label="Remove item"
+                    aria-label={t("invForm.removeItem")}
                   >
                     ✕
                   </button>
@@ -101,7 +103,7 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
             ))}
           </div>
           <div className="mt-2 text-right text-sm font-medium text-ink-900">
-            Total: ${total.toFixed(2)}
+            {t("invForm.total", { amount: total.toFixed(2) })}
           </div>
         </div>
 
@@ -109,10 +111,10 @@ export function InvoiceFormDialog({ patients, onClose, onSubmit }) {
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>
-            {submitting ? "Creating…" : "Create invoice"}
+            {submitting ? t("invForm.submitting") : t("invForm.submit")}
           </button>
         </div>
       </form>
