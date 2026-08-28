@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "./Modal";
+import { resolveEquipmentImageUrl } from "../api/equipment";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 
 const DEFAULT_PRESETS = [
@@ -178,7 +179,7 @@ export function EquipmentFormDialog({
   const previewImage =
     imgPreviewError || !imageUrl
       ? "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"
-      : imageUrl;
+      : resolveEquipmentImageUrl(imageUrl);
 
   return (
     <Modal

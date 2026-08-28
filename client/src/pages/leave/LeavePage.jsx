@@ -13,7 +13,7 @@ import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { TableSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDateOnly, formatDateTime } from "../../lib/format";

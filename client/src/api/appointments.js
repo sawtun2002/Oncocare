@@ -1,6 +1,6 @@
 import { db, delay, nextId, persist } from "../mocks/db";
 
-/** @typedef {Omit<import("../types").Appointment, "id" | "status" | "events" | "expiresAt">} AppointmentInput */
+/** @typedef {Omit<import("../types").Appointment, "id" | "tokenNumber" | "status" | "events" | "expiresAt">} AppointmentInput */
 
 /**
  * Who is making the change. Stands in for the auth token the real API reads --
@@ -95,6 +95,7 @@ function settleExpiredRequests() {
   for (const a of db.appointments) {
     if (isExpiredRequest(a)) {
       a.status = "DECLINED";
+      a.expiresAt = null;
       a.events.push(event("DECLINED", null, { reason: EXPIRY_REASON }));
       changed = true;
     }
@@ -118,6 +119,27 @@ function localDateOf(iso) {
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * Mirrors the backend's server-generated `BookingResponse.tokenNumber`.
+ * Tokens are ordered per appointment calendar date, not by database ID, so
+ * every new day starts at `0001`. Existing slots retain their number; a
+ * reschedule to another day receives that day's next number.
+ */
+function nextDailyToken(scheduledAt, ignoreId) {
+  const tokenDate = localDateOf(scheduledAt);
+  const tokenDateCode = tokenDate.replaceAll("-", "");
+  const prefix = `TK-${tokenDateCode}-`;
+  const highest = db.appointments.reduce((max, appointment) => {
+    if (appointment.id === ignoreId || localDateOf(appointment.scheduledAt) !== tokenDate) {
+      return max;
+    }
+    const match = appointment.tokenNumber?.match(new RegExp(`^${prefix}(\\d+)$`));
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+
+  return `${prefix}${String(highest + 1).padStart(4, "0")}`;
 }
 
 /**
@@ -201,8 +223,7 @@ export async function createAppointment(input, actor) {
 
   const isPatient = actor?.role === "PATIENT";
   const id = nextId("appointment");
-  const year = new Date().getFullYear();
-  const tokenNumber = input.tokenNumber || `TK-${year}-${String(id).padStart(4, "0")}`;
+  const tokenNumber = nextDailyToken(input.scheduledAt);
 
   const appointment = {
     ...input,
@@ -210,6 +231,7 @@ export async function createAppointment(input, actor) {
     tokenNumber,
     status: isPatient ? "REQUESTED" : "SCHEDULED",
     events: [event(isPatient ? "REQUESTED" : "ACCEPTED", actor)],
+    expiresAt: null,
   };
   if (isPatient) {
     const until = Math.min(Date.now() + REQUEST_TTL_MS, new Date(input.scheduledAt).getTime());
@@ -247,7 +269,7 @@ export async function acceptAppointment(id, actor) {
   }
 
   appointment.status = "SCHEDULED";
-  appointment.expiresAt = undefined;
+  appointment.expiresAt = null;
   appointment.events.push(event("ACCEPTED", actor));
   persist();
   return delay(appointment);
@@ -272,7 +294,7 @@ export async function declineAppointment(id, actor, reason) {
   }
 
   appointment.status = "DECLINED";
-  appointment.expiresAt = undefined;
+  appointment.expiresAt = null;
   appointment.events.push(event("DECLINED", actor, { reason: reason.trim() }));
   persist();
   return delay(appointment);
@@ -313,6 +335,9 @@ export async function updateAppointment(id, input, actor) {
 
   const from = appointment.scheduledAt;
   Object.assign(appointment, changes);
+  if (localDateOf(from) !== localDateOf(appointment.scheduledAt)) {
+    appointment.tokenNumber = nextDailyToken(appointment.scheduledAt, appointment.id);
+  }
   appointment.events.push(
     event("RESCHEDULED", actor, {
       fromScheduledAt: from,
@@ -375,7 +400,7 @@ export async function cancelAppointment(id, actor, reason) {
 
   const msUntil = new Date(appointment.scheduledAt).getTime() - Date.now();
   appointment.status = "CANCELLED";
-  appointment.expiresAt = undefined;
+  appointment.expiresAt = null;
   appointment.events.push(
     event("CANCELLED", actor, {
       ...(reason && reason.trim() ? { reason: reason.trim() } : {}),

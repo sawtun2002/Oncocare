@@ -5,7 +5,7 @@ import { listAppointments } from "../api/appointments";
 import { listLeaveRequests } from "../api/leave";
 import { listPatients } from "../api/patients";
 import { listDoctors, listUsers } from "../api/users";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useLanguage } from "../context/LanguageContext";
 import { formatDateOnly, formatDateTime } from "../lib/format";
 import { noticesFor, unreadCount } from "../lib/notices";

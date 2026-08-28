@@ -1,4 +1,4 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { AdminLayout } from "./AdminLayout";
 import { DoctorLayout } from "./DoctorLayout";
 import { NurseLayout } from "./NurseLayout";

@@ -5,7 +5,7 @@ import logoMark from "../assets/logo-mark.png";
 import { Avatar } from "./Avatar";
 import { NoticeBell } from "./NoticeBell";
 import { ThemeToggle } from "./ThemeToggle";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useLanguage } from "../context/LanguageContext";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
@@ -32,7 +32,7 @@ const NAV_ITEMS = [
   { to: "/my-bills", labelKey: "nav.myBills", roles: PATIENT_ROLES },
   { to: "/doctors", labelKey: "nav.doctors", roles: ALL_ROLES },
   { to: "/staff/equipment", labelKey: "nav.equipment", roles: ["DOCTOR", "NURSE", "RECEPTIONIST"] },
-  { to: "/equipment", labelKey: "nav.equipment", roles: PATIENT_ROLES },
+  { to: "/patient/equipment", labelKey: "nav.equipment", roles: PATIENT_ROLES },
 ];
 
 /**

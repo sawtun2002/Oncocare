@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createEquipment, deleteEquipment, listEquipment, updateEquipment } from "../../api/equipment";
+import { createEquipment, deleteEquipment, listEquipment, resolveEquipmentImageUrl, updateEquipment } from "../../api/equipment";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { EquipmentCard } from "../../components/EquipmentCard";
 import { EquipmentFormDialog } from "../../components/EquipmentFormDialog";
 import { StatCard } from "../../components/StatCard";
 import { TableSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useToast } from "../../context/ToastContext";
 import {
   btnPrimary,
@@ -246,7 +246,7 @@ export function AdminEquipmentPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={item.imageUrl || "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"}
+                        src={resolveEquipmentImageUrl(item.imageUrl)}
                         alt=""
                         className="h-10 w-12 rounded-lg object-cover border border-hairline/80"
                       />

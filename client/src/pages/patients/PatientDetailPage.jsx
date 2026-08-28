@@ -11,7 +11,7 @@ import { GlassCard } from "../../components/GlassCard";
 import { InvoiceCard } from "../../components/InvoiceCard";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { CardSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { CANCEL_REASONS } from "../../lib/appointmentReasons";

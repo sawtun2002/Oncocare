@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listEquipment } from "../../api/equipment";
+import { listEquipment, resolveEquipmentImageUrl } from "../../api/equipment";
 import { Badge } from "../../components/Badge";
 import { EquipmentCard } from "../../components/EquipmentCard";
 import { TableSkeleton } from "../../components/Skeleton";
@@ -14,9 +14,9 @@ import {
 } from "../../lib/ui";
 
 /**
- * Staff equipment catalogue. It is rendered by the protected RoleLayout, so
- * doctors, nurses, and receptionists keep the same left sidebar used by their
- * dashboards and bookings.
+ * Authenticated equipment catalogue. It is rendered by the protected RoleLayout
+ * for doctors, nurses, receptionists, and patients, so each role keeps its
+ * normal sidebar while viewing the same read-only catalogue.
  * The presentation follows the admin equipment list but has no CRUD actions.
  */
 export function MedicalEquipmentPage() {
@@ -144,7 +144,7 @@ export function MedicalEquipmentPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={item.imageUrl || "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"}
+                        src={resolveEquipmentImageUrl(item.imageUrl)}
                         alt=""
                         className="h-10 w-12 rounded-lg object-cover border border-hairline/80"
                       />

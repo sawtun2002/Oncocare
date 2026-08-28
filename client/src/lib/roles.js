@@ -22,6 +22,19 @@ export const ALL_ROLES = [...STAFF_ROLES, ...PATIENT_ROLES];
 
 export const NON_ADMIN_ROLES = ["DOCTOR", "NURSE", "RECEPTIONIST", "PATIENT"];
 
+/** Routes a patient may safely resume after being redirected to sign-in. */
+export function isPatientReturnPath(path) {
+  return typeof path === "string" && (
+    path === "/my-bookings" ||
+    path === "/book" ||
+    path === "/my-bills" ||
+    path === "/patient/equipment" ||
+    path === "/profile" ||
+    path === "/doctors" ||
+    path.startsWith("/doctors/")
+  );
+}
+
 /**
  * Where a role belongs after signing in, and where to send someone who lands on
  * a route they may not see.

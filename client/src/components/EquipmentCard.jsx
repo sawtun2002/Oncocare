@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Badge } from "./Badge";
+import { resolveEquipmentImageUrl } from "../api/equipment";
 
 /**
  * Card component displaying equipment photo, category, manufacturer, model,
@@ -17,7 +18,7 @@ export function EquipmentCard({ equipment, isAdmin = false, onEdit, onDelete, on
   const [expanded, setExpanded] = useState(false);
 
   const defaultImage = "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80";
-  const displayImage = imageError || !equipment.imageUrl ? defaultImage : equipment.imageUrl;
+  const displayImage = imageError ? defaultImage : resolveEquipmentImageUrl(equipment.imageUrl);
 
   return (
     <div className={`glass-panel group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl ${

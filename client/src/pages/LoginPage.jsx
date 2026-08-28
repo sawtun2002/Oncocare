@@ -3,10 +3,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
 import { PasswordStrength } from "../components/PasswordStrength";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useLanguage } from "../context/LanguageContext";
 import { LANGUAGES, LANGUAGE_LABEL } from "../i18n";
-import { homePathFor } from "../lib/roles";
+import { homePathFor, isPatientReturnPath } from "../lib/roles";
 import { btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 import { MIN_PASSWORD_LENGTH, evaluatePassword, isValidPhone } from "../lib/validation";
 
@@ -55,11 +55,13 @@ export function LoginPage({ initialMode = "login" }) {
   }
 
   if (user) {
-    // If the guard sent them here from a protected page (e.g. "Book appointment"
-    // on the public site), go back there once they're a PATIENT; otherwise land
-    // on the role's own home.
+    // A logout can leave the browser at an admin/staff URL. Only resume a
+    // patient-safe route; otherwise a patient must land on My Bookings instead
+    // of being redirected straight to /403.
     const from = location.state?.from;
-    const dest = from && user.role === "PATIENT" ? from : homePathFor(user.role);
+    const dest = user.role === "PATIENT" && isPatientReturnPath(from)
+      ? from
+      : homePathFor(user.role);
     return <Navigate to={dest} replace />;
   }
 

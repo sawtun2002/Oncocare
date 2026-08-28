@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import logoMark from "../assets/logo-mark.png";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useLanguage } from "../context/LanguageContext";
 import { homePathFor } from "../lib/roles";
 

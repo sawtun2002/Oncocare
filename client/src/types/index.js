@@ -141,7 +141,7 @@
 /**
  * @typedef {Object} Appointment
  * @property {number} id
- * @property {string} [tokenNumber] Unique digital check-in token (e.g. TK-2026-0841).
+ * @property {string} tokenNumber Backend-generated daily check-in token (e.g. TK-20260828-0001).
  * @property {number} patientId
  * @property {number} doctorId
  * @property {string} scheduledAt
@@ -149,8 +149,8 @@
  * @property {AppointmentStatus} status
  * @property {string} [reason] Reason for the visit. Set at booking; unrelated to an event's `reason`.
  * @property {AppointmentEvent[]} events Oldest first. Never empty -- creation appends the first entry.
- * @property {string} [expiresAt] REQUESTED only: when an unanswered request auto-declines (48h after
- *   the request, or the slot start, whichever is sooner).
+ * @property {string | null} expiresAt REQUESTED only: when an unanswered request auto-declines (48h
+ *   after the request, or the slot start, whichever is sooner); otherwise `null`, matching BookingResponse.
  */
 
 /**

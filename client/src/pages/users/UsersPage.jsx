@@ -4,7 +4,7 @@ import { createStaffUser, listUsers, updateUserStatus } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { TableSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { btnPrimary, dangerAction, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";

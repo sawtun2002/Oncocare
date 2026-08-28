@@ -3,6 +3,24 @@ import { ApiError } from "./errors";
 
 const DEFAULT_IMAGE_URL =
   "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80";
+const EQUIPMENT_IMAGE_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/$/, "");
+
+/**
+ * Resolves the image value supplied by the equipment backend without changing
+ * mock values. It supports all backend storage forms: a bare filename,
+ * `/equipmentphoto/{name}`, `/api/equipmentphoto/{name}`, or a full URL.
+ *
+ * @param {string | undefined | null} imageUrl
+ * @returns {string}
+ */
+export function resolveEquipmentImageUrl(imageUrl) {
+  const value = imageUrl?.trim();
+  if (!value) return DEFAULT_IMAGE_URL;
+  if (/^(?:https?:|data:|blob:)/i.test(value)) return value;
+  if (value.startsWith("/")) return `${EQUIPMENT_IMAGE_ORIGIN}${value}`;
+
+  return `${EQUIPMENT_IMAGE_ORIGIN}/equipmentphoto/${encodeURIComponent(value)}`;
+}
 
 /**
  * Creates the multipart body accepted by the backend equipment endpoints.

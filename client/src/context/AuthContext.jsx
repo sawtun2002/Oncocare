@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   changePassword as apiChangePassword,
   fetchCurrentUser,
@@ -9,11 +9,10 @@ import {
   updateNotificationPreferences as apiUpdateNotificationPreferences,
   updateProfile as apiUpdateProfile,
 } from "../api/auth";
+import { AuthContext } from "./authStore";
 
 const TOKEN_KEY = "cancer-hms-token";
 const PROFILE_KEY = "cancer-hms-profile-overrides";
-
-const AuthContext = createContext(undefined);
 
 function withProfileOverrides(account) {
   if (!account?.id) return account;
@@ -25,7 +24,6 @@ function withProfileOverrides(account) {
     return account;
   }
 }
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -136,10 +134,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 }

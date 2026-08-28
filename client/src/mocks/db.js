@@ -42,7 +42,10 @@ import {
 // nextIds.equipmentPost kind. A v10 store has no equipmentPosts key, which the
 // equipment list would spread as undefined -- so the v10 store is dropped for the
 // v11 seed like every bump before.
-const STORAGE_KEY = "cancer-hms-mock-db-v11";
+// v12 switched appointment tokens to the backend-compatible daily sequence
+// (`TK-YYYYMMDD-0001`), so stored v11 demo data with global yearly tokens is
+// deliberately reseeded.
+const STORAGE_KEY = "cancer-hms-mock-db-v12";
 
 /**
  * @typedef {Object} MockDb

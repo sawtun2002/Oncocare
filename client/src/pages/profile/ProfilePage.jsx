@@ -7,7 +7,7 @@ import { Avatar } from "../../components/Avatar";
 import { GlassCard } from "../../components/GlassCard";
 import { PasswordStrength } from "../../components/PasswordStrength";
 import { ThemeToggle } from "../../components/ThemeToggle";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { LANGUAGES, LANGUAGE_LABEL } from "../../i18n";

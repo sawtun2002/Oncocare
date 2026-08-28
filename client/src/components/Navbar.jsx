@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 import { useLanguage } from "../context/LanguageContext"
 import logoFull from '../assets/logo-full-hori.png'
 import logoMark from '../assets/logo-mark.png'

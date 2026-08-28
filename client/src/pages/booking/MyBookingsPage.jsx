@@ -8,7 +8,7 @@ import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
 import { CardSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDate, formatDateTime } from "../../lib/format";

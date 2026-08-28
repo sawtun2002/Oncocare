@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { createPatient, listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { TableSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { calculateAge, formatDate } from "../../lib/format";

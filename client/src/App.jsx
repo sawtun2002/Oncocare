@@ -99,6 +99,10 @@ function App() {
             <Route path="/staff/equipment" element={<MedicalEquipmentPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute allowedRoles={PATIENT_ROLES} />}>
+            <Route path="/patient/equipment" element={<MedicalEquipmentPage />} />
+          </Route>
+
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />}>
             <Route path="/billing" element={<BillingPage />} />
           </Route>

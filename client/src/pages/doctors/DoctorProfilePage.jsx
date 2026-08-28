@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { getDoctorProfile } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
 import { CardSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { initials } from "../../lib/format";
 import { btnGhost, btnPrimary, pageTitle, sectionLabel } from "../../lib/ui";

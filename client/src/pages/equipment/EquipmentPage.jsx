@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listEquipment } from "../../api/equipment";
 import { EquipmentCard } from "../../components/EquipmentCard";
 import { CardSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { btnPrimary, inputClass } from "../../lib/ui";
 
 export function EquipmentPage() {

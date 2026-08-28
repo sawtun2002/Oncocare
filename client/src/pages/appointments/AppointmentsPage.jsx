@@ -16,7 +16,7 @@ import { Badge } from "../../components/Badge";
 import { GlassCard } from "../../components/GlassCard";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { TableSkeleton } from "../../components/Skeleton";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { CANCEL_REASONS, DECLINE_REASONS } from "../../lib/appointmentReasons";

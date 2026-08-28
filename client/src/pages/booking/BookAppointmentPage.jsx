@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { createAppointment, SLOT_MINUTES } from "../../api/appointments";
 import { listDoctors } from "../../api/users";
 import { GlassCard } from "../../components/GlassCard";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
