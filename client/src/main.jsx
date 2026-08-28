@@ -7,6 +7,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
+import {LoadingBarProvider} from './context/LoadingBarContext'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -30,7 +31,9 @@ createRoot(document.getElementById('root')).render(
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
               <AuthProvider>
-                <App />
+                <LoadingBarProvider>
+                  <App />
+                </LoadingBarProvider>
               </AuthProvider>
             </BrowserRouter>
           </QueryClientProvider>

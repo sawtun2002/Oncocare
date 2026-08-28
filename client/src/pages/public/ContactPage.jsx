@@ -14,30 +14,38 @@ export default function ContactPage() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [errors, setErrors] = useState({})
 
-  const contactInfo = [
+  const contactCards = [
     {
-      icon: 'fa-phone',
-      title: 'Phone',
+      icon: 'fa-phone-volume',
+      title: 'Emergency & Helplines',
       details: ['+1 (555) 123-4567', '+1 (555) 987-6543'],
-      color: 'bg-serenity-100 text-serenity-600'
+      subtitle: '24/7 Priority Emergency Line',
+      accent: 'from-amber-500 to-orange-500',
+      lightBg: 'bg-amber-50 text-amber-600 border-amber-200/60'
     },
     {
-      icon: 'fa-envelope',
-      title: 'Email',
+      icon: 'fa-envelope-open-text',
+      title: 'Email Communications',
       details: ['care@oncocare.com', 'support@oncocare.com'],
-      color: 'bg-serenity-100 text-serenity-600'
+      subtitle: 'Typical response within 2 hours',
+      accent: 'from-serenity-500 to-sky-600',
+      lightBg: 'bg-sky-50 text-sky-600 border-sky-200/60'
     },
     {
       icon: 'fa-location-dot',
-      title: 'Location',
+      title: 'Main Campus',
       details: ['123 Medical Center Drive', 'Suite 100, Healthcare District'],
-      color: 'bg-serenity-100 text-serenity-600'
+      subtitle: 'Valet Parking Available',
+      accent: 'from-emerald-500 to-teal-600',
+      lightBg: 'bg-emerald-50 text-emerald-600 border-emerald-200/60'
     },
     {
       icon: 'fa-clock',
-      title: 'Working Hours',
-      details: ['Mon - Fri: 9:00 AM - 5:00 PM', 'Sat: 9:00 AM - 1:00 PM'],
-      color: 'bg-serenity-100 text-serenity-600'
+      title: 'Consultation Hours',
+      details: ['Mon - Fri: 8:00 AM - 6:00 PM', 'Sat: 9:00 AM - 2:00 PM'],
+      subtitle: 'Sunday: Emergency Only',
+      accent: 'from-indigo-500 to-purple-600',
+      lightBg: 'bg-purple-50 text-purple-600 border-purple-200/60'
     }
   ]
 
@@ -46,65 +54,54 @@ export default function ContactPage() {
     { icon: 'fa-radiation', name: 'Radiation Oncology', phone: '+1 (555) 111-0002' },
     { icon: 'fa-procedures', name: 'Surgical Oncology', phone: '+1 (555) 111-0003' },
     { icon: 'fa-child', name: 'Pediatric Oncology', phone: '+1 (555) 111-0004' },
-    { icon: 'fa-flask', name: 'Hematology', phone: '+1 (555) 111-0005' },
+    { icon: 'fa-flask', name: 'Hematology & Labs', phone: '+1 (555) 111-0005' },
     { icon: 'fa-female', name: 'Gynecologic Oncology', phone: '+1 (555) 111-0006' }
   ]
 
   const faqs = [
     {
-      question: 'How do I book an appointment?',
-      answer: 'You can book an appointment online through our portal, call our care team, or visit us in person. Online booking provides instant digital tokens for your consultation.'
+      question: 'How do I book an urgent oncology appointment?',
+      answer: 'You can request an urgent appointment directly through our digital portal or by contacting our 24/7 care hotline. Priority slots are reserved daily for urgent consultations.'
     },
     {
-      question: 'What insurance plans do you accept?',
-      answer: 'We accept most major insurance plans. Please contact our billing department to verify your specific coverage and any out-of-pocket costs.'
+      question: 'What insurance plans and direct billing do you accept?',
+      answer: 'We accept most major national and international healthcare insurance providers. Our financial counselors can assist you in verifying coverage details prior to your visit.'
     },
     {
-      question: 'Do you offer emergency services?',
-      answer: 'Yes, our emergency department operates 24/7. For immediate medical emergencies, please call 911 or visit our emergency room.'
+      question: 'Are telehealth consultations available?',
+      answer: 'Yes, we provide secure HIPAA-compliant virtual consultations for initial evaluations, follow-up appointments, and second opinions.'
     },
     {
-      question: 'How does the MMQR payment system work?',
-      answer: 'MMQR allows you to make secure payments using your mobile device. Simply scan the QR code provided for your service and complete the payment through your preferred mobile banking app.'
+      question: 'How does the MMQR mobile payment system work?',
+      answer: 'MMQR lets you pay treatment invoices seamlessly via your mobile banking app. Simply scan the generated QR code on your billing statement or digital portal.'
     }
   ]
 
   const validateForm = () => {
     const newErrors = {}
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required'
-    }
+    if (!formData.name.trim()) newErrors.name = 'Full name is required'
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
+      newErrors.email = 'Email address is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = 'Enter a valid email address'
     }
-    if (formData.phone && !/^[\d\s\(\)\-]+$/.test(formData.phone)) {
-      newErrors.phone = 'Phone number is invalid'
+    if (formData.phone && !/^[\d\s\(\)\-+]+$/.test(formData.phone)) {
+      newErrors.phone = 'Enter a valid phone number'
     }
-    if (!formData.subject.trim()) {
-      newErrors.subject = 'Subject is required'
-    }
+    if (!formData.subject.trim()) newErrors.subject = 'Please select a subject'
     if (!formData.message.trim()) {
-      newErrors.message = 'Message is required'
+      newErrors.message = 'Message details are required'
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = 'Message must be at least 10 characters'
+      newErrors.message = 'Message must be at least 10 characters long'
     }
     return newErrors
   }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    // Clear error for this field when user starts typing
+    setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
+      setErrors(prev => ({ ...prev, [name]: '' }))
     }
   }
 
@@ -119,9 +116,8 @@ export default function ContactPage() {
 
     setIsSubmitting(true)
     
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await new Promise(resolve => setTimeout(resolve, 1200))
       setSubmitSuccess(true)
       setFormData({
         name: '',
@@ -132,10 +128,7 @@ export default function ContactPage() {
         preferredContact: 'email'
       })
       
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setSubmitSuccess(false)
-      }, 5000)
+      setTimeout(() => setSubmitSuccess(false), 6000)
     } catch (error) {
       console.error('Error submitting form:', error)
     } finally {
@@ -144,59 +137,112 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-serenity-50/50 to-white">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-serenity-900 via-serenity-800 to-serenity-600 text-white">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        
+    <div className="min-h-screen bg-slate-50/60 font-sans text-slate-800">
+      
+      {/* Dynamic Visual Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-serenity-950 to-teal-950 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(56,189,248,0.12),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(16,185,129,0.1),transparent_50%)]" />
+
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <p className="mb-3 font-semibold tracking-[0.18em] text-serenity-200 animate-fade-in">
-            WE ARE HERE TO HELP
-          </p>
-          <h1 className="text-4xl font-bold sm:text-5xl mb-6 animate-slide-up">
-            Contact Us
-          </h1>
-          <p className="max-w-2xl text-xl leading-8 text-serenity-100/90 animate-slide-up" style={{animationDelay: '0.1s'}}>
-            Get in touch with our team for support and inquiries. We're here to assist you every step of the way.
-          </p>
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-sky-300 border border-white/15 backdrop-blur-md">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                We're Online & Ready to Assist
+              </div>
+
+              <h1 className="text-4xl font-extrabold sm:text-6xl tracking-tight leading-none text-white">
+                Get in Touch with Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400">Care Team</span>
+              </h1>
+
+              <p className="max-w-2xl text-lg text-slate-300 leading-relaxed font-normal">
+                Whether you have questions about specialized treatments, appointment schedules, or billing services, our dedicated medical support team is here for you every step of the way.
+              </p>
+            </div>
+
+            <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md">
+                <div className="text-3xl font-extrabold text-teal-300">24/7</div>
+                <div className="text-xs font-medium text-slate-300 mt-1">Emergency Medical Response</div>
+              </div>
+              <div className="p-5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md">
+                <div className="text-3xl font-extrabold text-sky-300">&lt; 2 Hrs</div>
+                <div className="text-xs font-medium text-slate-300 mt-1">Average Response Time</div>
+              </div>
+              <div className="p-5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md">
+                <div className="text-3xl font-extrabold text-emerald-300">100%</div>
+                <div className="text-xs font-medium text-slate-300 mt-1">Confidential Consultations</div>
+              </div>
+              <div className="p-5 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md">
+                <div className="text-3xl font-extrabold text-amber-300">6+</div>
+                <div className="text-xs font-medium text-slate-300 mt-1">Specialized Care Centers</div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* Contact Info Cards */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      {/* Contact Cards Grid */}
+      <section className="relative z-20 mx-auto max-w-7xl px-4 -mt-10 sm:px-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {contactInfo.map((info, index) => (
+          {contactCards.map((info, index) => (
             <div 
               key={index}
-              className="group bg-white rounded-2xl border border-serenity-100 p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              className="group bg-white rounded-2xl border border-slate-200/80 p-6 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:border-slate-300 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
             >
-              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${info.color} group-hover:scale-110 transition-transform duration-300`}>
-                <i className={`fas ${info.icon} text-xl`}></i>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${info.lightBg} group-hover:scale-110 transition-transform duration-300`}>
+                    <i className={`fas ${info.icon} text-xl`}></i>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                    Direct
+                  </span>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-900 mb-2">{info.title}</h3>
+                
+                <div className="space-y-1">
+                  {info.details.map((detail, idx) => (
+                    <p key={idx} className="text-sm font-medium text-slate-700">{detail}</p>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-serenity-900 mb-3">{info.title}</h3>
-              {info.details.map((detail, idx) => (
-                <p key={idx} className="text-sm text-serenity-600 mb-1">{detail}</p>
-              ))}
+
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <p className="text-xs font-medium text-slate-400">{info.subtitle}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl border border-serenity-100 p-8 shadow-sm">
-              <h2 className="text-2xl font-bold text-serenity-900 mb-6">Send Us a Message</h2>
-              
+      {/* Main Content Area */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Main Form Section */}
+          <div className="lg:col-span-7">
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-10 shadow-sm">
+              <div className="mb-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Send Us a Message</h2>
+                <p className="text-sm text-slate-500 mt-1">Fill out the form below and our care team will contact you promptly.</p>
+              </div>
+
               {submitSuccess && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 animate-fade-in">
-                  <i className="fas fa-check-circle text-green-500 text-xl"></i>
+                <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-3.5 animate-fade-in shadow-xs">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center mt-0.5">
+                    <i className="fas fa-check text-sm"></i>
+                  </div>
                   <div>
-                    <p className="font-semibold text-green-800">Message sent successfully!</p>
-                    <p className="text-sm text-green-600">We'll get back to you within 24 hours.</p>
+                    <h4 className="font-bold text-emerald-900 text-sm">Message Sent Successfully</h4>
+                    <p className="text-xs text-emerald-700 mt-0.5">Thank you for reaching out. A patient care representative will contact you within 24 hours.</p>
                   </div>
                 </div>
               )}
@@ -204,8 +250,8 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-semibold text-serenity-900 mb-2">
-                      Full Name *
+                    <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -213,21 +259,24 @@ export default function ContactPage() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-serenity-200 focus:border-serenity-500 focus:ring-serenity-200'
-                      } focus:ring-2 outline-none transition-all`}
-                      placeholder="John Doe"
+                      className={`w-full px-4 py-3 rounded-xl text-sm border bg-slate-50/50 transition-all outline-none ${
+                        errors.name 
+                          ? 'border-red-300 ring-2 ring-red-100 focus:bg-white' 
+                          : 'border-slate-200 focus:border-serenity-500 focus:ring-4 focus:ring-serenity-500/10 focus:bg-white'
+                      }`}
+                      placeholder="e.g. Dr. Jane Smith"
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <i className="fas fa-circle-exclamation text-xs"></i>
                         {errors.name}
                       </p>
                     )}
                   </div>
+
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-serenity-900 mb-2">
-                      Email Address *
+                    <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                      Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -235,14 +284,16 @@ export default function ContactPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-serenity-200 focus:border-serenity-500 focus:ring-serenity-200'
-                      } focus:ring-2 outline-none transition-all`}
-                      placeholder="john@example.com"
+                      className={`w-full px-4 py-3 rounded-xl text-sm border bg-slate-50/50 transition-all outline-none ${
+                        errors.email 
+                          ? 'border-red-300 ring-2 ring-red-100 focus:bg-white' 
+                          : 'border-slate-200 focus:border-serenity-500 focus:ring-4 focus:ring-serenity-500/10 focus:bg-white'
+                      }`}
+                      placeholder="jane@example.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <i className="fas fa-circle-exclamation text-xs"></i>
                         {errors.email}
                       </p>
                     )}
@@ -251,7 +302,7 @@ export default function ContactPage() {
 
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-semibold text-serenity-900 mb-2">
+                    <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                       Phone Number
                     </label>
                     <input
@@ -260,41 +311,46 @@ export default function ContactPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        errors.phone ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-serenity-200 focus:border-serenity-500 focus:ring-serenity-200'
-                      } focus:ring-2 outline-none transition-all`}
+                      className={`w-full px-4 py-3 rounded-xl text-sm border bg-slate-50/50 transition-all outline-none ${
+                        errors.phone 
+                          ? 'border-red-300 ring-2 ring-red-100 focus:bg-white' 
+                          : 'border-slate-200 focus:border-serenity-500 focus:ring-4 focus:ring-serenity-500/10 focus:bg-white'
+                      }`}
                       placeholder="+1 (555) 000-0000"
                     />
                     {errors.phone && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <i className="fas fa-circle-exclamation text-xs"></i>
                         {errors.phone}
                       </p>
                     )}
                   </div>
+
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-semibold text-serenity-900 mb-2">
-                      Subject *
+                    <label htmlFor="subject" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                      Subject <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="subject"
                       name="subject"
                       value={formData.subject}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        errors.subject ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-serenity-200 focus:border-serenity-500 focus:ring-serenity-200'
-                      } focus:ring-2 outline-none transition-all bg-white`}
+                      className={`w-full px-4 py-3 rounded-xl text-sm border bg-slate-50/50 transition-all outline-none ${
+                        errors.subject 
+                          ? 'border-red-300 ring-2 ring-red-100 focus:bg-white' 
+                          : 'border-slate-200 focus:border-serenity-500 focus:ring-4 focus:ring-serenity-500/10 focus:bg-white'
+                      }`}
                     >
-                      <option value="">Select a subject</option>
-                      <option value="appointment">Appointment Inquiry</option>
-                      <option value="billing">Billing Question</option>
-                      <option value="medical">Medical Records</option>
-                      <option value="feedback">Feedback</option>
-                      <option value="other">Other</option>
+                      <option value="">Select a subject category</option>
+                      <option value="appointment">Appointment Consultation</option>
+                      <option value="billing">Insurance & Billing Inquiry</option>
+                      <option value="medical">Medical Records Request</option>
+                      <option value="feedback">Patient Feedback</option>
+                      <option value="other">General Inquiry</option>
                     </select>
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                        <i className="fas fa-exclamation-circle text-xs"></i>
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                        <i className="fas fa-circle-exclamation text-xs"></i>
                         {errors.subject}
                       </p>
                     )}
@@ -302,8 +358,8 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-serenity-900 mb-2">
-                    Message *
+                  <label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Message Details <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="message"
@@ -311,45 +367,58 @@ export default function ContactPage() {
                     rows="5"
                     value={formData.message}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-xl border ${
-                      errors.message ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-serenity-200 focus:border-serenity-500 focus:ring-serenity-200'
-                    } focus:ring-2 outline-none transition-all resize-none`}
-                    placeholder="Type your message here..."
+                    className={`w-full px-4 py-3 rounded-xl text-sm border bg-slate-50/50 transition-all outline-none resize-none ${
+                      errors.message 
+                        ? 'border-red-300 ring-2 ring-red-100 focus:bg-white' 
+                        : 'border-slate-200 focus:border-serenity-500 focus:ring-4 focus:ring-serenity-500/10 focus:bg-white'
+                    }`}
+                    placeholder="Describe how we can assist you..."
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                      <i className="fas fa-exclamation-circle text-xs"></i>
+                    <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1 font-medium">
+                      <i className="fas fa-circle-exclamation text-xs"></i>
                       {errors.message}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-serenity-900 mb-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
                     Preferred Contact Method
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex items-center gap-4">
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
+                      formData.preferredContact === 'email' 
+                        ? 'bg-serenity-50/70 border-serenity-300 text-serenity-800 font-semibold shadow-xs' 
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}>
                       <input
                         type="radio"
                         name="preferredContact"
                         value="email"
                         checked={formData.preferredContact === 'email'}
                         onChange={handleInputChange}
-                        className="text-serenity-600 focus:ring-serenity-500"
+                        className="sr-only"
                       />
-                      <span className="text-sm text-serenity-700">Email</span>
+                      <i className="fas fa-envelope text-xs"></i>
+                      <span className="text-xs">Email Communication</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
+                      formData.preferredContact === 'phone' 
+                        ? 'bg-serenity-50/70 border-serenity-300 text-serenity-800 font-semibold shadow-xs' 
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}>
                       <input
                         type="radio"
                         name="preferredContact"
                         value="phone"
                         checked={formData.preferredContact === 'phone'}
                         onChange={handleInputChange}
-                        className="text-serenity-600 focus:ring-serenity-500"
+                        className="sr-only"
                       />
-                      <span className="text-sm text-serenity-700">Phone</span>
+                      <i className="fas fa-phone text-xs"></i>
+                      <span className="text-xs">Phone Call</span>
                     </label>
                   </div>
                 </div>
@@ -357,17 +426,17 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-serenity-600 px-8 py-3.5 font-semibold text-white shadow-lg transition-all hover:bg-serenity-700 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-serenity-600 to-sky-700 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-serenity-600/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
-                      <i className="fas fa-spinner fa-spin"></i>
-                      Sending...
+                      <i className="fas fa-circle-notch fa-spin"></i>
+                      <span>Sending Message...</span>
                     </>
                   ) : (
                     <>
-                      Send Message
-                      <i className="fas fa-paper-plane"></i>
+                      <span>Send Message</span>
+                      <i className="fas fa-paper-plane text-xs"></i>
                     </>
                   )}
                 </button>
@@ -375,57 +444,81 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Departments */}
-            <div className="bg-white rounded-2xl border border-serenity-100 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-serenity-900 mb-4">Departments</h3>
-              <div className="space-y-3">
+          {/* Sidebar Section */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Interactive Map Component */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Hospital Location</h3>
+                <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                  <i className="fas fa-map-pin text-emerald-500"></i> Main Campus
+                </span>
+              </div>
+              
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 h-56 bg-slate-100">
+                <iframe
+                  title="Hospital Location Map"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=-0.13%2C51.50%2C-0.11%2C51.52&amp;layer=mapnik"
+                  className="w-full h-full border-none filter contrast-[1.05]"
+                  loading="lazy"
+                ></iframe>
+              </div>
+
+              <a 
+                href="https://maps.google.com" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <i className="fas fa-location-arrow text-serenity-600"></i>
+                Get Driving Directions
+              </a>
+            </div>
+
+            {/* Department Extensions Directory */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Direct Department Lines</h3>
+              <div className="divide-y divide-slate-100">
                 {departments.map((dept, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <i className={`fas ${dept.icon} text-serenity-500`}></i>
-                      <span className="text-sm text-serenity-700">{dept.name}</span>
+                  <div key={index} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-500 group-hover:bg-serenity-50 group-hover:text-serenity-600 transition-colors">
+                        <i className={`fas ${dept.icon} text-xs`}></i>
+                      </div>
+                      <span className="text-xs font-semibold text-slate-700">{dept.name}</span>
                     </div>
-                    <span className="text-xs text-serenity-500">{dept.phone}</span>
+                    <a href={`tel:${dept.phone}`} className="text-xs font-bold text-serenity-600 hover:underline">
+                      {dept.phone}
+                    </a>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* FAQs */}
-            <div className="bg-white rounded-2xl border border-serenity-100 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-serenity-900 mb-4">Quick Answers</h3>
+            {/* Collapsible FAQ Section */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Frequently Asked Questions</h3>
               <div className="space-y-3">
                 {faqs.map((faq, index) => (
-                  <details key={index} className="group">
-                    <summary className="flex items-center justify-between cursor-pointer list-none">
-                      <span className="text-sm font-semibold text-serenity-700">{faq.question}</span>
-                      <i className="fas fa-chevron-down text-xs text-serenity-400 group-open:rotate-180 transition-transform"></i>
+                  <details key={index} className="group border-b border-slate-100 last:border-none pb-3">
+                    <summary className="flex items-center justify-between cursor-pointer list-none py-1">
+                      <span className="text-xs font-bold text-slate-800 pr-2">{faq.question}</span>
+                      <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-open:rotate-180 transition-transform flex-shrink-0">
+                        <i className="fas fa-chevron-down text-[10px]"></i>
+                      </span>
                     </summary>
-                    <p className="mt-2 text-sm text-serenity-600 leading-relaxed">{faq.answer}</p>
+                    <p className="mt-2 text-xs text-slate-500 leading-relaxed pl-1">{faq.answer}</p>
                   </details>
                 ))}
               </div>
             </div>
 
-            {/* Map Placeholder */}
-            <div className="bg-white rounded-2xl border border-serenity-100 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-serenity-900 mb-4">Find Us</h3>
-              <div className="bg-serenity-50 rounded-xl h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <i className="fas fa-map-marker-alt text-3xl text-serenity-400 mb-2"></i>
-                  <p className="text-sm text-serenity-600">Map Integration Coming Soon</p>
-                </div>
-              </div>
-              <button className="mt-4 w-full rounded-xl border border-serenity-200 px-4 py-2.5 text-sm font-semibold text-serenity-700 hover:bg-serenity-50 transition-colors">
-                <i className="fas fa-directions mr-2"></i>
-                Get Directions
-              </button>
-            </div>
           </div>
+
         </div>
       </section>
+
     </div>
   )
 }

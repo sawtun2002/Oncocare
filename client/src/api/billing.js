@@ -15,6 +15,13 @@ import { db, delay, nextId, persist } from "../mocks/db";
  * @property {number} invoiceCount
  */
 
+/**
+ * @typedef {Object} PaymentProofInput
+ * @property {number} amount
+ * @property {string} note Transaction/reference note.
+ * @property {string} receiptDataUrl Image or PDF receipt encoded as a data URI.
+ */
+
 function invoiceTotal(invoice) {
   return invoice.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 }
@@ -48,6 +55,34 @@ export async function updateInvoiceStatus(id, status) {
     });
   }
   invoice.status = status;
+  persist();
+  return delay(invoice);
+}
+
+/**
+ * Submit payment evidence for the signed-in patient's invoice. Staff must
+ * verify the proof and change the invoice status separately.
+ */
+export async function submitPaymentProof(id, input) {
+  const invoice = db.invoices.find((item) => item.id === id);
+  if (!invoice) {
+    return delay(undefined, 200).then(() => {
+      throw new Error("Invoice not found");
+    });
+  }
+  if (invoice.status === "PAID") {
+    return delay(undefined, 200).then(() => {
+      throw new Error("This invoice is already paid");
+    });
+  }
+
+  invoice.paymentSubmission = {
+    amount: input.amount,
+    note: input.note,
+    receiptDataUrl: input.receiptDataUrl,
+    submittedAt: new Date().toISOString(),
+    status: "PENDING",
+  };
   persist();
   return delay(invoice);
 }

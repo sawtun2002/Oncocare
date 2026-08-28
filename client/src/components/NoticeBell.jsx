@@ -131,6 +131,8 @@ export function NoticeBell() {
 
   const shown = notices.slice(0, 20);
   const names = { doctor: doctorName, patient: patientName, user: staffName };
+  const isLoading = appointmentsQuery.isLoading || doctorsQuery.isLoading || (isStaff && patientsQuery.isLoading);
+  const hasError = appointmentsQuery.isError || doctorsQuery.isError || (isStaff && patientsQuery.isError);
 
   return (
     <div ref={rootRef} className="relative">
@@ -150,11 +152,25 @@ export function NoticeBell() {
       </button>
 
       {open && (
-        <div className="glass-panel-solid absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden text-sm">
-          <div className="border-b border-hairline/60 px-4 py-2.5 font-semibold text-ink-900">
-            Notifications
+        <div className="glass-panel-solid absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden text-sm shadow-xl">
+          <div className="flex items-center justify-between border-b border-hairline/60 px-4 py-3">
+            <h2 className="font-semibold text-ink-900">Notifications</h2>
+            {unread > 0 && <span className="text-xs font-medium text-rose-600">{unread} unread</span>}
           </div>
-          {shown.length === 0 ? (
+          {isLoading ? (
+            <ul className="space-y-3 px-4 py-4" aria-label="Loading notifications">
+              {[1, 2, 3].map((item) => (
+                <li key={item} className="space-y-2">
+                  <div className="h-3 w-full animate-pulse rounded bg-ice-200" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-ice-200" />
+                </li>
+              ))}
+            </ul>
+          ) : hasError ? (
+            <p className="px-4 py-6 text-center text-sm text-ink-400">
+              Notifications are temporarily unavailable.
+            </p>
+          ) : shown.length === 0 ? (
             <p className="px-4 py-6 text-center text-ink-400">You're all caught up.</p>
           ) : (
             <ul className="max-h-96 divide-y divide-hairline/50 overflow-y-auto">

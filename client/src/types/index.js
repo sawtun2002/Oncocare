@@ -163,6 +163,20 @@
  * @property {string} issuedAt
  * @property {InvoiceStatus} status
  * @property {InvoiceItem[]} items
+ * @property {PaymentProof} [paymentSubmission] Latest patient payment proof awaiting staff review.
+ */
+
+/**
+ * @typedef {"PENDING" | "REJECTED"} PaymentProofStatus
+ */
+
+/**
+ * @typedef {Object} PaymentProof
+ * @property {number} amount
+ * @property {string} note
+ * @property {string} receiptDataUrl
+ * @property {string} submittedAt
+ * @property {PaymentProofStatus} status
  */
 
 /**

@@ -32,9 +32,7 @@ export function homePathFor(role) {
     case "PATIENT":
       return "/my-bookings";
     case "DOCTOR":
-      return "/doctor/dashboard";
     case "ADMIN":
-      return "/admin/dashboard";
     case "NURSE":
     case "RECEPTIONIST":
       return "/dashboard";

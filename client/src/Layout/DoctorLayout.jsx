@@ -1,13 +1,7 @@
-import { Outlet } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import { Layout } from "../components/Layout";
 
-const DoctorLayout = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1"><Outlet /></main>
-    </div>
-  );
-};
+export function DoctorLayout() {
+  return <Layout />;
+}
 
 export default DoctorLayout;

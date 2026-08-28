@@ -1,0 +1,73 @@
+      <div className="bg-red-200">
+      {/* Hero Section */}
+      <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-gradient-to-br from-serenity-950 via-serenity-900 to-serenity-800 ">
+        {/* Background Decorative Glows */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 rounded-full bg-serenity-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+        <div className=" min-h-screen flex items-center justify-between ">
+          <div className="min-h-screen w-[65%] z-10 glass-panel rounded-none shadow-md lg:[clip-path:polygon(0_0,calc(100%-350px)_0,100%_100%,0_100%)]">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-serenity-200 backdrop-blur-md mb-8 animate-fade-in shadow-inner">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>Trusted Oncology Care • 10,000+ Patients</span>
+            </div>
+            
+            <h1 className="max-w-4xl text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl leading-[1.1] mb-6 animate-slide-up">
+              Expert cancer care,{' '}
+              <span className="bg-gradient-to-r from-serenity-200 via-serenity-100 to-emerald-200 bg-clip-text text-transparent">
+                centered around you.
+              </span>
+            </h1>
+            
+            <p className="max-w-2xl text-base sm:text-lg text-serenity-100/80 leading-relaxed mb-10 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              Seamlessly book appointments, track consultation tokens in real-time, reserve inpatient rooms via MMQR, and manage digital health cards in one unified portal.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <Link 
+                to="/book" 
+                className="group inline-flex items-center justify-center gap-2.5 rounded-xl bg-white px-7 py-4 font-semibold text-slate-900 shadow-xl shadow-slate-950/20 transition-all duration-200 hover:bg-serenity-50 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>Make Appointment</span>
+                <i className="fas fa-arrow-right text-sm transition-transform duration-200 group-hover:translate-x-1" />
+              </Link>
+              
+              <Link 
+                to="/rooms" 
+                className="group inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/5 px-7 py-4 font-semibold text-white backdrop-blur-md transition-all duration-200 hover:bg-white/15 hover:border-white/30 active:scale-95"
+              >
+                <i className="fas fa-hospital text-serenity-300 transition-colors group-hover:text-white" />
+                <span>View Available Rooms</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="min-h-screen w-[35%] flex items-end justify-center relative z-10">
+            <img 
+              src={doctorImage}
+              alt="Oncologist with patient"
+              className="max-w-[28rem] sm:max-w-lg lg:max-w-xl animate-slide-up animate-slide-up transition-all duration-300 ease-in-out"
+              />
+          </div>
+        </div>
+
+      </section>
+      </div>
+
+
+
+
+ <div class="relative w-full overflow-hidden bg-white/40 backdrop-blur-sm leading-[0] -mb-px">
+          <svg 
+              viewBox="0 0 1440 120"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+              class="block w-full h-[100px] md:h-[150px]"
+          >
+              <path 
+                  d="M0,64L60,69.3C120,75,240,85,360,80C480,75,600,53,720,48C840,43,960,53,1080,64C1200,75,1320,85,1380,90.7L1440,96L1440,120L1380,120C1320,120,1200,120,1080,120C960,120,840,120,720,120C600,120,480,120,360,120C240,120,120,120,60,120L0,120Z"
+                  fill="#461c71"
+                  stroke="none"
+              />
+          </svg>
+      </div>

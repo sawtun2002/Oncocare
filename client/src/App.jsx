@@ -1,14 +1,13 @@
-import { Route, Routes } from "react-router-dom";
-import { Layout } from "./components/Layout";
+import { useEffect } from 'react';
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "./lib/roles";
+import { useLoadingBar } from './context/LoadingBarContext';
 
-// pages
-
-// public pages
+// Pages
 import HomePage from "./pages/public/HomePage";
-import { LoginPage as PublicLoginPage } from "./pages/public/LoginPage";
-import { RegisterPage } from "./pages/public/RegisterPage";
+import { LoginPage as PublicLoginPage } from "./pages/auth/LoginPage";
+import { RegisterPage } from "./pages/auth/RegisterPage";
 import ContactPage from "./pages/public/ContactPage";
 import AboutPage from "./pages/public/AboutPage";
 import OurDoctorsPage from "./pages/public/OurDoctorsPage";
@@ -26,24 +25,33 @@ import { MyBillsPage } from "./pages/billing/MyBillsPage";
 import { LeavePage } from "./pages/leave/LeavePage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
-import { PatientDashboard } from "./pages/patient/PatientDashboard";
-import { PatientAppointments } from "./pages/patient/PatientAppointments";
-import { PatientToken } from "./pages/patient/PatientToken";
-import { DoctorDashboard } from "./pages/doctor/DoctorDashboard";
-import { DoctorAppointments } from "./pages/doctor/DoctorAppointments";
-import { PatientList } from "./pages/doctor/PatientList";
-import { AdminDashboard } from "./pages/admin/AdminDashboard";
-import { UserManagement } from "./pages/admin/UserManagement";
 
-// error pages (located in src/pages/errors/)
+// Error Pages
 import NotFoundPage from "./pages/errors/NotFoundPage";
 import ForbiddenPage from "./pages/errors/ForbiddenPage";
 import UnauthorizedPage from "./pages/errors/UnauthorizedPage";
 import ServerErrorPage from "./pages/errors/ServerErrorPage";
 
 import PublicLayout from "./Layout/PublicLayout";
+import { RoleLayout } from "./Layout/RoleLayout";
 
 function App() {
+  const location = useLocation();
+  const { startLoading, completeLoading } = useLoadingBar();
+
+  // Scroll to top & trigger top bar progress on path changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    startLoading();
+    
+    // Complete progress once route rendering settles
+    const animationFrame = requestAnimationFrame(() => {
+      completeLoading();
+    });
+    
+    return () => cancelAnimationFrame(animationFrame);
+  }, [location.pathname, startLoading, completeLoading]);
+  
   return (
     <Routes>
       {/* Public routes with PublicLayout */}
@@ -54,20 +62,19 @@ function App() {
         <Route path="/doctors" element={<OurDoctorsPage />} />
       </Route>
 
-      {/* Error pages intentionally render without a public navbar or footer. */}
+      {/* Error pages */}
       <Route path="/401" element={<UnauthorizedPage />} />
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
       <Route path="/404" element={<NotFoundPage />} />
 
-      {/* Login page (standalone) */}
+      {/* Standalone Auth Routes */}
       <Route path="/login" element={<PublicLoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* Protected routes with dashboard Layout */}
+      {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
-          {/* Staff-only routes */}
+        <Route element={<RoleLayout />}>
           <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientsListPage />} />
@@ -84,8 +91,6 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
           </Route>
 
-          {/* Shared by staff and patients: the doctor directory, and the
-              signed-in account's own settings. */}
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorProfilePage />} />
@@ -100,7 +105,7 @@ function App() {
         </Route>
       </Route>
 
-      {/* Catch-all 404 Route, also without the public shell. */}
+      {/* Catch-all 404 Route */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
