@@ -113,7 +113,7 @@ export default function AboutPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
-                  to="/doctors"
+                  to="/our-doctors"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-7 py-3.5 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
                 >
                   <span>Meet Our Specialists</span>
@@ -331,7 +331,7 @@ export default function AboutPage() {
               <i className="fas fa-arrow-right text-sm"></i>
             </Link>
             <Link
-              to="/doctors"
+              to="/our-doctors"
               className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-8 py-3.5 font-semibold text-white backdrop-blur-md hover:bg-white/20 transition-all active:scale-95"
             >
               <span>Explore Specialists</span>

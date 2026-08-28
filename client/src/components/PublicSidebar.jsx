@@ -6,7 +6,7 @@ import { homePathFor } from "../lib/roles";
 const publicLinks = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About Us" },
-  { to: "/doctors", label: "Our Doctors" },
+  { to: "/our-doctors", label: "Our Doctors" },
   { to: "/contact", label: "Contact Us" },
 ];
 

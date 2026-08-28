@@ -59,7 +59,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/doctors" element={<OurDoctorsPage />} />
+        <Route path="/our-doctors" element={<OurDoctorsPage />} />
       </Route>
 
       {/* Error pages */}

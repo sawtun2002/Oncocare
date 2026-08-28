@@ -239,7 +239,7 @@ export default function HomePage() {
           
           {doctors.length > 0 && (
             <Link 
-              to="/doctors" 
+              to="/our-doctors" 
               className="inline-flex items-center gap-2 text-sm font-semibold text-serenity-600 hover:text-serenity-800 transition-colors group self-start sm:self-auto"
             >
               <span>View All Doctors</span>
@@ -320,7 +320,7 @@ export default function HomePage() {
           
           {doctors.length > 0 && (
             <Link 
-              to="/doctors" 
+              to="/our-doctors" 
               className="inline-flex items-center gap-2 text-sm font-semibold text-serenity-600 hover:text-serenity-800 transition-colors group self-start sm:self-auto"
             >
               <span>View All Doctors</span>

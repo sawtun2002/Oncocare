@@ -98,7 +98,7 @@ export default function Navbar({ onMenuClick }) {
 
   const navLinks = [
     { to: '/', label: 'Home' },
-    { to: '/doctors', label: 'Doctors' },
+    { to: '/our-doctors', label: 'Doctors' },
     { to: '/rooms', label: 'Rooms' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' },
