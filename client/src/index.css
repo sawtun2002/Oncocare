@@ -193,6 +193,13 @@ body::-webkit-scrollbar,
     background-attachment: fixed;
     color: var(--ink-700);
   }
+
+  /* body {
+    background-image:url('assets/images/main-bg.jpg');
+    background-attachment: fixed;
+    background-size: cover;
+    color: var(--ink-700);
+  } */
 }
 
 /* ---------------------------------------------------------------------------
@@ -270,3 +277,31 @@ body::-webkit-scrollbar,
     background: color-mix(in srgb, var(--surface-opaque) 93%, transparent);
   }
 }
+
+
+/* animation */
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideRight {
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-down { animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-left { animation: slideLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-right { animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }

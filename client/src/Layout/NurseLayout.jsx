@@ -1,7 +1,7 @@
 import { Layout } from "../components/Layout";
 
-export function PatientLayout() {
+export function NurseLayout() {
   return <Layout />;
 }
 
-export default PatientLayout;
+export default NurseLayout;

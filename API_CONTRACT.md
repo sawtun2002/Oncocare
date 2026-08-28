@@ -342,18 +342,22 @@ exception `GET /api/appointments` already makes.
 - `GET /api/invoices/:id` — → `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status` defaults to `UNPAID`, `issuedAt` set server-side). Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus }` → updated `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `POST /api/invoices/:id/payment-proof` — body `{ amount, note, receiptDataUrl }` → updated `Invoice` with a pending `paymentSubmission`. Allowed roles: `PATIENT` for their own invoice only; staff verifies the proof and changes invoice status separately.
 - `GET /api/billing/summary` — → `{ totalRevenue: number; outstanding: number; invoiceCount: number }`. `totalRevenue` sums `PAID` invoices; `outstanding` sums non-`PAID` invoices. Allowed roles: `ADMIN`, `RECEPTIONIST`. **Not** `PATIENT` — this is the clinic-wide total, not theirs; a patient's own outstanding/paid totals are computed client-side from their own `GET /api/invoices` result on `/my-bills`.
 
 ```ts
 type InvoiceStatus = "UNPAID" | "PARTIAL" | "PAID";
+type PaymentProofStatus = "PENDING" | "REJECTED";
 type InvoiceItemInput = Omit<InvoiceItem, "id">;
 interface InvoiceItem { id: number; description: string; quantity: number; unitPrice: number; }
+interface PaymentProof { amount: number; note: string; receiptDataUrl: string; submittedAt: string; status: PaymentProofStatus; }
 interface Invoice {
   id: number;
   patientId: number;
   issuedAt: string;       // ISO datetime
   status: InvoiceStatus;
   items: InvoiceItem[];
+  paymentSubmission?: PaymentProof;
 }
 ```
 

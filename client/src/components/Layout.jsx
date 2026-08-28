@@ -72,7 +72,7 @@ export function Layout() {
   const visibleItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(user.role));
 
   return (
-    <div className="flex h-screen p-3 sm:p-4">
+    <div className="flex h-screen p-3 sm:p-4 ">
       <aside className="glass-panel hidden w-60 shrink-0 flex-col p-4 lg:flex">
         <SidebarBody items={visibleItems} user={user} logout={logout} pillId={NAV_PILL_ID} showBell />
       </aside>
@@ -118,7 +118,7 @@ export function Layout() {
             screens where it exists, but never leaves the menu out of reach. */}
         <header className="glass-panel sticky top-0 z-30 mb-2 flex items-center gap-3 px-3 py-2 lg:hidden">
           <button
-            type="button"
+            type="button"  
             onClick={() => setNavOpen(true)}
             aria-label="Open navigation"
             aria-expanded={navOpen}

@@ -1,4 +1,4 @@
-import { PatientsListPage } from "../patients/PatientsListPage";
+import { PatientsListPage } from "./PatientsListPage";
 
 export function PatientList() {
   return <PatientsListPage />;
