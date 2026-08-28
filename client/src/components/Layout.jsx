@@ -126,8 +126,13 @@ export function Layout() {
           >
             <MenuIcon />
           </button>
-          <img src={logoMark} alt="" className="h-7 w-7 rounded-lg object-contain" />
-          <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+          >
+            <img src={logoMark} alt="" className="h-7 w-7 rounded-lg object-contain" />
+            <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+          </Link>
           <div className="ml-auto">
             <NoticeBell />
           </div>
@@ -163,8 +168,15 @@ function SidebarBody({ items, user, logout, t, pillId, onNavigate, showBell }) {
   return (
     <>
       <div className="flex items-center gap-2.5 px-1 pb-6 pt-1">
-        <img src={logoMark} alt="OncoCare logo" className="h-8 w-8 rounded-lg object-contain" />
-        <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+        {/* The logo/brand goes to the public landing page, not a dashboard. */}
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="-m-1 flex items-center gap-2.5 rounded-lg p-1 transition hover:bg-surface/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+        >
+          <img src={logoMark} alt="OncoCare logo" className="h-8 w-8 rounded-lg object-contain" />
+          <span className="text-sm font-semibold tracking-wide text-ink-900">OncoCare</span>
+        </Link>
         {showBell && (
           <div className="ml-auto">
             {/* Opens rightward -- the rail is only 240px, so a leftward panel
