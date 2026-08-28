@@ -1,6 +1,7 @@
 import {
   seedAppointments,
   seedDoctorProfiles,
+  seedEquipmentPosts,
   seedInvoices,
   seedLeaveRequests,
   seedPatients,
@@ -30,7 +31,8 @@ import {
 // v8 added the leaveRequests array (staff time-off) and its nextId kind. A v7
 // store has no leaveRequests key, which listLeaveRequests would spread as
 // undefined -- so the v7 store is dropped for the v8 seed like every bump before.
-const STORAGE_KEY = "cancer-hms-mock-db-v8";
+// v9 added equipmentPosts array (hospital equipment catalog) and nextIds.equipmentPost.
+const STORAGE_KEY = "cancer-hms-mock-db-v9";
 
 /**
  * @typedef {Object} MockDb
@@ -40,7 +42,8 @@ const STORAGE_KEY = "cancer-hms-mock-db-v8";
  * @property {import("../types").Appointment[]} appointments
  * @property {import("../types").Invoice[]} invoices
  * @property {import("../types").LeaveRequest[]} leaveRequests
- * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number}} nextIds
+ * @property {import("../types").EquipmentPost[]} equipmentPosts
+ * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number, equipmentPost: number}} nextIds
  */
 
 /** @returns {MockDb} */
@@ -60,6 +63,7 @@ function loadInitial() {
     appointments: seedAppointments,
     invoices: seedInvoices,
     leaveRequests: seedLeaveRequests,
+    equipmentPosts: seedEquipmentPosts,
     nextIds: {
       user: seedUsers.length + 1,
       patient: seedPatients.length + 1,
@@ -67,6 +71,7 @@ function loadInitial() {
       invoice: seedInvoices.length + 1,
       invoiceItem: seedInvoices.flatMap((i) => i.items).length + 1,
       leaveRequest: seedLeaveRequests.length + 1,
+      equipmentPost: seedEquipmentPosts.length + 1,
     },
   };
 }

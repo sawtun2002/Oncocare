@@ -13,6 +13,7 @@ import { useToast } from "../../context/ToastContext";
 import { formatDate, formatDateTime } from "../../lib/format";
 import { btnGhost, btnPrimary, dangerAction, pageTitle, sectionLabel } from "../../lib/ui";
 import { RescheduleFormDialog } from "./RescheduleFormDialog";
+import { PatientTokenModal } from "../../components/PatientTokenModal";
 
 export function MyBookingsPage() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export function MyBookingsPage() {
   const toast = useToast();
   const [rescheduling, setRescheduling] = useState(null);
   const [cancelling, setCancelling] = useState(null);
+  const [selectedTokenAppointment, setSelectedTokenAppointment] = useState(null);
   // Read once on mount rather than on every render: keeps the section split
   // stable, and keeps the render body pure.
   const [now] = useState(() => Date.now());
@@ -103,7 +105,14 @@ export function MyBookingsPage() {
             awaiting.map((a) => (
               <GlassCard key={a.id} className="flex flex-wrap items-center justify-between gap-4 p-5">
                 <div>
-                  <div className="text-base font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</span>
+                    {a.tokenNumber && (
+                      <span className="rounded-md bg-frost-500/10 px-2 py-0.5 text-xs font-bold font-mono text-frost-600">
+                        {a.tokenNumber}
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-1 text-sm text-ink-400">
                     <Link
                       to={`/doctors/${a.doctorId}`}
@@ -121,6 +130,13 @@ export function MyBookingsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge status={a.status} />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTokenAppointment(a)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-hairline/80 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-surface hover:text-frost-600 transition cursor-pointer"
+                  >
+                    <i className="fas fa-ticket-alt text-frost-500"></i> View Token
+                  </button>
                   <button
                     type="button"
                     onClick={() => setCancelling(a)}
@@ -154,7 +170,14 @@ export function MyBookingsPage() {
             upcoming.map((a) => (
               <GlassCard key={a.id} className="flex flex-wrap items-center justify-between gap-4 p-5">
                 <div>
-                  <div className="text-base font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</span>
+                    {a.tokenNumber && (
+                      <span className="rounded-md bg-frost-500/10 px-2 py-0.5 text-xs font-bold font-mono text-frost-600">
+                        {a.tokenNumber}
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-1 text-sm text-ink-400">
                     <Link
                       to={`/doctors/${a.doctorId}`}
@@ -167,6 +190,13 @@ export function MyBookingsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge status={a.status} />
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTokenAppointment(a)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-hairline/80 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-surface hover:text-frost-600 transition cursor-pointer"
+                  >
+                    <i className="fas fa-ticket-alt text-frost-500"></i> View Token
+                  </button>
                   <button type="button" onClick={() => setRescheduling(a)} className={btnGhost}>
                     Reschedule
                   </button>
@@ -198,7 +228,14 @@ export function MyBookingsPage() {
               <GlassCard key={a.id} solid className="p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <div className="text-sm font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-ink-900">{formatDateTime(a.scheduledAt)}</span>
+                      {a.tokenNumber && (
+                        <span className="rounded-md bg-ice-200 px-2 py-0.5 text-xs font-semibold font-mono text-ink-700">
+                          {a.tokenNumber}
+                        </span>
+                      )}
+                    </div>
                     <div className="mt-1 text-sm text-ink-400">
                       <Link
                         to={`/doctors/${a.doctorId}`}
@@ -209,7 +246,16 @@ export function MyBookingsPage() {
                       {a.reason ? ` · ${a.reason}` : ""}
                     </div>
                   </div>
-                  <Badge status={a.status} />
+                  <div className="flex items-center gap-2">
+                    <Badge status={a.status} />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTokenAppointment(a)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-hairline/80 bg-surface/80 px-2.5 py-1 text-xs font-semibold text-ink-700 hover:bg-surface hover:text-frost-600 transition cursor-pointer"
+                    >
+                      <i className="fas fa-ticket-alt text-frost-500"></i> Token
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-4 border-t border-hairline/60 pt-4">
                   <AppointmentTimeline events={a.events} />
@@ -253,6 +299,17 @@ export function MyBookingsPage() {
           onConfirm={async () => {
             await cancelMutation.mutateAsync(cancelling.id);
           }}
+        />
+      )}
+
+      {/* Patient Digital Token Pass Modal */}
+      {selectedTokenAppointment && (
+        <PatientTokenModal
+          appointment={selectedTokenAppointment}
+          patientUser={user}
+          doctor={doctorsQuery.data?.find((d) => d.id === selectedTokenAppointment.doctorId)}
+          isOpen={Boolean(selectedTokenAppointment)}
+          onClose={() => setSelectedTokenAppointment(null)}
         />
       )}
     </div>

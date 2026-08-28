@@ -20,6 +20,8 @@ export const PATIENT_ROLES = ["PATIENT"];
  */
 export const ALL_ROLES = [...STAFF_ROLES, ...PATIENT_ROLES];
 
+export const NON_ADMIN_ROLES = ["DOCTOR", "NURSE", "RECEPTIONIST", "PATIENT"];
+
 /**
  * Where a role belongs after signing in, and where to send someone who lands on
  * a route they may not see.

@@ -9,6 +9,7 @@ import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
 import { btnPrimary, errorText, inputClass, labelClass, pageTitle } from "../../lib/ui";
 import { SlotPicker } from "./SlotPicker";
+import { PatientTokenModal } from "../../components/PatientTokenModal";
 
 export function BookAppointmentPage() {
   const { user } = useAuth();
@@ -24,6 +25,9 @@ export function BookAppointmentPage() {
   const [selectedStart, setSelectedStart] = useState(null);
   const [reason, setReason] = useState("");
   const [error, setError] = useState(null);
+
+  const [createdAppointment, setCreatedAppointment] = useState(null);
+  const [showTokenModal, setShowTokenModal] = useState(false);
 
   const doctorsQuery = useQuery({ queryKey: ["doctors"], queryFn: listDoctors });
 
@@ -45,19 +49,17 @@ export function BookAppointmentPage() {
     if (!patientId || !doctorId || !selectedStart) return;
     setError(null);
     try {
-      await createMutation.mutateAsync({
+      const created = await createMutation.mutateAsync({
         patientId,
         doctorId: Number(doctorId),
         scheduledAt: selectedStart,
         durationMinutes: SLOT_MINUTES,
         reason,
       });
-      // The confirmation has to outlive this page, which is why it is a toast
-      // and not a message rendered here: the next thing the patient sees is
-      // their bookings list. A patient's booking is a *request* -- it isn't
-      // confirmed until the doctor accepts it.
-      toast.success("Request sent — you'll hear back once the doctor confirms it.");
-      navigate("/my-bookings");
+      
+      setCreatedAppointment(created);
+      setShowTokenModal(true);
+      toast.success("Request sent — your digital token pass has been generated!");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       // The slot may have gone while the form was open; refresh what's left.
@@ -65,6 +67,11 @@ export function BookAppointmentPage() {
       queryClient.invalidateQueries({ queryKey: ["availability"] });
     }
   }
+
+  const handleCloseTokenModal = () => {
+    setShowTokenModal(false);
+    navigate("/my-bookings");
+  };
 
   if (!patientId) {
     return (
@@ -129,6 +136,17 @@ export function BookAppointmentPage() {
           </div>
         </form>
       </GlassCard>
+
+      {/* Digital Check-in Token Pass Modal */}
+      {createdAppointment && (
+        <PatientTokenModal
+          appointment={createdAppointment}
+          patientUser={user}
+          doctor={doctorsQuery.data?.find((d) => d.id === createdAppointment.doctorId)}
+          isOpen={showTokenModal}
+          onClose={handleCloseTokenModal}
+        />
+      )}
     </div>
   );
 }
