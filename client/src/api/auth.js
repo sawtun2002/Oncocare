@@ -1,4 +1,5 @@
 import { db, delay, nextId, persist } from "../mocks/db";
+import { ApiError } from "./errors";
 
 // Use Vite's import.meta.env for environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -147,7 +148,7 @@ export async function fetchCurrentUser(token) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
   return delay(toUser(match));
@@ -169,7 +170,7 @@ export async function updateProfile(token, input) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
 
@@ -197,7 +198,7 @@ export async function updateAvatar(token, avatarUrl) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
   match.avatarUrl = avatarUrl;
@@ -214,7 +215,7 @@ export async function updateNotificationPreferences(token, input) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
   match.notifyAppointmentReminders = input.notifyAppointmentReminders;
@@ -231,7 +232,7 @@ export async function markNotificationsRead(token) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
   match.notificationsReadAt = new Date().toISOString();
@@ -248,7 +249,7 @@ export async function changePassword(token, input) {
   const match = userForToken(token);
   if (!match) {
     return delay(undefined, 200).then(() => {
-      throw new Error("Session expired");
+      throw new ApiError(401, "Session expired");
     });
   }
 

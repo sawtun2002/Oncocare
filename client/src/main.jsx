@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import {LoadingBarProvider} from './context/LoadingBarContext'
+import { handleApiError } from './api/errors'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -15,6 +16,10 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      onError: handleApiError,
+    },
+    mutations: {
+      onError: handleApiError,
     },
   },
 })

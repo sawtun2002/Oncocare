@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "./lib/roles";
 import { useLoadingBar } from './context/LoadingBarContext';
+import { registerApiNavigator } from './api/errors';
 
 // Pages
 import HomePage from "./pages/public/HomePage";
@@ -39,7 +40,14 @@ import { RoleLayout } from "./Layout/RoleLayout";
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { startLoading, completeLoading } = useLoadingBar();
+
+  // Expose the router navigator to the centralized API error handler so it can
+  // redirect on hard HTTP failures (401/403/5xx) from anywhere in the app.
+  useEffect(() => {
+    registerApiNavigator(navigate);
+  }, [navigate]);
 
   // Scroll to top & trigger top bar progress on path changes
   useEffect(() => {
