@@ -619,4 +619,19 @@ export const en = {
   "pay.noteRequired": "Add the transaction note or reference number.",
   "pay.receiptRequired": "Upload the payment receipt or screenshot.",
   "pay.submitError": "Could not submit payment proof.",
+
+  // --- error pages (401 / 403 / 404 / 500) ------------------
+  "err.404Title": "Page Not Found",
+  "err.404Body": "The requested page doesn't exist or has been moved to a new address.",
+  "err.backHomePage": "Back to Home Page",
+  "err.403Title": "Access Restricted",
+  "err.403Body": "You do not have permission to access this portal section or feature.",
+  "err.returnHome": "Return Home",
+  "err.401Title": "Authentication Required",
+  "err.401Body": "You must be logged in to view this medical portal feature.",
+  "err.login": "Log In to Access",
+  "err.backHome": "Back to Home",
+  "err.500Title": "Internal Server Error",
+  "err.500Body": "Something went wrong on our server while processing your request. Please try again or return home.",
+  "err.tryAgain": "Try Again",
 };
