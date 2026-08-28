@@ -281,7 +281,9 @@ export const my = {
   // --- invoice card + printable receipt -------------------------------
   "invoice.issued": "ထုတ်ပြန် {date}",
   "invoice.number": "ငွေတောင်းခံလွှာ #{id}",
-  "receipt.print": "ပရင့်ထုတ် / PDF သိမ်း",
+  "receipt.print": "ပရင့်ထုတ်ရန်",
+  "receipt.savePdf": "PDF အဖြစ် သိမ်းရန်",
+  "receipt.pdfHint": "Ctrl / ⌘ + P နှိပ်ပြီး ဦးတည်ရာအဖြစ် “Save as PDF” ကို ရွေးပါ။",
   "receipt.popupBlocked": "ပရင့်ဝင်းဒိုး ဖွင့်၍ မရပါ။ browser ၏ pop-up ဆက်တင်ကို စစ်ဆေးပါ။",
   "receipt.title": "ငွေဖြတ်ပိုင်း",
   "receipt.invoiceNo": "ငွေတောင်းခံလွှာ အမှတ်",

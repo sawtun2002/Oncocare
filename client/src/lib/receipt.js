@@ -8,17 +8,21 @@ function esc(value) {
 }
 
 /**
- * Open a clean, print-styled receipt for one invoice in a new window and trigger
- * the browser's print dialog -- which is also its "Save as PDF". Pure and
+ * Open a clean, print-styled receipt for one invoice in a new window. Pure and
  * dependency-free: it writes a self-contained document rather than fighting the
- * app's glass/dark theme.
+ * app's glass/dark theme, and follows the app language via `labels` (which
+ * InvoiceCard builds from `t()`).
  *
- * `labels` is the caller's translated strings (InvoiceCard builds it from
- * `t()`), so the receipt follows the app's language.
+ * `mode`:
+ *  - `"print"` -- fire the print dialog straight away (send to a printer).
+ *  - `"pdf"`   -- show the receipt with a small toolbar and a "Save as PDF"
+ *                 button; the browser has no one-click PDF save, so this is the
+ *                 honest path (Ctrl/⌘+P → "Save as PDF"). The toolbar is hidden
+ *                 in the printed output itself.
  *
- * @param {{ invoice: import("../types").Invoice, patientName?: string, clinicName?: string, labels: Record<string,string> }} opts
+ * @param {{ invoice: import("../types").Invoice, patientName?: string, clinicName?: string, mode?: "print" | "pdf", labels: Record<string,string> }} opts
  */
-export function printReceipt({ invoice, patientName, clinicName = "OncoCare", labels }) {
+export function printReceipt({ invoice, patientName, clinicName = "OncoCare", mode = "print", labels }) {
   const win = window.open("", "_blank", "width=760,height=960");
   if (!win) throw new Error("Could not open a print window. Check your browser's pop-up settings.");
 
@@ -44,6 +48,12 @@ export function printReceipt({ invoice, patientName, clinicName = "OncoCare", la
   body { font-family: system-ui, "Segoe UI", "Myanmar Text", "Noto Sans Myanmar", sans-serif;
          color: #1f2d3d; margin: 40px; line-height: 1.5; }
   h1 { font-size: 20px; margin: 0; letter-spacing: .04em; }
+  .toolbar { margin: -16px -16px 24px; padding: 12px 16px; background: #eef4fa;
+             border-bottom: 1px solid #d5e4f2; display: flex; align-items: center;
+             justify-content: space-between; gap: 12px; font-size: 12px; color: #5b738d; }
+  .toolbar button { font: inherit; font-weight: 600; color: #fff; background: #3b74ae;
+                    border: 0; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+  @media print { .toolbar { display: none; } }
   .brand { display: flex; justify-content: space-between; align-items: baseline;
            border-bottom: 2px solid #1f2d3d; padding-bottom: 12px; }
   .brand .doc { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: #5b738d; }
@@ -61,6 +71,11 @@ export function printReceipt({ invoice, patientName, clinicName = "OncoCare", la
 </style>
 </head>
 <body>
+  ${
+    mode === "pdf"
+      ? `<div class="toolbar"><span>${esc(labels.pdfHint)}</span><button type="button" onclick="window.print()">${esc(labels.savePdf)}</button></div>`
+      : ""
+  }
   <div class="brand">
     <h1>${esc(clinicName)}</h1>
     <span class="doc">${esc(labels.title)}</span>
@@ -86,7 +101,11 @@ export function printReceipt({ invoice, patientName, clinicName = "OncoCare", la
     </tfoot>
   </table>
   <p class="footer">${esc(labels.generated)}</p>
-  <script>window.addEventListener("load", function () { setTimeout(function () { window.focus(); window.print(); }, 60); });</script>
+  ${
+    mode === "print"
+      ? `<script>window.addEventListener("load", function () { setTimeout(function () { window.focus(); window.print(); }, 60); });</script>`
+      : `<script>window.addEventListener("load", function () { window.focus(); });</script>`
+  }
 </body>
 </html>`);
   win.document.close();

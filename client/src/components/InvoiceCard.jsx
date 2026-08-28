@@ -25,11 +25,12 @@ export function InvoiceCard({ invoice, patientName }) {
   const { t } = useLanguage();
   const toast = useToast();
 
-  function handlePrint() {
+  function openReceipt(mode) {
     try {
       printReceipt({
         invoice,
         patientName,
+        mode,
         labels: {
           title: t("receipt.title"),
           invoiceNo: t("receipt.invoiceNo"),
@@ -43,6 +44,8 @@ export function InvoiceCard({ invoice, patientName }) {
           subtotal: t("receipt.subtotal"),
           total: t("receipt.total"),
           generated: t("receipt.generated", { date: formatDateTime(new Date().toISOString()) }),
+          savePdf: t("receipt.savePdf"),
+          pdfHint: t("receipt.pdfHint"),
         },
       });
     } catch {
@@ -64,13 +67,22 @@ export function InvoiceCard({ invoice, patientName }) {
           <span className="text-base font-semibold text-ink-900">
             {formatCurrency(invoiceTotal(invoice))}
           </span>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="rounded-lg border border-hairline/80 bg-surface/70 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
-          >
-            {t("receipt.print")}
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => openReceipt("print")}
+              className="rounded-lg border border-hairline/80 bg-surface/70 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+            >
+              {t("receipt.print")}
+            </button>
+            <button
+              type="button"
+              onClick={() => openReceipt("pdf")}
+              className="rounded-lg border border-hairline/80 bg-surface/70 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/50"
+            >
+              {t("receipt.savePdf")}
+            </button>
+          </div>
         </div>
       </div>
 

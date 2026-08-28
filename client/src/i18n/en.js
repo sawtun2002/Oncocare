@@ -281,7 +281,9 @@ export const en = {
   // --- invoice card + printable receipt -------------------------------
   "invoice.issued": "Issued {date}",
   "invoice.number": "Invoice #{id}",
-  "receipt.print": "Print / Save as PDF",
+  "receipt.print": "Print",
+  "receipt.savePdf": "Save as PDF",
+  "receipt.pdfHint": "Press Ctrl / ⌘ + P and choose “Save as PDF” as the destination.",
   "receipt.popupBlocked": "Could not open a print window. Check your browser's pop-up settings.",
   "receipt.title": "Receipt",
   "receipt.invoiceNo": "Invoice no.",
