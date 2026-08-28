@@ -1,15 +1,9 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { STAFF_ROLES } from "../../lib/roles";
 import { isValidNrc } from "../../lib/validation";
-
-const ROLE_LABEL = {
-  ADMIN: "Administrator",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-};
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -17,6 +11,7 @@ const MIN_PASSWORD_LENGTH = 6;
 // from this dialog, which is the point: staff accounts are the only thing an
 // admin can create here.
 export function StaffUserFormDialog({ onClose, onSubmit }) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,11 +27,11 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+      setError(t("staffForm.pwTooShort", { n: MIN_PASSWORD_LENGTH }));
       return;
     }
     if (!isValidNrc(nrc)) {
-      setError("Enter a valid NRC, e.g. 12/MABANA(N)123456.");
+      setError(t("staffForm.nrcInvalid"));
       return;
     }
     setError(null);
@@ -45,22 +40,22 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
       await onSubmit({ name, email, password, role, nrc: nrc.trim(), address: address.trim() });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title="Add staff account" onClose={onClose} ref={modalRef}>
+    <Modal title={t("staffForm.title")} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
-          Full name
+          {t("staffForm.fullName")}
           <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
         </label>
 
         <label className={labelClass}>
-          Email
+          {t("staffForm.email")}
           <input
             type="email"
             required
@@ -71,7 +66,7 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
         </label>
 
         <label className={labelClass}>
-          Temporary password
+          {t("staffForm.tempPassword")}
           <input
             type="password"
             required
@@ -83,39 +78,37 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
         </label>
 
         <label className={labelClass}>
-          Role
+          {t("staffForm.role")}
           <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass}>
             {STAFF_ROLES.map((r) => (
               <option key={r} value={r}>
-                {ROLE_LABEL[r]}
+                {t(`role.${r}`)}
               </option>
             ))}
           </select>
         </label>
 
         <label className={labelClass}>
-          NRC
+          {t("staffForm.nrc")}
           <input
             required
             value={nrc}
             onChange={(e) => setNrc(e.target.value)}
-            placeholder="12/MABANA(N)123456"
+            placeholder={t("staffForm.nrcPlaceholder")}
             aria-invalid={nrcError}
             className={inputClass}
           />
           {nrcError && (
-            <span className={`mt-1 block ${errorText}`}>
-              Format: region/township(type)number, e.g. 12/MABANA(N)123456.
-            </span>
+            <span className={`mt-1 block ${errorText}`}>{t("staffForm.nrcFormat")}</span>
           )}
         </label>
 
         <label className={labelClass}>
-          Address <span className="font-normal text-ink-400">(optional)</span>
+          {t("staffForm.address")} <span className="font-normal text-ink-400">{t("common.optional")}</span>
           <input
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="They can add this later from their profile"
+            placeholder={t("staffForm.addressHint")}
             className={inputClass}
           />
         </label>
@@ -124,10 +117,10 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>
-            {submitting ? "Creating…" : "Create account"}
+            {submitting ? t("staffForm.submitting") : t("staffForm.submit")}
           </button>
         </div>
       </form>

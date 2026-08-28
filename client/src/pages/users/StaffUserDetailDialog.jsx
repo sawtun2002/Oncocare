@@ -3,15 +3,9 @@ import { Link } from "react-router-dom";
 import { Avatar } from "../../components/Avatar";
 import { Badge } from "../../components/Badge";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatDateTime } from "../../lib/format";
 import { btnGhost } from "../../lib/ui";
-
-const ROLE_LABEL = {
-  ADMIN: "Administrator",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-};
 
 /**
  * Read-only staff record, opened from the name on the Staff accounts table.
@@ -23,32 +17,34 @@ const ROLE_LABEL = {
  * Props: user (a staff User), onClose.
  */
 export function StaffUserDetailDialog({ user, onClose }) {
+  const { t } = useLanguage();
   const modalRef = useRef(null);
+  const dash = t("common.dash");
 
   return (
-    <Modal title="Staff member" onClose={onClose} ref={modalRef}>
+    <Modal title={t("staffDetail.title")} onClose={onClose} ref={modalRef}>
       <div className="flex items-center gap-4">
         <Avatar name={user.name} avatarUrl={user.avatarUrl} size="lg" />
         <div>
           <div className="text-lg font-semibold text-ink-900">{user.name}</div>
-          <div className="text-sm text-ink-400">{ROLE_LABEL[user.role] ?? user.role}</div>
+          <div className="text-sm text-ink-400">{t(`role.${user.role}`)}</div>
         </div>
       </div>
 
       <dl className="mt-6 space-y-3 text-sm">
-        <Row label="Email" value={user.email} />
-        <Row label="Status" value={<Badge status={user.status ?? "ACTIVE"} />} />
-        <Row label="NRC" value={user.nrc || "—"} />
-        <Row label="Phone" value={user.phone || "—"} />
-        <Row label="Address" value={user.address || "—"} />
-        <Row label="Department" value={user.department || "—"} />
+        <Row label={t("staffDetail.email")} value={user.email} />
+        <Row label={t("staffDetail.status")} value={<Badge status={user.status ?? "ACTIVE"} />} />
+        <Row label={t("staffDetail.nrc")} value={user.nrc || dash} />
+        <Row label={t("staffDetail.phone")} value={user.phone || dash} />
+        <Row label={t("staffDetail.address")} value={user.address || dash} />
+        <Row label={t("staffDetail.department")} value={user.department || dash} />
         <Row
-          label="Last signed in"
-          value={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "Never"}
+          label={t("staffDetail.lastSignedIn")}
+          value={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : t("common.never")}
         />
         <Row
-          label="Appointment reminders"
-          value={user.notifyAppointmentReminders ? "On" : "Off"}
+          label={t("staffDetail.reminders")}
+          value={user.notifyAppointmentReminders ? t("common.on") : t("common.off")}
         />
       </dl>
 
@@ -59,13 +55,13 @@ export function StaffUserDetailDialog({ user, onClose }) {
             onClick={() => modalRef.current?.close()}
             className="text-sm font-medium text-frost-600 hover:underline"
           >
-            View public profile →
+            {t("staffDetail.viewPublic")}
           </Link>
         ) : (
           <span />
         )}
         <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-          Close
+          {t("common.close")}
         </button>
       </div>
     </Modal>
