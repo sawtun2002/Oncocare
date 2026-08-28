@@ -17,6 +17,7 @@ import { GlassCard } from "../../components/GlassCard";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { CANCEL_REASONS, DECLINE_REASONS } from "../../lib/appointmentReasons";
 import { formatDateTime } from "../../lib/format";
@@ -38,6 +39,7 @@ const STATUS_OPTIONS = ["REQUESTED", "SCHEDULED", "COMPLETED", "CANCELLED", "NO_
 
 export function AppointmentsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [now] = useState(() => Date.now());
@@ -75,7 +77,7 @@ export function AppointmentsPage() {
     mutationFn: (input) => createAppointment(input, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Appointment booked.");
+      toast.success(t("appt.booked"));
     },
   });
 
@@ -83,7 +85,7 @@ export function AppointmentsPage() {
     mutationFn: ({ id, ...input }) => updateAppointment(id, input, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Booking moved.");
+      toast.success(t("appt.bookingMoved"));
     },
   });
 
@@ -91,7 +93,7 @@ export function AppointmentsPage() {
     mutationFn: (id) => acceptAppointment(id, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Request accepted.");
+      toast.success(t("appt.requestAccepted"));
     },
   });
 
@@ -99,7 +101,7 @@ export function AppointmentsPage() {
     mutationFn: ({ id, reason }) => declineAppointment(id, actor, reason),
     onSuccess: () => {
       invalidate();
-      toast.success("Request declined.");
+      toast.success(t("appt.requestDeclined"));
     },
   });
 
@@ -107,7 +109,7 @@ export function AppointmentsPage() {
     mutationFn: ({ id, reason }) => cancelAppointment(id, actor, reason),
     onSuccess: () => {
       invalidate();
-      toast.success("Booking cancelled.");
+      toast.success(t("appt.bookingCancelled"));
     },
   });
 
@@ -115,7 +117,7 @@ export function AppointmentsPage() {
     mutationFn: ({ id, status }) => updateAppointmentStatus(id, status, actor),
     onSuccess: (_data, { status }) => {
       invalidate();
-      toast.success(status === "COMPLETED" ? "Marked as complete." : "Marked as no-show.");
+      toast.success(status === "COMPLETED" ? t("appt.markedComplete") : t("appt.markedNoShow"));
     },
   });
 
@@ -169,23 +171,21 @@ export function AppointmentsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className={pageTitle}>Bookings</h1>
+        <h1 className={pageTitle}>{t("appt.title")}</h1>
         <button onClick={() => setShowForm(true)} className={btnPrimary}>
-          + Book appointment
+          {t("appt.book")}
         </button>
       </div>
 
       {canSeeLeaveClashes && clashes.length > 0 && (
         <GlassCard className="mt-4 border border-amber-300/40 p-4 dark:border-amber-400/25">
-          <h2 className={sectionLabel}>Affected by approved leave</h2>
-          <p className="mt-1 text-xs text-ink-400">
-            These fall on a day their doctor is now on leave — reschedule or cancel each one.
-          </p>
+          <h2 className={sectionLabel}>{t("appt.affectedByLeave")}</h2>
+          <p className="mt-1 text-xs text-ink-400">{t("appt.affectedByLeaveHint")}</p>
           <ul className="mt-3 space-y-1.5 text-sm">
             {clashes.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-ink-700">
-                  <span className="font-medium text-ink-900">{patientName(a.patientId)}</span> with{" "}
+                  <span className="font-medium text-ink-900">{patientName(a.patientId)}</span> ·{" "}
                   {doctorName(a.doctorId)} · {formatDateTime(a.scheduledAt)}
                 </span>
                 <span className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export function AppointmentsPage() {
                     onClick={() => setRescheduling(a)}
                     className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                   >
-                    Reschedule
+                    {t("appt.reschedule")}
                   </button>
                 </span>
               </li>
@@ -206,10 +206,10 @@ export function AppointmentsPage() {
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">
-          <span className="mb-1 block text-xs font-medium text-ink-400">Patient</span>
+          <span className="mb-1 block text-xs font-medium text-ink-400">{t("appt.filterPatient")}</span>
           <input
             type="text"
-            placeholder="Search by patient…"
+            placeholder={t("appt.searchByPatient")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={`${inputClass} mt-0 w-52`}
@@ -217,13 +217,13 @@ export function AppointmentsPage() {
         </label>
 
         <label className="text-sm">
-          <span className="mb-1 block text-xs font-medium text-ink-400">Doctor</span>
+          <span className="mb-1 block text-xs font-medium text-ink-400">{t("appt.filterDoctor")}</span>
           <select
             value={doctorFilter}
             onChange={(e) => setDoctorFilter(e.target.value)}
             className={`${inputClass} mt-0 w-40`}
           >
-            <option value="">All doctors</option>
+            <option value="">{t("appt.allDoctors")}</option>
             {doctorsQuery.data?.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
@@ -233,23 +233,23 @@ export function AppointmentsPage() {
         </label>
 
         <label className="text-sm">
-          <span className="mb-1 block text-xs font-medium text-ink-400">Status</span>
+          <span className="mb-1 block text-xs font-medium text-ink-400">{t("appt.filterStatus")}</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`${inputClass} mt-0 w-36`}
           >
-            <option value="">All statuses</option>
+            <option value="">{t("appt.allStatuses")}</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
-                {s.replace("_", " ")}
+                {t(`status.${s}`)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="text-sm">
-          <span className="mb-1 block text-xs font-medium text-ink-400">From</span>
+          <span className="mb-1 block text-xs font-medium text-ink-400">{t("appt.filterFrom")}</span>
           <input
             type="date"
             value={fromDate}
@@ -259,7 +259,7 @@ export function AppointmentsPage() {
         </label>
 
         <label className="text-sm">
-          <span className="mb-1 block text-xs font-medium text-ink-400">To</span>
+          <span className="mb-1 block text-xs font-medium text-ink-400">{t("appt.filterTo")}</span>
           <input
             type="date"
             value={toDate}
@@ -280,7 +280,7 @@ export function AppointmentsPage() {
             }}
             className="text-sm font-medium text-frost-600 hover:underline"
           >
-            Clear filters
+            {t("appt.clearFilters")}
           </button>
         )}
       </div>
@@ -289,17 +289,17 @@ export function AppointmentsPage() {
         {appointmentsQuery.isLoading ? (
           <TableSkeleton columns={6} />
         ) : filtered.length === 0 ? (
-          <p className="p-4 text-sm text-ink-400">No appointments found.</p>
+          <p className="p-4 text-sm text-ink-400">{t("appt.noneFound")}</p>
         ) : (
           <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
-                <th className="px-4 py-2.5">Patient</th>
-                <th className="px-4 py-2.5">Doctor</th>
-                <th className="px-4 py-2.5">When</th>
-                <th className="px-4 py-2.5">Reason</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5">Actions</th>
+                <th className="px-4 py-2.5">{t("appt.colPatient")}</th>
+                <th className="px-4 py-2.5">{t("appt.colDoctor")}</th>
+                <th className="px-4 py-2.5">{t("appt.colWhen")}</th>
+                <th className="px-4 py-2.5">{t("appt.colReason")}</th>
+                <th className="px-4 py-2.5">{t("appt.colStatus")}</th>
+                <th className="px-4 py-2.5">{t("appt.colActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -308,7 +308,7 @@ export function AppointmentsPage() {
                   <td className="px-4 py-2.5 font-medium text-ink-900">{patientName(a.patientId)}</td>
                   <td className="px-4 py-2.5 text-ink-400">{doctorName(a.doctorId)}</td>
                   <td className="px-4 py-2.5 text-ink-400">{formatDateTime(a.scheduledAt)}</td>
-                  <td className="px-4 py-2.5 text-ink-400">{a.reason || "—"}</td>
+                  <td className="px-4 py-2.5 text-ink-400">{a.reason || t("common.dash")}</td>
                   <td className="px-4 py-2.5">
                     <Badge status={a.status} />
                   </td>
@@ -320,7 +320,7 @@ export function AppointmentsPage() {
                       onAccept={() =>
                         acceptMutation.mutate(a.id, {
                           onError: (err) =>
-                            toast.error(err instanceof Error ? err.message : "Could not accept that."),
+                            toast.error(err instanceof Error ? err.message : t("appt.couldNotAccept")),
                         })
                       }
                       onDecline={() => setDeclining(a)}
@@ -331,7 +331,7 @@ export function AppointmentsPage() {
                           { id: a.id, status },
                           {
                             onError: (err) =>
-                              toast.error(err instanceof Error ? err.message : "Could not update that."),
+                              toast.error(err instanceof Error ? err.message : t("appt.couldNotUpdate")),
                           }
                         )
                       }
@@ -369,12 +369,14 @@ export function AppointmentsPage() {
 
       {declining && (
         <ReasonDialog
-          title="Decline this request?"
-          intro={`${patientName(declining.patientId)} asked for ${formatDateTime(
-            declining.scheduledAt
-          )} with ${doctorName(declining.doctorId)}. They'll see the reason you give.`}
+          title={t("appt.declineTitle")}
+          intro={t("appt.declineIntro", {
+            patient: patientName(declining.patientId),
+            when: formatDateTime(declining.scheduledAt),
+            doctor: doctorName(declining.doctorId),
+          })}
           presets={DECLINE_REASONS}
-          confirmLabel="Decline request"
+          confirmLabel={t("appt.declineConfirm")}
           danger
           onClose={() => setDeclining(null)}
           onSubmit={async (reason) => {
@@ -385,12 +387,14 @@ export function AppointmentsPage() {
 
       {cancelling && (
         <ReasonDialog
-          title="Cancel this booking?"
-          intro={`${patientName(cancelling.patientId)}'s appointment on ${formatDateTime(
-            cancelling.scheduledAt
-          )} with ${doctorName(cancelling.doctorId)} will be cancelled. They'll see the reason.`}
+          title={t("appt.cancelTitle")}
+          intro={t("appt.cancelIntro", {
+            patient: patientName(cancelling.patientId),
+            when: formatDateTime(cancelling.scheduledAt),
+            doctor: doctorName(cancelling.doctorId),
+          })}
           presets={CANCEL_REASONS}
-          confirmLabel="Cancel booking"
+          confirmLabel={t("appt.cancelConfirm")}
           danger
           onClose={() => setCancelling(null)}
           onSubmit={async (reason) => {
@@ -405,6 +409,7 @@ export function AppointmentsPage() {
 const actionBtn = "rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70";
 
 function RowActions({ appointment, isPast, canDecide, onAccept, onDecline, onReschedule, onCancel, onClose }) {
+  const { t } = useLanguage();
   const { status } = appointment;
 
   if (status === "REQUESTED") {
@@ -413,17 +418,17 @@ function RowActions({ appointment, isPast, canDecide, onAccept, onDecline, onRes
         {canDecide ? (
           <>
             <button type="button" onClick={onAccept} className={actionBtn}>
-              Accept
+              {t("appt.accept")}
             </button>
             <button type="button" onClick={onDecline} className={`${actionBtn} ${dangerAction}`}>
-              Decline
+              {t("appt.decline")}
             </button>
           </>
         ) : (
-          <span className="text-xs text-ink-400">Awaiting doctor</span>
+          <span className="text-xs text-ink-400">{t("appt.awaitingDoctor")}</span>
         )}
         <button type="button" onClick={onCancel} className={`${actionBtn} ${dangerAction}`}>
-          Cancel
+          {t("appt.cancel")}
         </button>
       </div>
     );
@@ -435,23 +440,23 @@ function RowActions({ appointment, isPast, canDecide, onAccept, onDecline, onRes
         {isPast ? (
           <>
             <button type="button" onClick={() => onClose("COMPLETED")} className={actionBtn}>
-              Mark seen
+              {t("appt.markSeen")}
             </button>
             <button type="button" onClick={() => onClose("NO_SHOW")} className={actionBtn}>
-              No-show
+              {t("appt.noShow")}
             </button>
           </>
         ) : (
           <button type="button" onClick={onReschedule} className={actionBtn}>
-            Reschedule
+            {t("appt.reschedule")}
           </button>
         )}
         <button type="button" onClick={onCancel} className={`${actionBtn} ${dangerAction}`}>
-          Cancel
+          {t("appt.cancel")}
         </button>
       </div>
     );
   }
 
-  return <span className="text-xs text-ink-400">—</span>;
+  return <span className="text-xs text-ink-400">{t("common.dash")}</span>;
 }
