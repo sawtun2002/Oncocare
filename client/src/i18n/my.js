@@ -178,4 +178,32 @@ export const my = {
   "profile.dataDownloaded": "သင့်ဒေတာ ဒေါင်းလုဒ် ပြီးပါပြီ။",
   "profile.downloadFailed": "သင့်ဒေတာ ပြင်ဆင်၍ မရပါ။",
   "profile.downloadNote": "သင့်အကောင့် အချက်အလက်နှင့် ၎င်းနှင့် ချိတ်ဆက်ထားသော မှတ်တမ်းများပါဝင်သည့် JSON ဖိုင်။",
+
+  // --- dashboard ----------------------------------------------------------
+  "dash.welcome": "ကြိုဆိုပါသည်၊ {name}",
+  "dash.today": "ယနေ့ ဖြစ်ပျက်နေသည်များ။",
+  "dash.totalPatients": "လူနာ စုစုပေါင်း",
+  "dash.scheduledAppointments": "ချိန်းဆိုထားသော ချိန်းဆိုမှုများ",
+  "dash.outstandingBalance": "ပေးရန်ကျန် ငွေ",
+  "dash.requestsBlock": "သင့်တုံ့ပြန်ချက် စောင့်ဆိုင်းနေသော ချိန်းဆိုမှု တောင်းဆိုချက် {count} ခု။",
+  "dash.reviewRequests": "တောင်းဆိုချက်များ ကြည့်ရန်",
+  "dash.upcomingAppointments": "လာမည့် ချိန်းဆိုမှုများ",
+  "dash.viewAll": "အားလုံး ကြည့်ရန်",
+  "dash.noUpcoming": "လာမည့် ချိန်းဆိုမှု မရှိပါ။",
+  "dash.colPatient": "လူနာ",
+  "dash.colWhen": "အချိန်",
+  "dash.colStatus": "အခြေအနေ",
+  "dash.patientFallback": "လူနာ #{id}",
+
+  // --- patients list ----------------------------------------------------
+  "patients.title": "လူနာများ",
+  "patients.register": "လူနာ မှတ်ပုံတင်ရန်",
+  "patients.registered": "{name} ကို မှတ်ပုံတင်ပြီးပါပြီ။",
+  "patients.searchPlaceholder": "အမည် သို့မဟုတ် ရောဂါဖြင့် ရှာရန်…",
+  "patients.noneFound": "လူနာ မတွေ့ပါ။",
+  "patients.colName": "အမည်",
+  "patients.colAgeSex": "အသက် / လိင်",
+  "patients.colDiagnosis": "ရောဂါ",
+  "patients.colDoctor": "ဆရာဝန်",
+  "patients.colRegistered": "မှတ်ပုံတင်သည့်ရက်",
 };

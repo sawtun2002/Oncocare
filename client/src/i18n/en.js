@@ -178,4 +178,32 @@ export const en = {
   "profile.dataDownloaded": "Your data has been downloaded.",
   "profile.downloadFailed": "Could not prepare your data.",
   "profile.downloadNote": "A JSON file with your account details and the records linked to it.",
+
+  // --- dashboard ----------------------------------------------------------
+  "dash.welcome": "Welcome, {name}",
+  "dash.today": "Here's what's happening today.",
+  "dash.totalPatients": "Total patients",
+  "dash.scheduledAppointments": "Scheduled appointments",
+  "dash.outstandingBalance": "Outstanding balance",
+  "dash.requestsBlock": "{count} appointment request(s) awaiting your response.",
+  "dash.reviewRequests": "Review requests",
+  "dash.upcomingAppointments": "Upcoming appointments",
+  "dash.viewAll": "View all",
+  "dash.noUpcoming": "No upcoming appointments.",
+  "dash.colPatient": "Patient",
+  "dash.colWhen": "When",
+  "dash.colStatus": "Status",
+  "dash.patientFallback": "Patient #{id}",
+
+  // --- patients list ----------------------------------------------------
+  "patients.title": "Patients",
+  "patients.register": "Register patient",
+  "patients.registered": "{name} has been registered.",
+  "patients.searchPlaceholder": "Search by name or diagnosis…",
+  "patients.noneFound": "No patients found.",
+  "patients.colName": "Name",
+  "patients.colAgeSex": "Age / Sex",
+  "patients.colDiagnosis": "Diagnosis",
+  "patients.colDoctor": "Doctor",
+  "patients.colRegistered": "Registered",
 };

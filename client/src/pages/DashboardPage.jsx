@@ -9,11 +9,13 @@ import { GlassCard } from "../components/GlassCard";
 import { TableSkeleton } from "../components/Skeleton";
 import { StatCard } from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { formatCurrency, formatDateTime } from "../lib/format";
 import { pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../lib/ui";
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const canSeeBilling = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
   // Read once on mount, not on every render -- keeps the "upcoming" filter
   // stable and keeps the render body pure.
@@ -41,23 +43,23 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1 className={pageTitle}>Welcome, {user?.name}</h1>
-      <p className="mt-2 text-sm text-ink-400">Here's what's happening today.</p>
+      <h1 className={pageTitle}>{t("dash.welcome", { name: user?.name ?? "" })}</h1>
+      <p className="mt-2 text-sm text-ink-400">{t("dash.today")}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
-          label="Total patients"
+          label={t("dash.totalPatients")}
           loading={patientsQuery.isLoading}
           value={patientsQuery.data?.length ?? "—"}
         />
         <StatCard
-          label="Scheduled appointments"
+          label={t("dash.scheduledAppointments")}
           loading={appointmentsQuery.isLoading}
           value={upcoming.length}
         />
         {canSeeBilling && (
           <StatCard
-            label="Outstanding balance"
+            label={t("dash.outstandingBalance")}
             loading={billingQuery.isLoading}
             value={billingQuery.data ? formatCurrency(billingQuery.data.outstanding) : "—"}
           />
@@ -66,37 +68,32 @@ export function DashboardPage() {
 
       {myRequests.length > 0 && (
         <GlassCard className="mt-6 flex flex-wrap items-center justify-between gap-3 p-5">
-          <p className="text-sm text-ink-700">
-            <span className="font-semibold text-ink-900">
-              {myRequests.length} appointment {myRequests.length === 1 ? "request" : "requests"}
-            </span>{" "}
-            awaiting your response.
-          </p>
+          <p className="text-sm text-ink-700">{t("dash.requestsBlock", { count: myRequests.length })}</p>
           <Link to="/appointments" className="text-sm font-medium text-frost-600 hover:underline">
-            Review requests
+            {t("dash.reviewRequests")}
           </Link>
         </GlassCard>
       )}
 
       <div className="mt-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-ink-900">Upcoming appointments</h2>
+          <h2 className="text-lg font-medium text-ink-900">{t("dash.upcomingAppointments")}</h2>
           <Link to="/appointments" className="text-sm font-medium text-frost-600 hover:underline">
-            View all
+            {t("dash.viewAll")}
           </Link>
         </div>
         <div className={`mt-3 ${tableWrap}`}>
           {appointmentsQuery.isLoading ? (
             <TableSkeleton columns={3} rows={3} />
           ) : upcoming.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
+            <p className="p-4 text-sm text-ink-400">{t("dash.noUpcoming")}</p>
           ) : (
             <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
-                  <th className="px-4 py-2.5">Patient</th>
-                  <th className="px-4 py-2.5">When</th>
-                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">{t("dash.colPatient")}</th>
+                  <th className="px-4 py-2.5">{t("dash.colWhen")}</th>
+                  <th className="px-4 py-2.5">{t("dash.colStatus")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,7 +102,7 @@ export function DashboardPage() {
                   return (
                     <tr key={a.id} className={tableRow}>
                       <td className="px-4 py-2.5 font-medium text-ink-900">
-                        {patient?.name ?? `Patient #${a.patientId}`}
+                        {patient?.name ?? t("dash.patientFallback", { id: a.patientId })}
                       </td>
                       <td className="px-4 py-2.5 text-ink-400">{formatDateTime(a.scheduledAt)}</td>
                       <td className="px-4 py-2.5">

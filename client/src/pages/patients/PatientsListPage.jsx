@@ -5,6 +5,7 @@ import { createPatient, listPatients } from "../../api/patients";
 import { listDoctors } from "../../api/users";
 import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { calculateAge, formatDate } from "../../lib/format";
 import { btnPrimary, inputClass, pageTitle, tableBase, tableHead, tableRow, tableWrap } from "../../lib/ui";
@@ -12,6 +13,7 @@ import { PatientFormDialog } from "./PatientFormDialog";
 
 export function PatientsListPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [search, setSearch] = useState("");
@@ -24,7 +26,7 @@ export function PatientsListPage() {
     mutationFn: (input) => createPatient(input),
     onSuccess: (patient) => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast.success(`${patient.name} has been registered.`);
+      toast.success(t("patients.registered", { name: patient.name }));
     },
   });
 
@@ -45,17 +47,17 @@ export function PatientsListPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className={pageTitle}>Patients</h1>
+        <h1 className={pageTitle}>{t("patients.title")}</h1>
         {canRegister && (
           <button onClick={() => setShowForm(true)} className={btnPrimary}>
-            + Register patient
+            + {t("patients.register")}
           </button>
         )}
       </div>
 
       <input
         type="text"
-        placeholder="Search by name or diagnosis…"
+        placeholder={t("patients.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className={`mt-4 max-w-sm ${inputClass}`}
@@ -65,16 +67,16 @@ export function PatientsListPage() {
         {patientsQuery.isLoading ? (
           <TableSkeleton columns={5} />
         ) : filtered.length === 0 ? (
-          <p className="p-4 text-sm text-ink-400">No patients found.</p>
+          <p className="p-4 text-sm text-ink-400">{t("patients.noneFound")}</p>
         ) : (
           <table className={tableBase}>
             <thead className={tableHead}>
               <tr>
-                <th className="px-4 py-2.5">Name</th>
-                <th className="px-4 py-2.5">Age / Sex</th>
-                <th className="px-4 py-2.5">Diagnosis</th>
-                <th className="px-4 py-2.5">Doctor</th>
-                <th className="px-4 py-2.5">Registered</th>
+                <th className="px-4 py-2.5">{t("patients.colName")}</th>
+                <th className="px-4 py-2.5">{t("patients.colAgeSex")}</th>
+                <th className="px-4 py-2.5">{t("patients.colDiagnosis")}</th>
+                <th className="px-4 py-2.5">{t("patients.colDoctor")}</th>
+                <th className="px-4 py-2.5">{t("patients.colRegistered")}</th>
               </tr>
             </thead>
             <tbody>
