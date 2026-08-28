@@ -12,6 +12,7 @@ import { InvoiceCard } from "../../components/InvoiceCard";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { CANCEL_REASONS } from "../../lib/appointmentReasons";
 import { calculateAge, formatDate, formatDateTime } from "../../lib/format";
@@ -32,6 +33,7 @@ export function PatientDetailPage() {
   const { id } = useParams();
   const patientId = Number(id);
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
@@ -50,7 +52,7 @@ export function PatientDetailPage() {
     mutationFn: (input) => updatePatient(patientId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Record updated.");
+      toast.success(t("patient.recordUpdated"));
     },
   });
 
@@ -67,7 +69,7 @@ export function PatientDetailPage() {
     mutationFn: ({ id: apptId, ...input }) => updateAppointment(apptId, input, actor),
     onSuccess: () => {
       invalidateAppointments();
-      toast.success("Booking moved.");
+      toast.success(t("patient.bookingMoved"));
     },
   });
 
@@ -75,7 +77,7 @@ export function PatientDetailPage() {
     mutationFn: ({ id: apptId, reason }) => cancelAppointment(apptId, actor, reason),
     onSuccess: () => {
       invalidateAppointments();
-      toast.success("Booking cancelled.");
+      toast.success(t("patient.bookingCancelled"));
     },
   });
 
@@ -88,7 +90,7 @@ export function PatientDetailPage() {
   const canManageBookings = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
 
   if (patientQuery.isLoading) return <CardSkeleton lines={4} />;
-  if (!patient) return <p className="text-sm text-ink-400">Patient not found.</p>;
+  if (!patient) return <p className="text-sm text-ink-400">{t("patient.notFound")}</p>;
 
   const patientAppointments = (appointmentsQuery.data ?? []).filter((a) => a.patientId === patientId);
   const isActive = (a) =>
@@ -101,37 +103,43 @@ export function PatientDetailPage() {
 
   const patientInvoices = (invoicesQuery.data ?? []).filter((i) => i.patientId === patientId);
   const doctorName = (doctorId) => doctorsQuery.data?.find((d) => d.id === doctorId)?.name ?? `#${doctorId}`;
-  const assignedDoctorName = doctorsQuery.data?.find((d) => d.id === patient.assignedDoctorId)?.name ?? "Unassigned";
+  const assignedDoctorName =
+    doctorsQuery.data?.find((d) => d.id === patient.assignedDoctorId)?.name ?? t("patient.unassigned");
+  const sexLabel = t(`login.sex${patient.sex}`);
 
   return (
     <div>
       <Link to="/patients" className="text-sm text-frost-600 hover:underline">
-        ← Back to patients
+        ← {t("patient.backToPatients")}
       </Link>
 
       <div className="mt-3 flex items-start justify-between">
         <div>
           <h1 className={pageTitle}>{patient.name}</h1>
           <p className="mt-2 text-sm text-ink-400">
-            {calculateAge(patient.dob)} years old · {patient.sex} · Registered {formatDate(patient.registeredAt)}
+            {t("patient.summary", {
+              age: calculateAge(patient.dob),
+              sex: sexLabel,
+              date: formatDate(patient.registeredAt),
+            })}
           </p>
         </div>
         {canEdit && (
           <button onClick={() => setShowForm(true)} className={btnGhost}>
-            Edit
+            {t("common.edit")}
           </button>
         )}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         <GlassCard className="p-4">
-          <h2 className="text-sm font-semibold text-ink-400">Contact</h2>
+          <h2 className="text-sm font-semibold text-ink-400">{t("patient.contact")}</h2>
           <dl className="mt-2 space-y-1 text-sm">
-            <Row label="Phone" value={patient.phone} />
-            <Row label="NRC" value={patient.nrc || "—"} />
-            <Row label="Address" value={patient.address || "—"} />
+            <Row label={t("profile.phone")} value={patient.phone} />
+            <Row label={t("patient.nrc")} value={patient.nrc || "—"} />
+            <Row label={t("profile.address")} value={patient.address || "—"} />
             <Row
-              label="Emergency contact"
+              label={t("patient.emergencyContact")}
               value={
                 patient.emergencyContactName
                   ? `${patient.emergencyContactName}${
@@ -143,14 +151,14 @@ export function PatientDetailPage() {
           </dl>
         </GlassCard>
         <GlassCard className="p-4">
-          <h2 className="text-sm font-semibold text-ink-400">Clinical</h2>
+          <h2 className="text-sm font-semibold text-ink-400">{t("patient.clinical")}</h2>
           <dl className="mt-2 space-y-1 text-sm">
-            <Row label="Diagnosis" value={patient.diagnosisType} />
-            <Row label="Stage" value={patient.diagnosisStage || "—"} />
-            <Row label="Doctor" value={assignedDoctorName} />
-            <Row label="Blood type" value={patient.bloodType || "—"} />
-            <Row label="Allergies" value={patient.allergies || "—"} />
-            <Row label="Notes" value={patient.notes || "—"} />
+            <Row label={t("patient.diagnosis")} value={patient.diagnosisType} />
+            <Row label={t("patient.stage")} value={patient.diagnosisStage || "—"} />
+            <Row label={t("patients.colDoctor")} value={assignedDoctorName} />
+            <Row label={t("patient.bloodType")} value={patient.bloodType || "—"} />
+            <Row label={t("patient.allergies")} value={patient.allergies || "—"} />
+            <Row label={t("patient.notes")} value={patient.notes || "—"} />
           </dl>
         </GlassCard>
       </div>
@@ -160,25 +168,25 @@ export function PatientDetailPage() {
           those cards use reads badly once the value wraps to several lines. */}
       {patient.medicalHistory && (
         <GlassCard className="mt-4 p-4">
-          <h2 className="text-sm font-semibold text-ink-400">Medical history</h2>
+          <h2 className="text-sm font-semibold text-ink-400">{t("patient.medicalHistory")}</h2>
           <p className="mt-2 text-sm text-ink-700">{patient.medicalHistory}</p>
         </GlassCard>
       )}
 
       <div className="mt-8">
-        <h2 className={sectionLabel}>Upcoming appointments</h2>
+        <h2 className={sectionLabel}>{t("appt.upcoming")}</h2>
         <div className={`mt-3 ${tableWrap}`}>
           {upcomingAppointments.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">No upcoming appointments.</p>
+            <p className="p-4 text-sm text-ink-400">{t("appt.noUpcoming")}</p>
           ) : (
             <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
-                  <th className="px-4 py-2.5">When</th>
-                  <th className="px-4 py-2.5">Doctor</th>
-                  <th className="px-4 py-2.5">Reason</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  {canManageBookings && <th className="px-4 py-2.5">Actions</th>}
+                  <th className="px-4 py-2.5">{t("appt.colWhen")}</th>
+                  <th className="px-4 py-2.5">{t("appt.colDoctor")}</th>
+                  <th className="px-4 py-2.5">{t("appt.colReason")}</th>
+                  <th className="px-4 py-2.5">{t("appt.colStatus")}</th>
+                  {canManageBookings && <th className="px-4 py-2.5">{t("appt.colActions")}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -198,14 +206,14 @@ export function PatientDetailPage() {
                             onClick={() => setRescheduling(a)}
                             className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                           >
-                            Reschedule
+                            {t("appt.reschedule")}
                           </button>
                           <button
                             type="button"
                             onClick={() => setCancelling(a)}
                             className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
                           >
-                            Cancel
+                            {t("appt.cancel")}
                           </button>
                         </div>
                       </td>
@@ -219,10 +227,10 @@ export function PatientDetailPage() {
       </div>
 
       <div className="mt-8">
-        <h2 className={sectionLabel}>Appointment history</h2>
+        <h2 className={sectionLabel}>{t("patient.appointmentHistory")}</h2>
         <div className="mt-3 space-y-3">
           {pastAppointments.length === 0 ? (
-            <p className="text-sm text-ink-400">No past appointments.</p>
+            <p className="text-sm text-ink-400">{t("patient.noPast")}</p>
           ) : (
             pastAppointments.map((a) => (
               <GlassCard key={a.id} className="p-4">
@@ -246,10 +254,10 @@ export function PatientDetailPage() {
       </div>
 
       <div className="mt-8">
-        <h2 className={sectionLabel}>Billing</h2>
+        <h2 className={sectionLabel}>{t("patient.billing")}</h2>
         <div className="mt-3 space-y-3">
           {patientInvoices.length === 0 ? (
-            <p className="text-sm text-ink-400">No invoices yet.</p>
+            <p className="text-sm text-ink-400">{t("patient.noInvoices")}</p>
           ) : (
             patientInvoices.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
           )}
