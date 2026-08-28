@@ -62,7 +62,7 @@ export function MyBillsPage() {
             <p className="text-sm text-ink-400">No invoices yet.</p>
           </GlassCard>
         ) : (
-          mine.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
+          mine.map((inv) => <InvoiceCard key={inv.id} invoice={inv} patientName={user.name} />)
         )}
       </div>
     </div>

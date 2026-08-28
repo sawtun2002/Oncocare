@@ -277,4 +277,21 @@ export const my = {
   "book.sending": "ပို့နေသည်…",
   "book.requestAppointment": "ချိန်းဆိုမှု တောင်းဆိုရန်",
   "book.requestSent": "တောင်းဆိုချက် ပို့ပြီးပါပြီ — ဆရာဝန် အတည်ပြုပြီးလျှင် အကြောင်းကြားပါမည်။",
+
+  // --- invoice card + printable receipt -------------------------------
+  "invoice.issued": "ထုတ်ပြန် {date}",
+  "invoice.number": "ငွေတောင်းခံလွှာ #{id}",
+  "receipt.print": "ပရင့်ထုတ် / PDF သိမ်း",
+  "receipt.popupBlocked": "ပရင့်ဝင်းဒိုး ဖွင့်၍ မရပါ။ browser ၏ pop-up ဆက်တင်ကို စစ်ဆေးပါ။",
+  "receipt.title": "ငွေဖြတ်ပိုင်း",
+  "receipt.invoiceNo": "ငွေတောင်းခံလွှာ အမှတ်",
+  "receipt.issued": "ထုတ်ပြန်သည့်ရက်",
+  "receipt.status": "အခြေအနေ",
+  "receipt.billedTo": "ငွေတောင်းခံသူ",
+  "receipt.description": "ဖော်ပြချက်",
+  "receipt.qty": "အရေအတွက်",
+  "receipt.unitPrice": "တစ်ခုချင်း ဈေးနှုန်း",
+  "receipt.subtotal": "စုစုပေါင်းခွဲ",
+  "receipt.total": "စုစုပေါင်း",
+  "receipt.generated": "ထုတ်ယူသည့်ရက် {date}",
 };

@@ -277,4 +277,21 @@ export const en = {
   "book.sending": "Sending…",
   "book.requestAppointment": "Request appointment",
   "book.requestSent": "Request sent — you'll hear back once the doctor confirms it.",
+
+  // --- invoice card + printable receipt -------------------------------
+  "invoice.issued": "Issued {date}",
+  "invoice.number": "Invoice #{id}",
+  "receipt.print": "Print / Save as PDF",
+  "receipt.popupBlocked": "Could not open a print window. Check your browser's pop-up settings.",
+  "receipt.title": "Receipt",
+  "receipt.invoiceNo": "Invoice no.",
+  "receipt.issued": "Issued",
+  "receipt.status": "Status",
+  "receipt.billedTo": "Billed to",
+  "receipt.description": "Description",
+  "receipt.qty": "Qty",
+  "receipt.unitPrice": "Unit price",
+  "receipt.subtotal": "Subtotal",
+  "receipt.total": "Total",
+  "receipt.generated": "Generated {date}",
 };

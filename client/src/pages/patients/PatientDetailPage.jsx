@@ -259,7 +259,9 @@ export function PatientDetailPage() {
           {patientInvoices.length === 0 ? (
             <p className="text-sm text-ink-400">{t("patient.noInvoices")}</p>
           ) : (
-            patientInvoices.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
+            patientInvoices.map((inv) => (
+              <InvoiceCard key={inv.id} invoice={inv} patientName={patient.name} />
+            ))
           )}
         </div>
       </div>
