@@ -20,9 +20,16 @@ function esc(value) {
  *                 honest path (Ctrl/⌘+P → "Save as PDF"). The toolbar is hidden
  *                 in the printed output itself.
  *
- * @param {{ invoice: import("../types").Invoice, patientName?: string, clinicName?: string, mode?: "print" | "pdf", labels: Record<string,string> }} opts
+ * @param {{ invoice: import("../types").Invoice, patientName?: string, receivedByName?: string, clinicName?: string, mode?: "print" | "pdf", labels: Record<string,string> }} opts
  */
-export function printReceipt({ invoice, patientName, clinicName = "OncoCare", mode = "print", labels }) {
+export function printReceipt({
+  invoice,
+  patientName,
+  receivedByName,
+  clinicName = "OncoCare",
+  mode = "print",
+  labels,
+}) {
   const win = window.open("", "_blank", "width=760,height=960");
   if (!win) throw new Error("Could not open a print window. Check your browser's pop-up settings.");
 
@@ -85,6 +92,11 @@ export function printReceipt({ invoice, patientName, clinicName = "OncoCare", mo
     <div><b>${esc(labels.issued)}</b> ${esc(formatDate(invoice.issuedAt))}</div>
     <div><b>${esc(labels.status)}</b> ${esc(labels.statusLabel)}</div>
     ${patientName ? `<div><b>${esc(labels.billedTo)}</b> ${esc(patientName)}</div>` : ""}
+    ${
+      receivedByName && invoice.status === "PAID"
+        ? `<div><b>${esc(labels.receivedByLabel)}</b> ${esc(receivedByName)}</div>`
+        : ""
+    }
   </div>
   <table>
     <thead>

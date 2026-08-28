@@ -34,7 +34,10 @@ import {
 // nothing needs a defensive default, but the bump still applies so a returning
 // visitor picks up the seeded values the staff detail dialog and patient record
 // now display.
-const STORAGE_KEY = "cancer-hms-mock-db-v9";
+// v10 gave invoices a required `events[]` history (who marked it paid/unpaid, and
+// when). A v9 invoice has no `events` array, which the receipt dialog assumes is
+// present -- so the v9 store is dropped for the v10 seed like every bump before.
+const STORAGE_KEY = "cancer-hms-mock-db-v10";
 
 /**
  * @typedef {Object} MockDb

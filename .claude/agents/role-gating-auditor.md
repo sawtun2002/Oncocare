@@ -53,6 +53,7 @@ used in only one of two places, is a finding.
 |---|---|---|
 | `/`, `/patients`, `/patients/:id`, `/appointments` | `STAFF_ROLES` | `Layout.jsx` + `App.jsx` |
 | `/billing` route | ADMIN, RECEPTIONIST | `Layout.jsx` + `App.jsx` |
+| Create invoice / change invoice status | ADMIN, RECEPTIONIST | `BillingPage.jsx` / `InvoiceDetailDialog.jsx` + `POST /api/invoices`, `PATCH /api/invoices/:id/status` (actor stamped onto an `InvoiceEvent`) |
 | `/users` staff accounts | ADMIN | `Layout.jsx` + `App.jsx` |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` + `App.jsx` |
 | `/doctors`, `/doctors/:id` | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |

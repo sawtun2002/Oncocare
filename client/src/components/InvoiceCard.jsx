@@ -13,15 +13,15 @@ import { GlassCard } from "./GlassCard";
  * self-service MyBillsPage, so the two can never drift into showing
  * different information about the same bill.
  *
- * `patientName` (optional) is only used on the printable receipt -- MyBillsPage
- * passes the signed-in patient's name, PatientDetailPage passes the record's.
+ * `patientName` and `receivedByName` (both optional) are only used on the
+ * printable receipt -- callers that have the lookups resolve and pass them.
  *
  * The nested table here is deliberately not `tableWrap`/`tableBase` from
  * `lib/ui.js` -- those are sized (padding, header background) for a
  * standalone data table, and would read as too heavy nested inside a card
  * that already has its own padding and background.
  */
-export function InvoiceCard({ invoice, patientName }) {
+export function InvoiceCard({ invoice, patientName, receivedByName }) {
   const { t } = useLanguage();
   const toast = useToast();
 
@@ -30,9 +30,11 @@ export function InvoiceCard({ invoice, patientName }) {
       printReceipt({
         invoice,
         patientName,
+        receivedByName,
         mode,
         labels: {
           title: t("receipt.title"),
+          receivedByLabel: t("receipt.receivedByLabel"),
           invoiceNo: t("receipt.invoiceNo"),
           issued: t("receipt.issued"),
           status: t("receipt.status"),
@@ -108,6 +110,12 @@ export function InvoiceCard({ invoice, patientName }) {
           ))}
         </tbody>
       </table>
+
+      {receivedByName && invoice.status === "PAID" && (
+        <p className="mt-3 text-xs text-ink-400">
+          {t("receipt.receivedByLabel")}: <span className="text-ink-700">{receivedByName}</span>
+        </p>
+      )}
     </GlassCard>
   );
 }

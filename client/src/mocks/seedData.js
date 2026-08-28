@@ -240,6 +240,9 @@ export const seedAppointments = [
   },
 ];
 
+// Every invoice carries a non-empty `events` history. userId 5 = Rita
+// Receptionist. Invoice 2 is PAID, so it has a MARKED_PAID event -- that actor
+// is its "received by".
 export const seedInvoices = [
   {
     id: 1,
@@ -250,6 +253,7 @@ export const seedInvoices = [
       { id: 1, description: "Consultation fee", quantity: 1, unitPrice: 150 },
       { id: 2, description: "Blood panel", quantity: 1, unitPrice: 85 },
     ],
+    events: [{ type: "ISSUED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-08-01T00:00:00.000Z" }],
   },
   {
     id: 2,
@@ -259,6 +263,16 @@ export const seedInvoices = [
     items: [
       { id: 3, description: "Chemotherapy session", quantity: 1, unitPrice: 620 },
       { id: 4, description: "Anti-nausea medication", quantity: 2, unitPrice: 18 },
+    ],
+    events: [
+      { type: "ISSUED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-07-15T00:00:00.000Z" },
+      {
+        type: "MARKED_PAID",
+        byUserId: 5,
+        byRole: "RECEPTIONIST",
+        at: "2026-07-16T10:30:00.000Z",
+        note: "Paid in cash at reception.",
+      },
     ],
   },
 ];

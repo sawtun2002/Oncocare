@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { cancelAppointment, listAppointments, updateAppointment } from "../../api/appointments";
 import { listInvoices } from "../../api/billing";
 import { getPatient, updatePatient } from "../../api/patients";
-import { listDoctors } from "../../api/users";
+import { listDoctors, listUsers } from "../../api/users";
 import { AppointmentTimeline } from "../../components/AppointmentTimeline";
 import { Badge } from "../../components/Badge";
 import { GlassCard } from "../../components/GlassCard";
@@ -47,6 +47,7 @@ export function PatientDetailPage() {
   const doctorsQuery = useQuery({ queryKey: ["doctors"], queryFn: listDoctors });
   const appointmentsQuery = useQuery({ queryKey: ["appointments"], queryFn: listAppointments });
   const invoicesQuery = useQuery({ queryKey: ["invoices"], queryFn: listInvoices });
+  const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers() });
 
   const updateMutation = useMutation({
     mutationFn: (input) => updatePatient(patientId, input),
@@ -259,9 +260,21 @@ export function PatientDetailPage() {
           {patientInvoices.length === 0 ? (
             <p className="text-sm text-ink-400">{t("patient.noInvoices")}</p>
           ) : (
-            patientInvoices.map((inv) => (
-              <InvoiceCard key={inv.id} invoice={inv} patientName={patient.name} />
-            ))
+            patientInvoices.map((inv) => {
+              const paidEv = [...inv.events].reverse().find((e) => e.type === "MARKED_PAID");
+              return (
+                <InvoiceCard
+                  key={inv.id}
+                  invoice={inv}
+                  patientName={patient.name}
+                  receivedByName={
+                    paidEv
+                      ? usersQuery.data?.find((u) => u.id === paidEv.byUserId)?.name
+                      : undefined
+                  }
+                />
+              );
+            })
           )}
         </div>
       </div>

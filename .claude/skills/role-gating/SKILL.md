@@ -39,6 +39,7 @@ bug this skill exists to prevent.
 |---|---|---|
 | `/`, `/patients`, `/patients/:id`, `/appointments` | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/billing` route | ADMIN, RECEPTIONIST | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| Create invoice / change invoice status | ADMIN, RECEPTIONIST | `BillingPage.jsx` + `InvoiceDetailDialog.jsx` + `POST /api/invoices`, `PATCH /api/invoices/:id/status`. The `actor` is stamped onto an `InvoiceEvent` for accountability ("received by" = latest `MARKED_PAID` actor). |
 | `/users` (staff accounts) | ADMIN | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Billing summary card on dashboard | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`, also gates the query via `enabled:`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |

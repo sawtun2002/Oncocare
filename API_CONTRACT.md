@@ -368,20 +368,42 @@ exception `GET /api/appointments` already makes.
   invoices server-side regardless of the `patientId` parameter — the filter is a convenience, never the
   check, same as the equivalent appointments rule.
 - `GET /api/invoices/:id` — → `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status` defaults to `UNPAID`, `issuedAt` set server-side). Allowed roles: `ADMIN`, `RECEPTIONIST`.
-- `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus }` → updated `Invoice`. Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `POST /api/invoices` — body `{ patientId, items: InvoiceItemInput[] }` → created `Invoice` (`status`
+  defaults to `UNPAID`, `issuedAt` set server-side, `events` seeded with one `ISSUED` entry whose
+  `byUserId`/`byRole` come from the token). Allowed roles: `ADMIN`, `RECEPTIONIST`.
+- `PATCH /api/invoices/:id/status` — body `{ status: InvoiceStatus, note?: string }` → updated `Invoice`.
+  **Appends an `InvoiceEvent`** (`MARKED_PAID` / `MARKED_PARTIAL` / `MARKED_UNPAID`) stamped with the
+  caller's id and role **from the token, never the body** — this is the accountability record for who
+  took the money. `note` is optional free text kept on the event. Allowed roles: `ADMIN`, `RECEPTIONIST`.
 - `GET /api/billing/summary` — → `{ totalRevenue: number; outstanding: number; invoiceCount: number }`. `totalRevenue` sums `PAID` invoices; `outstanding` sums non-`PAID` invoices. Allowed roles: `ADMIN`, `RECEPTIONIST`. **Not** `PATIENT` — this is the clinic-wide total, not theirs; a patient's own outstanding/paid totals are computed client-side from their own `GET /api/invoices` result on `/my-bills`.
+
+**"Received by"** is not a stored field: it is the `byUserId` of the most recent `MARKED_PAID` event on
+the invoice. If a bill is reverted to `UNPAID` and later re-marked `PAID` by someone else, the history
+holds both and "received by" follows the latest. `GET /api/invoices` for a `PATIENT` returns `events`
+too — their own receipt shows who took their payment. **Swap point:** the frontend resolves
+`byUserId` → a name via `GET /api/users`, which a `PATIENT` cannot call for staff; a real patient-facing
+`GET /api/invoices` response should therefore include the receiver's display name on the invoice (or on
+the `MARKED_PAID` event) so `/my-bills` can render it without a second call.
 
 ```ts
 type InvoiceStatus = "UNPAID" | "PARTIAL" | "PAID";
+type InvoiceEventType = "ISSUED" | "MARKED_PAID" | "MARKED_PARTIAL" | "MARKED_UNPAID";
 type InvoiceItemInput = Omit<InvoiceItem, "id">;
 interface InvoiceItem { id: number; description: string; quantity: number; unitPrice: number; }
+interface InvoiceEvent {
+  type: InvoiceEventType;
+  byUserId: number;       // from the token
+  byRole: Role;
+  at: string;             // ISO datetime
+  note?: string;
+}
 interface Invoice {
   id: number;
   patientId: number;
   issuedAt: string;       // ISO datetime
   status: InvoiceStatus;
   items: InvoiceItem[];
+  events: InvoiceEvent[]; // oldest first, never empty (ISSUED seeded at creation)
 }
 ```
 

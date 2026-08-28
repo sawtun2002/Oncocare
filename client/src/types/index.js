@@ -165,12 +165,31 @@
  */
 
 /**
+ * @typedef {"ISSUED" | "MARKED_PAID" | "MARKED_PARTIAL" | "MARKED_UNPAID"} InvoiceEventType
+ */
+
+/**
+ * One entry in an invoice's history. Every status change appends one, so the
+ * "received by" on a paid bill is simply the actor on the most recent
+ * `MARKED_PAID` event -- derived, not a separate field that can disagree. The
+ * server sets `byUserId`/`byRole` from the token, never from the body.
+ *
+ * @typedef {Object} InvoiceEvent
+ * @property {InvoiceEventType} type
+ * @property {number} byUserId
+ * @property {Role} byRole
+ * @property {string} at ISO datetime.
+ * @property {string} [note] Optional free text on the change.
+ */
+
+/**
  * @typedef {Object} Invoice
  * @property {number} id
  * @property {number} patientId
  * @property {string} issuedAt
  * @property {InvoiceStatus} status
  * @property {InvoiceItem[]} items
+ * @property {InvoiceEvent[]} events Oldest first. Never empty -- creation appends the `ISSUED` entry.
  */
 
 /**
