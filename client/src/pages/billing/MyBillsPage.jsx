@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { invoiceTotal, listInvoices, submitPaymentProof } from "../../api/billing";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { invoiceTotal, listInvoices, submitPaymentProof } from "../../api/billing";
 import { GlassCard } from "../../components/GlassCard";
 import { InvoiceCard } from "../../components/InvoiceCard";
 import { CardSkeleton } from "../../components/Skeleton";
@@ -8,7 +11,7 @@ import { StatCard } from "../../components/StatCard";
 import { useAuth } from "../../context/AuthContext";
 import { formatCurrency } from "../../lib/format";
 import { btnPrimary, pageTitle } from "../../lib/ui";
-import { PaymentProofPage } from "./PaymentProofDialog";
+import { PaymentProofPage } from "./PaymentProofPage";
 
 /**
  * A patient's own bill -- read-only, itemized, no staff actions (no status
@@ -21,7 +24,16 @@ export function MyBillsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [payingInvoice, setPayingInvoice] = useState(null);
+  const queryClient = useQueryClient();
+  const [payingInvoice, setPayingInvoice] = useState(null);
   const invoicesQuery = useQuery({ queryKey: ["invoices"], queryFn: listInvoices });
+
+  const paymentMutation = useMutation({
+    mutationFn: ({ id, input }) => submitPaymentProof(id, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    },
+  });
 
   const paymentMutation = useMutation({
     mutationFn: ({ id, input }) => submitPaymentProof(id, input),
@@ -39,6 +51,20 @@ export function MyBillsPage() {
   const totalPaid = mine
     .filter((inv) => inv.status === "PAID")
     .reduce((sum, inv) => sum + invoiceTotal(inv), 0);
+
+  // If paying invoice, show the payment page instead of the bills list
+  if (payingInvoice) {
+    return (
+      <PaymentProofPage
+        invoice={payingInvoice}
+        onCancel={() => setPayingInvoice(null)}
+        onSubmit={async (input) => {
+          await paymentMutation.mutateAsync({ id: payingInvoice.id, input });
+          setPayingInvoice(null); // Navigate back to bills list after successful submission
+        }}
+      />
+    );
+  }
 
   // If paying invoice, show the payment page instead of the bills list
   if (payingInvoice) {
@@ -87,6 +113,22 @@ export function MyBillsPage() {
             <p className="text-sm text-ink-400">No invoices yet.</p>
           </GlassCard>
         ) : (
+          mine.map((inv) => (
+            <div key={inv.id} className="space-y-2">
+              <InvoiceCard invoice={inv} />
+              {inv.status !== "PAID" && (
+                <div className="flex justify-end">
+                  {inv.paymentSubmission?.status === "PENDING" ? (
+                    <span className="text-xs font-medium text-amber-600">Payment proof pending review</span>
+                  ) : (
+                    <button type="button" onClick={() => setPayingInvoice(inv)} className={btnPrimary}>
+                      Pay with QR and submit proof
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
           mine.map((inv) => (
             <div key={inv.id} className="space-y-2">
               <InvoiceCard invoice={inv} />
