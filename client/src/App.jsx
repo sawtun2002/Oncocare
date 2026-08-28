@@ -15,6 +15,7 @@ import OurDoctorsPage from "./pages/public/OurDoctorsPage";
 import { DashboardPage } from "./pages/public/DashboardPage";
 import { DoctorsPage } from "./pages/doctors/DoctorsPage";
 import { DoctorProfilePage } from "./pages/doctors/DoctorProfilePage";
+import { MedicalEquipmentPage } from "./pages/equipment/MedicalEquipmentPage";
 import { PatientsListPage } from "./pages/patients/PatientsListPage";
 import { PatientDetailPage } from "./pages/patients/PatientDetailPage";
 import { AppointmentsPage } from "./pages/appointments/AppointmentsPage";
@@ -84,6 +85,10 @@ function App() {
             <Route path="/patients/:id" element={<PatientDetailPage />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
             <Route path="/leave" element={<LeavePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["DOCTOR", "NURSE", "RECEPTIONIST"]} />}>
+            <Route path="/staff/equipment" element={<MedicalEquipmentPage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />}>

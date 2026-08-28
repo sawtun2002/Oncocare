@@ -7,7 +7,7 @@ import { NoticeBell } from "./NoticeBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 import { backdropMotion, drawerMotion, NAV_PILL_ID, pageMotion } from "../lib/motion";
-import { ALL_ROLES, NON_ADMIN_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
+import { ALL_ROLES, PATIENT_ROLES, STAFF_ROLES } from "../lib/roles";
 import { BackToTop } from "./BackToTop";
 
 // Every entry carries an explicit `roles` list. These must stay identical to the
@@ -30,7 +30,8 @@ const NAV_ITEMS = [
   { to: "/book", label: "Book appointment", roles: PATIENT_ROLES },
   { to: "/my-bills", label: "My bill", roles: PATIENT_ROLES },
   { to: "/doctors", label: "Our doctors", roles: ALL_ROLES },
-  { to: "/equipment", label: "Equipment", roles: NON_ADMIN_ROLES },
+  { to: "/staff/equipment", label: "Equipment", roles: ["DOCTOR", "NURSE", "RECEPTIONIST"] },
+  { to: "/equipment", label: "Equipment", roles: ["PATIENT"] },
 ];
 
 const ROLE_LABEL = {
