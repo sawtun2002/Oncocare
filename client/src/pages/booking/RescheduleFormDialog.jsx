@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { formatDateTime } from "../../lib/format";
 import { SlotPicker } from "./SlotPicker";
@@ -10,6 +11,7 @@ import { SlotPicker } from "./SlotPicker";
  * onSubmit({ doctorId, scheduledAt, reason? }).
  */
 export function RescheduleFormDialog({ appointment, doctors, reasonRequired = false, onClose, onSubmit }) {
+  const { t } = useLanguage();
   const [doctorId, setDoctorId] = useState(appointment.doctorId);
   const [selectedStart, setSelectedStart] = useState(null);
   const [reason, setReason] = useState("");
@@ -21,7 +23,7 @@ export function RescheduleFormDialog({ appointment, doctors, reasonRequired = fa
     e.preventDefault();
     if (!doctorId || !selectedStart) return;
     if (reasonRequired && !reason.trim()) {
-      setError("A reason is required to move this appointment.");
+      setError(t("resched.reasonNeeded"));
       return;
     }
     setError(null);
@@ -34,17 +36,17 @@ export function RescheduleFormDialog({ appointment, doctors, reasonRequired = fa
       });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title="Reschedule booking" onClose={onClose} ref={modalRef}>
+    <Modal title={t("resched.title")} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm text-ink-400">
-          Currently {formatDateTime(appointment.scheduledAt)}. Pick a new time below.
+          {t("resched.currently", { when: formatDateTime(appointment.scheduledAt) })}
         </p>
 
         <SlotPicker
@@ -56,11 +58,11 @@ export function RescheduleFormDialog({ appointment, doctors, reasonRequired = fa
         />
 
         <label className={labelClass}>
-          {reasonRequired ? "Reason for the change" : "Reason for the change (optional)"}
+          {reasonRequired ? t("resched.reasonRequired") : t("resched.reasonOptional")}
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Shared with the other party"
+            placeholder={t("resched.reasonPlaceholder")}
             className={inputClass}
           />
         </label>
@@ -69,10 +71,10 @@ export function RescheduleFormDialog({ appointment, doctors, reasonRequired = fa
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting || !selectedStart} className={btnPrimary}>
-            {submitting ? "Saving…" : "Move booking"}
+            {submitting ? t("common.saving") : t("resched.submit")}
           </button>
         </div>
       </form>

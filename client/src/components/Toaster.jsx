@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useLanguage } from "../context/LanguageContext";
 import { toastMotion } from "../lib/motion";
 import { TONE } from "../lib/ui";
 
@@ -40,6 +41,7 @@ export function Toaster({ toasts, onDismiss }) {
 }
 
 function ToastItem({ toast, onDismiss }) {
+  const { t } = useLanguage();
   useEffect(() => {
     const timer = setTimeout(() => onDismiss(toast.id), DURATION_MS[toast.tone]);
     return () => clearTimeout(timer);
@@ -62,7 +64,7 @@ function ToastItem({ toast, onDismiss }) {
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        aria-label="Dismiss"
+        aria-label={t("common.dismiss")}
         className="-mr-1 rounded-full p-1 text-ink-400 transition hover:bg-surface/70 hover:text-ink-700 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
       >
         ✕

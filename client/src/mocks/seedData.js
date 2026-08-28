@@ -10,16 +10,19 @@
  * @property {string} [avatarUrl]
  * @property {string} [phone] Staff accounts only.
  * @property {string} [department] Staff accounts only.
+ * @property {string} [address] Staff accounts only.
+ * @property {string} [nrc] Staff accounts only -- Myanmar NRC. Seeded so the staff detail dialog has
+ *   something to show; a real "Add staff account" form requires it (see lib/validation.js).
  * @property {boolean} notifyAppointmentReminders
  * @property {string} [lastLoginAt] Left unset in the seed -- nobody has "signed in" until they actually do.
  * @property {string} [notificationsReadAt] Left unset in the seed -- the notice bell starts unread.
  */
 
 // status/notifyAppointmentReminders are spelled out on every row rather than
-// defaulted in code, so the seed reads as a complete, honest starting state --
-// no seeded phone/department/avatarUrl, since inventing fake contact details
-// nobody asked for would be worse than leaving the fields empty for people to
-// fill in from their own profile page.
+// defaulted in code, so the seed reads as a complete, honest starting state.
+// phone/department/avatarUrl stay empty (people fill those in from /profile),
+// but address/nrc are seeded on the staff rows -- they are ADMIN-entered at
+// onboarding, and the staff detail dialog exists to show them.
 export const seedUsers = [
   {
     id: 1,
@@ -28,6 +31,8 @@ export const seedUsers = [
     password: "admin123",
     role: "ADMIN",
     status: "ACTIVE",
+    address: "88 Kaba Aye Pagoda Rd, Bahan, Yangon",
+    nrc: "12/THAKATA(N)145236",
     notifyAppointmentReminders: true,
   },
   {
@@ -37,6 +42,8 @@ export const seedUsers = [
     password: "doctor123",
     role: "DOCTOR",
     status: "ACTIVE",
+    address: "23 University Ave, Kamayut, Yangon",
+    nrc: "9/MAHANA(N)087419",
     notifyAppointmentReminders: true,
   },
   {
@@ -46,6 +53,8 @@ export const seedUsers = [
     password: "doctor123",
     role: "DOCTOR",
     status: "ACTIVE",
+    address: "14 Bogyoke Aung San Rd, Chan Aye Thar Zan, Mandalay",
+    nrc: "7/PAKHANA(N)203358",
     notifyAppointmentReminders: true,
   },
   {
@@ -55,6 +64,8 @@ export const seedUsers = [
     password: "nurse123",
     role: "NURSE",
     status: "ACTIVE",
+    address: "5 Thumingala St, North Dagon, Yangon",
+    nrc: "12/DAGAYA(N)556201",
     notifyAppointmentReminders: true,
   },
   {
@@ -64,6 +75,8 @@ export const seedUsers = [
     password: "reception123",
     role: "RECEPTIONIST",
     status: "ACTIVE",
+    address: "41 Insein Rd, Hlaing, Yangon",
+    nrc: "12/MABANA(N)339077",
     notifyAppointmentReminders: true,
   },
   {
@@ -231,6 +244,9 @@ export const seedAppointments = [
   },
 ];
 
+// Every invoice carries a non-empty `events` history. userId 5 = Rita
+// Receptionist. Invoice 2 is PAID, so it has a MARKED_PAID event -- that actor
+// is its "received by".
 export const seedInvoices = [
   {
     id: 1,
@@ -241,6 +257,7 @@ export const seedInvoices = [
       { id: 1, description: "Consultation fee", quantity: 1, unitPrice: 150 },
       { id: 2, description: "Blood panel", quantity: 1, unitPrice: 85 },
     ],
+    events: [{ type: "ISSUED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-08-01T00:00:00.000Z" }],
   },
   {
     id: 2,
@@ -250,6 +267,16 @@ export const seedInvoices = [
     items: [
       { id: 3, description: "Chemotherapy session", quantity: 1, unitPrice: 620 },
       { id: 4, description: "Anti-nausea medication", quantity: 2, unitPrice: 18 },
+    ],
+    events: [
+      { type: "ISSUED", byUserId: 5, byRole: "RECEPTIONIST", at: "2026-07-15T00:00:00.000Z" },
+      {
+        type: "MARKED_PAID",
+        byUserId: 5,
+        byRole: "RECEPTIONIST",
+        at: "2026-07-16T10:30:00.000Z",
+        note: "Paid in cash at reception.",
+      },
     ],
   },
 ];

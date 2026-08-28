@@ -1,23 +1,27 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
 import { PasswordStrength } from "../components/PasswordStrength";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { LANGUAGES, LANGUAGE_LABEL } from "../i18n";
 import { homePathFor } from "../lib/roles";
 import { btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 import { MIN_PASSWORD_LENGTH, evaluatePassword, isValidPhone } from "../lib/validation";
 
 const DEMO_ACCOUNTS = [
-  { label: "Admin", email: "admin@cancerhms.local", password: "admin123" },
-  { label: "Doctor", email: "doctor@cancerhms.local", password: "doctor123" },
-  { label: "Nurse", email: "nurse@cancerhms.local", password: "nurse123" },
-  { label: "Receptionist", email: "reception@cancerhms.local", password: "reception123" },
-  { label: "Patient", email: "patient@cancerhms.local", password: "patient123" },
+  { roleKey: "role.ADMIN", email: "admin@cancerhms.local", password: "admin123" },
+  { roleKey: "role.DOCTOR", email: "doctor@cancerhms.local", password: "doctor123" },
+  { roleKey: "role.NURSE", email: "nurse@cancerhms.local", password: "nurse123" },
+  { roleKey: "role.RECEPTIONIST", email: "reception@cancerhms.local", password: "reception123" },
+  { roleKey: "role.PATIENT", email: "patient@cancerhms.local", password: "patient123" },
 ];
 
 export function LoginPage({ initialMode = "login" }) {
   const { user, loading, login, signup } = useAuth();
+  const { lang, setLang, t } = useLanguage();
+  const location = useLocation();
   const [mode, setMode] = useState(initialMode);
 
   // Login fields
@@ -51,7 +55,12 @@ export function LoginPage({ initialMode = "login" }) {
   }
 
   if (user) {
-    return <Navigate to={homePathFor(user.role)} replace />;
+    // If the guard sent them here from a protected page (e.g. "Book appointment"
+    // on the public site), go back there once they're a PATIENT; otherwise land
+    // on the role's own home.
+    const from = location.state?.from;
+    const dest = from && user.role === "PATIENT" ? from : homePathFor(user.role);
+    return <Navigate to={dest} replace />;
   }
 
   function switchMode(next) {
@@ -66,7 +75,7 @@ export function LoginPage({ initialMode = "login" }) {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : t("login.loginFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -75,15 +84,15 @@ export function LoginPage({ initialMode = "login" }) {
   async function handleSignup(e) {
     e.preventDefault();
     if (!pw.ok) {
-      setError("Choose a stronger password — every requirement below must be met.");
+      setError(t("login.pwWeak"));
       return;
     }
     if (signupPassword !== confirmPassword) {
-      setError("Passwords don't match.");
+      setError(t("login.pwMismatch"));
       return;
     }
     if (!isValidPhone(phone)) {
-      setError("Enter a valid phone number (7–15 digits).");
+      setError(t("login.phoneInvalid"));
       return;
     }
     setError(null);
@@ -91,7 +100,7 @@ export function LoginPage({ initialMode = "login" }) {
     try {
       await signup({ name, email: signupEmail, password: signupPassword, dob, sex, phone });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create account");
+      setError(err instanceof Error ? err.message : t("login.couldNotCreate"));
     } finally {
       setSubmitting(false);
     }
@@ -101,19 +110,36 @@ export function LoginPage({ initialMode = "login" }) {
     <div className="flex min-h-screen items-center justify-center gap-8 px-4 py-10">
       <div className="glass-panel hidden w-full max-w-md flex-col items-center gap-6 px-10 py-14 text-center lg:flex">
         <img src={logoFull} alt="OncoCare" className="w-48 object-contain" />
-        <p className="max-w-xs text-sm text-ink-400">
-          Coordinated cancer care — patient records, appointments, and billing in one place.
-        </p>
+        <p className="max-w-xs text-sm text-ink-400">{t("login.tagline")}</p>
       </div>
 
       <div className="glass-panel w-full max-w-sm p-8">
         <div className="flex items-center gap-2.5">
           <img src={logoMark} alt="OncoCare logo" className="h-9 w-9 rounded-lg object-contain" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-semibold text-ink-900">OncoCare</h1>
             <p className="text-xs text-ink-400">
-              {mode === "login" ? "Sign in to continue" : "Create your patient account"}
+              {mode === "login" ? t("login.signInToContinue") : t("login.createYourAccount")}
             </p>
+          </div>
+          {/* Language is reachable before sign-in too -- a patient who reads
+              Myanmar should be able to switch before they type anything. */}
+          <div className="flex gap-0.5 rounded-lg border border-hairline/70 bg-surface/40 p-0.5">
+            {LANGUAGES.map((code) => (
+              <button
+                key={code}
+                type="button"
+                aria-pressed={lang === code}
+                onClick={() => setLang(code)}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+                  lang === code
+                    ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm"
+                    : "text-ink-400 hover:text-ink-700"
+                }`}
+              >
+                {code === "MY" ? LANGUAGE_LABEL.MY : "EN"}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -121,7 +147,7 @@ export function LoginPage({ initialMode = "login" }) {
           <form onSubmit={handleLogin} className="mt-7 space-y-4">
             <div>
               <label className={labelClass} htmlFor="email">
-                Email
+                {t("login.email")}
               </label>
               <input
                 id="email"
@@ -134,7 +160,7 @@ export function LoginPage({ initialMode = "login" }) {
             </div>
             <div>
               <label className={labelClass} htmlFor="password">
-                Password
+                {t("login.password")}
               </label>
               <input
                 id="password"
@@ -147,16 +173,16 @@ export function LoginPage({ initialMode = "login" }) {
             </div>
             {error && <p className={errorText}>{error}</p>}
             <button type="submit" disabled={submitting} className={`${btnPrimary} w-full`}>
-              {submitting ? "Signing in…" : "Sign in"}
+              {submitting ? t("login.signingIn") : t("login.signIn")}
             </button>
             <p className="text-center text-sm text-ink-400">
-              New patient?{" "}
+              {t("login.newPatient")}{" "}
               <button
                 type="button"
                 onClick={() => switchMode("signup")}
                 className="font-medium text-frost-600 hover:underline"
               >
-                Create account
+                {t("login.createAccount")}
               </button>
             </p>
           </form>
@@ -164,7 +190,7 @@ export function LoginPage({ initialMode = "login" }) {
           <form onSubmit={handleSignup} className="mt-7 space-y-4">
             <div>
               <label className={labelClass} htmlFor="signup-name">
-                Full name
+                {t("login.fullName")}
               </label>
               <input
                 id="signup-name"
@@ -176,7 +202,7 @@ export function LoginPage({ initialMode = "login" }) {
             </div>
             <div>
               <label className={labelClass} htmlFor="signup-email">
-                Email
+                {t("login.email")}
               </label>
               <input
                 id="signup-email"
@@ -190,7 +216,7 @@ export function LoginPage({ initialMode = "login" }) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="signup-password">
-                  Password
+                  {t("login.password")}
                 </label>
                 <input
                   id="signup-password"
@@ -204,7 +230,7 @@ export function LoginPage({ initialMode = "login" }) {
               </div>
               <div>
                 <label className={labelClass} htmlFor="signup-confirm">
-                  Confirm password
+                  {t("login.confirmPassword")}
                 </label>
                 <input
                   id="signup-confirm"
@@ -223,7 +249,7 @@ export function LoginPage({ initialMode = "login" }) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className={labelClass} htmlFor="signup-dob">
-                  Date of birth
+                  {t("login.dob")}
                 </label>
                 <input
                   id="signup-dob"
@@ -236,7 +262,7 @@ export function LoginPage({ initialMode = "login" }) {
               </div>
               <div>
                 <label className={labelClass} htmlFor="signup-sex">
-                  Sex
+                  {t("login.sex")}
                 </label>
                 <select
                   id="signup-sex"
@@ -244,15 +270,15 @@ export function LoginPage({ initialMode = "login" }) {
                   onChange={(e) => setSex(e.target.value)}
                   className={inputClass}
                 >
-                  <option>Female</option>
-                  <option>Male</option>
-                  <option>Other</option>
+                  <option value="Female">{t("login.sexFemale")}</option>
+                  <option value="Male">{t("login.sexMale")}</option>
+                  <option value="Other">{t("login.sexOther")}</option>
                 </select>
               </div>
             </div>
             <div>
               <label className={labelClass} htmlFor="signup-phone">
-                Phone
+                {t("login.phone")}
               </label>
               <input
                 id="signup-phone"
@@ -265,24 +291,20 @@ export function LoginPage({ initialMode = "login" }) {
                 onChange={(e) => setPhone(e.target.value)}
                 className={inputClass}
               />
-              {phoneError && (
-                <p className={`mt-1 ${errorText}`}>
-                  Enter a valid phone number, e.g. +1 555 123 4567.
-                </p>
-              )}
+              {phoneError && <p className={`mt-1 ${errorText}`}>{t("login.phoneHint")}</p>}
             </div>
             {error && <p className={errorText}>{error}</p>}
             <button type="submit" disabled={submitting} className={`${btnPrimary} w-full`}>
-              {submitting ? "Creating account…" : "Create account"}
+              {submitting ? t("login.creatingAccount") : t("login.createAccount")}
             </button>
             <p className="text-center text-sm text-ink-400">
-              Already have an account?{" "}
+              {t("login.haveAccount")}{" "}
               <button
                 type="button"
                 onClick={() => switchMode("login")}
                 className="font-medium text-frost-600 hover:underline"
               >
-                Sign in
+                {t("login.signIn")}
               </button>
             </p>
           </form>
@@ -290,7 +312,7 @@ export function LoginPage({ initialMode = "login" }) {
 
         {mode === "login" && (
           <div className="mt-7 border-t border-hairline/70 pt-4">
-            <p className="text-xs font-medium text-ink-400">Demo accounts (dummy data)</p>
+            <p className="text-xs font-medium text-ink-400">{t("login.demoAccounts")}</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {DEMO_ACCOUNTS.map((acct) => (
                 <button
@@ -302,7 +324,7 @@ export function LoginPage({ initialMode = "login" }) {
                   }}
                   className="rounded-lg border border-hairline/80 bg-surface/60 px-2 py-1.5 text-xs text-ink-700 transition hover:bg-surface"
                 >
-                  {acct.label}
+                  {t(acct.roleKey)}
                 </button>
               ))}
             </div>

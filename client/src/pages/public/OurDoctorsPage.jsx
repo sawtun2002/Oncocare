@@ -418,7 +418,7 @@ const OurDoctorsPage = () => {
                       <i className="fas fa-arrow-right text-[10px]"></i>
                     </Link>
                     <Link
-                      to={`/doctors/${doctor.id}/book`}
+                      to={`/book?doctorId=${doctor.id}`}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 text-slate-700 px-3.5 py-2.5 text-xs sm:text-sm font-semibold hover:bg-slate-100 transition-colors"
                       title="Book Appointment"
                     >

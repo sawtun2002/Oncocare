@@ -27,14 +27,20 @@ Opens at `http://localhost:5173`.
 | Patient      | patient@cancerhms.local        | patient123     |
 
 Patients sign in to a self-service portal (request an appointment — a doctor accepts or declines it —
-reschedule or withdraw their own bookings, and read their own bill, itemized) and cannot reach any
-staff screen. The seeded patient login is linked to the "John Doe" patient record.
+reschedule or withdraw their own bookings, and read their own bill, itemized, with a **Print / Save as
+PDF** receipt per invoice) and cannot reach any staff screen. The seeded patient login is linked to the
+"John Doe" patient record.
 
 Every account, staff or patient, gets a profile page: click your name/avatar at the bottom of the
-sidebar (not a nav link). It covers a photo, name/email (plus phone/department for staff — a patient's
-contact details live on their patient record instead), an appointment-reminders toggle, password, when
-you last signed in, and the light/dark/system theme. Changing a password in the mock API updates the
-seeded account, so note the new one — there is no reset flow.
+sidebar (not a nav link). It covers a photo, name/email (plus phone/department/address for staff — a
+patient's contact details live on their patient record instead), an appointment-reminders toggle,
+password, when you last signed in, and the light/dark/system theme. Changing a password in the mock API
+updates the seeded account, so note the new one — there is no reset flow.
+
+Staff records also carry an **NRC** (Myanmar National Registration Card, e.g. `12/MABANA(N)123456`),
+entered by an admin when the account is created and shown on the staff detail dialog (`/users` → click
+a name). It isn't editable from the profile page. Patient records carry an optional NRC too, on the
+patient form.
 
 An `ADMIN` can also deactivate a staff account from **Staff accounts** (`/users`) — it blocks that
 login and removes them from doctor pickers for new bookings, but never touches their existing patients
@@ -43,7 +49,10 @@ or appointments, and can be reversed at any time. An admin can't deactivate thei
 Any staff member can file and track time off at **Leave** (`/leave`). An `ADMIN` sees an extra
 "Awaiting your decision" section there and approves or declines requests (a note is required to
 decline); a pending request also shows on the admin's notice bell. An admin can't decide their own
-request.
+request. Approving is a review step — the dialog lists any appointments that fall in the leave window
+first. Approved leave then hides that doctor's slots for new bookings and lists the already-booked
+appointments under **Affected by approved leave** on the Bookings page (`ADMIN`/`RECEPTIONIST`) to
+reschedule; nothing is cancelled automatically.
 
 ## Mock data layer
 

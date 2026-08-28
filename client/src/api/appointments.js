@@ -113,9 +113,45 @@ function actsOnOwn(appointment, actor) {
   return actor?.patientId != null && actor.patientId === appointment.patientId;
 }
 
+/** The local calendar date (`YYYY-MM-DD`) an ISO instant falls on, clinic-local. */
+function localDateOf(iso) {
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * True when `userId` has an APPROVED leave request that covers calendar date
+ * `ymd` (`YYYY-MM-DD`). Leave dates are inclusive, so a plain string compare
+ * works. Pending/declined/withdrawn leave blocks nothing.
+ */
+function onApprovedLeave(userId, ymd) {
+  return db.leaveRequests.some(
+    (r) => r.userId === userId && r.status === "APPROVED" && r.startDate <= ymd && ymd <= r.endDate
+  );
+}
+
 export async function listAppointments() {
   if (settleExpiredRequests()) persist();
   return delay([...db.appointments].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)));
+}
+
+/**
+ * The still-live appointments (SCHEDULED, or REQUESTED and not expired) that now
+ * sit on one of their doctor's APPROVED-leave days -- reception's "needs
+ * rescheduling" list. Sorted by `scheduledAt` ascending, like `listAppointments`.
+ * Allowed roles: ADMIN, RECEPTIONIST (the ones who reschedule); other callers
+ * get the same list in the mock, the real backend gates it.
+ */
+export async function listLeaveClashes() {
+  // Same lazy sweep as listAppointments -- an expired request has freed its slot
+  // and is not something to reschedule.
+  if (settleExpiredRequests()) persist();
+  const clashes = db.appointments.filter(
+    (a) => blocksSlot(a) && onApprovedLeave(a.doctorId, localDateOf(a.scheduledAt))
+  );
+  clashes.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  return delay(clashes);
 }
 
 /**
@@ -129,13 +165,16 @@ export async function getAvailability(doctorId, date) {
   }
 
   const now = Date.now();
+  // A doctor on approved leave that day is not bookable at all -- every slot
+  // comes back taken, so SlotPicker shows "no times left on this day".
+  const onLeave = onApprovedLeave(doctorId, date);
   const slots = [];
 
   for (let hour = CLINIC_OPEN_HOUR; hour < CLINIC_CLOSE_HOUR; hour += 1) {
     for (let minute = 0; minute < 60; minute += SLOT_MINUTES) {
       const start = new Date(year, month - 1, day, hour, minute, 0, 0);
       const startIso = start.toISOString();
-      const taken = Boolean(conflictingAppointment(doctorId, startIso, SLOT_MINUTES));
+      const taken = onLeave || Boolean(conflictingAppointment(doctorId, startIso, SLOT_MINUTES));
       // A slot in the past is never bookable, however free the doctor is.
       slots.push({ start: startIso, available: !taken && start.getTime() > now });
     }

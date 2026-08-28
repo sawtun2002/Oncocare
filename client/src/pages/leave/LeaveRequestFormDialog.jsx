@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { toDateInputValue } from "../../lib/format";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 
 const LEAVE_TYPES = [
-  { value: "ANNUAL", label: "Annual leave" },
-  { value: "SICK", label: "Sick leave" },
-  { value: "TRAINING", label: "Training" },
-  { value: "OTHER", label: "Other" },
+  { value: "ANNUAL", labelKey: "leaveForm.typeAnnual" },
+  { value: "SICK", labelKey: "leaveForm.typeSick" },
+  { value: "TRAINING", labelKey: "leaveForm.typeTraining" },
+  { value: "OTHER", labelKey: "leaveForm.typeOther" },
 ];
 
 /**
@@ -16,6 +17,7 @@ const LEAVE_TYPES = [
  * onSubmit({ type, startDate, endDate, reason }).
  */
 export function LeaveRequestFormDialog({ onClose, onSubmit }) {
+  const { t } = useLanguage();
   const today = toDateInputValue();
   const [type, setType] = useState("ANNUAL");
   const [startDate, setStartDate] = useState("");
@@ -28,7 +30,7 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (endDate < startDate) {
-      setError("The end date can't be before the start date.");
+      setError(t("leaveForm.endBeforeStart"));
       return;
     }
     setError(null);
@@ -37,21 +39,21 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
       await onSubmit({ type, startDate, endDate, reason: reason.trim() });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title="Request leave" onClose={onClose} ref={modalRef}>
+    <Modal title={t("leaveForm.title")} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
-          Type
+          {t("leaveForm.type")}
           <select value={type} onChange={(e) => setType(e.target.value)} className={inputClass}>
-            {LEAVE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {LEAVE_TYPES.map((lt) => (
+              <option key={lt.value} value={lt.value}>
+                {t(lt.labelKey)}
               </option>
             ))}
           </select>
@@ -59,7 +61,7 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className={labelClass}>
-            First day
+            {t("leaveForm.firstDay")}
             <input
               type="date"
               required
@@ -73,7 +75,7 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
             />
           </label>
           <label className={labelClass}>
-            Last day
+            {t("leaveForm.lastDay")}
             <input
               type="date"
               required
@@ -86,13 +88,13 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
         </div>
 
         <label className={labelClass}>
-          Reason
+          {t("leaveForm.reason")}
           <textarea
             rows={3}
             required
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Shared with the administrator who reviews this"
+            placeholder={t("leaveForm.reasonPlaceholder")}
             className={inputClass}
           />
         </label>
@@ -101,10 +103,10 @@ export function LeaveRequestFormDialog({ onClose, onSubmit }) {
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>
-            {submitting ? "Sending…" : "Submit request"}
+            {submitting ? t("leaveForm.submitting") : t("leaveForm.submit")}
           </button>
         </div>
       </form>

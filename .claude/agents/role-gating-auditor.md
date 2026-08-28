@@ -53,6 +53,7 @@ used in only one of two places, is a finding.
 |---|---|---|
 | `/`, `/patients`, `/patients/:id`, `/appointments` | `STAFF_ROLES` | `Layout.jsx` + `App.jsx` |
 | `/billing` route | ADMIN, RECEPTIONIST | `Layout.jsx` + `App.jsx` |
+| Create invoice / change invoice status | ADMIN, RECEPTIONIST | `BillingPage.jsx` / `InvoiceDetailDialog.jsx` + `POST /api/invoices`, `PATCH /api/invoices/:id/status` (actor stamped onto an `InvoiceEvent`) |
 | `/users` staff accounts | ADMIN | `Layout.jsx` + `App.jsx` |
 | `/my-bookings`, `/book` | `PATIENT_ROLES` | `Layout.jsx` + `App.jsx` |
 | `/doctors`, `/doctors/:id` | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
@@ -61,10 +62,11 @@ used in only one of two places, is a finding.
 | Dashboard billing card + `["billing-summary"]` query | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |
 | Edit patient, all fields | ADMIN, RECEPTIONIST | `PatientDetailPage.jsx` (`canEdit`) |
-| Edit patient, clinical fields only | the patient's **assigned** DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly = role==="DOCTOR" && patient.assignedDoctorId===user.id`) → `clinicalOnly` prop disables everything except `diagnosisType`/`diagnosisStage`/`bloodType`/`allergies`/`medicalHistory`/`notes` |
+| Edit patient, clinical fields only | the patient's **assigned** DOCTOR | `PatientDetailPage.jsx` (`clinicalOnly = role==="DOCTOR" && patient.assignedDoctorId===user.id`) → `clinicalOnly` prop disables everything except `diagnosisType`/`diagnosisStage`/`bloodType`/`allergies`/`medicalHistory`/`notes` (so `nrc`, like emergency contact, is registrar-only) |
 | `/my-bills` (own bill, read-only) | `PATIENT_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/leave` (file + track own leave) | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Approve/decline a leave request | ADMIN, not own | `LeavePage.jsx` (`isAdmin`) + `PATCH /api/leave-requests/:id/decision` |
+| Leave conflicts / "affected by approved leave" | ADMIN (`:id/conflicts`); ADMIN, RECEPTIONIST (`/leave-clashes`) | `LeavePage.jsx` (`conflictsQuery`) + `AppointmentsPage.jsx` (`canSeeLeaveClashes`) |
 | Reschedule/cancel from a patient record | ADMIN, RECEPTIONIST (reason required) | `PatientDetailPage.jsx` (`canManageBookings`) |
 | Accept / decline an appointment request | ADMIN, RECEPTIONIST (any); DOCTOR (own only); never NURSE | `AppointmentsPage.jsx` (`canDecide(a)`) + `POST /api/appointments/:id/{accept,decline}` |
 | Mark appointment COMPLETED / NO_SHOW | any staff, past-slot only | `AppointmentsPage.jsx` (`RowActions`) + `PATCH /api/appointments/:id/status` |

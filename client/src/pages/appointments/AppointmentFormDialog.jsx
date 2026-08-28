@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { SLOT_MINUTES } from "../../api/appointments";
+import { useLanguage } from "../../context/LanguageContext";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { formatDateTime } from "../../lib/format";
 import { SlotPicker } from "../booking/SlotPicker";
 
 export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) {
+  const { t } = useLanguage();
   const [patientId, setPatientId] = useState(patients[0]?.id ?? "");
   const [doctorId, setDoctorId] = useState(doctors[0]?.id ?? "");
   const [selectedStart, setSelectedStart] = useState(null);
@@ -29,7 +31,7 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
       });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
       setSelectedStart(null);
     } finally {
       setSubmitting(false);
@@ -37,10 +39,10 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
   }
 
   return (
-    <Modal title="Book appointment" onClose={onClose} ref={modalRef}>
+    <Modal title={t("apptForm.title")} onClose={onClose} ref={modalRef}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className={labelClass}>
-          Patient
+          {t("apptForm.patient")}
           <select
             required
             value={patientId}
@@ -64,13 +66,14 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
         />
 
         <label className={labelClass}>
-          Reason
+          {t("apptForm.reason")}
           <input value={reason} onChange={(e) => setReason(e.target.value)} className={inputClass} />
         </label>
 
         {selectedStart && (
           <p className="rounded-lg bg-frost-300/20 px-3 py-2 text-sm text-ink-700">
-            Booking <span className="font-medium text-ink-900">{formatDateTime(selectedStart)}</span>
+            {t("apptForm.bookingPrefix")}{" "}
+            <span className="font-medium text-ink-900">{formatDateTime(selectedStart)}</span>
           </p>
         )}
 
@@ -78,10 +81,10 @@ export function AppointmentFormDialog({ patients, doctors, onClose, onSubmit }) 
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting || !selectedStart} className={btnPrimary}>
-            {submitting ? "Booking…" : "Book"}
+            {submitting ? t("apptForm.submitting") : t("apptForm.submit")}
           </button>
         </div>
       </form>

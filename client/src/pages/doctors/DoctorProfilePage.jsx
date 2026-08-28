@@ -4,11 +4,13 @@ import { getDoctorProfile } from "../../api/doctors";
 import { GlassCard } from "../../components/GlassCard";
 import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { initials } from "../../lib/format";
 import { btnGhost, btnPrimary, pageTitle, sectionLabel } from "../../lib/ui";
 
 export function DoctorProfilePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { id } = useParams();
   const doctorId = Number(id);
 
@@ -27,10 +29,10 @@ export function DoctorProfilePage() {
   if (doctorQuery.isError || !doctor) {
     return (
       <GlassCard className="p-6">
-        <h1 className="text-lg font-semibold text-ink-900">Doctor not found</h1>
-        <p className="mt-2 text-sm text-ink-700">This profile isn't available.</p>
+        <h1 className="text-lg font-semibold text-ink-900">{t("docProfile.notFound")}</h1>
+        <p className="mt-2 text-sm text-ink-700">{t("docProfile.notAvailable")}</p>
         <Link to="/doctors" className={`${btnGhost} mt-4`}>
-          Back to all doctors
+          {t("docProfile.backToAll")}
         </Link>
       </GlassCard>
     );
@@ -42,7 +44,7 @@ export function DoctorProfilePage() {
         to="/doctors"
         className="text-sm font-medium text-ink-400 transition hover:text-frost-600 hover:underline"
       >
-        ← All doctors
+        {t("docProfile.allDoctors")}
       </Link>
 
       <GlassCard className="mt-4 p-6">
@@ -55,7 +57,7 @@ export function DoctorProfilePage() {
               <h1 className={pageTitle}>{doctor.name}</h1>
               <p className="mt-1 text-sm font-medium text-frost-600">{doctor.specialty}</p>
               <p className="mt-1 text-sm text-ink-400">
-                {doctor.yearsOfExperience} years of experience
+                {t("docs.yearsExperience", { n: doctor.yearsOfExperience })}
               </p>
             </div>
           </div>
@@ -64,7 +66,7 @@ export function DoctorProfilePage() {
               appointments page, where they pick the patient too. */}
           {user?.role === "PATIENT" && (
             <Link to={`/book?doctorId=${doctor.id}`} className={btnPrimary}>
-              Book with {doctor.name}
+              {t("docProfile.bookWith", { name: doctor.name })}
             </Link>
           )}
         </div>
@@ -73,7 +75,7 @@ export function DoctorProfilePage() {
       </GlassCard>
 
       <section className="mt-8">
-        <h2 className={sectionLabel}>Education &amp; training</h2>
+        <h2 className={sectionLabel}>{t("docProfile.education")}</h2>
         <GlassCard solid className="mt-3 divide-y divide-ice-200/70">
           {doctor.education.map((entry) => (
             <EducationRow key={`${entry.degree}-${entry.year}`} entry={entry} />
@@ -83,7 +85,7 @@ export function DoctorProfilePage() {
 
       {doctor.certifications?.length ? (
         <section className="mt-8">
-          <h2 className={sectionLabel}>Certifications</h2>
+          <h2 className={sectionLabel}>{t("docProfile.certifications")}</h2>
           <GlassCard className="mt-3 p-5">
             <ul className="space-y-2">
               {doctor.certifications.map((cert) => (
@@ -101,7 +103,7 @@ export function DoctorProfilePage() {
 
       {doctor.languages?.length ? (
         <section className="mt-8">
-          <h2 className={sectionLabel}>Languages spoken</h2>
+          <h2 className={sectionLabel}>{t("docProfile.languages")}</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {doctor.languages.map((language) => (
               <span

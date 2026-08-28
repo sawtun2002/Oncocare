@@ -4,6 +4,7 @@ import ErrorLayout from '../../Layout/ErrorLayout'
 
 export default function UnauthorizedPage() {
   const location = useLocation()
+  const { t } = useLanguage()
 
   return (
     <ErrorLayout

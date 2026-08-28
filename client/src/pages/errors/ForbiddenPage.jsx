@@ -2,6 +2,7 @@ import React from 'react'
 import ErrorLayout from '../../Layout/ErrorLayout'
 
 export default function ForbiddenPage() {
+  const { t } = useLanguage()
   return (
     <ErrorLayout
       code="403"

@@ -39,6 +39,7 @@ bug this skill exists to prevent.
 |---|---|---|
 | `/`, `/patients`, `/patients/:id`, `/appointments` | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/billing` route | ADMIN, RECEPTIONIST | `Layout.jsx` (nav) + `App.jsx` (guard) |
+| Create invoice / change invoice status | ADMIN, RECEPTIONIST | `BillingPage.jsx` + `InvoiceDetailDialog.jsx` + `POST /api/invoices`, `PATCH /api/invoices/:id/status`. The `actor` is stamped onto an `InvoiceEvent` for accountability ("received by" = latest `MARKED_PAID` actor). |
 | `/users` (staff accounts) | ADMIN | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Billing summary card on dashboard | ADMIN, RECEPTIONIST | `DashboardPage.jsx` (`canSeeBilling`, also gates the query via `enabled:`) |
 | Register patient | ADMIN, RECEPTIONIST | `PatientsListPage.jsx` (`canRegister`) |
@@ -53,6 +54,8 @@ bug this skill exists to prevent.
 | `/leave` (file + track own leave) | `STAFF_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | Approve / decline a leave request | ADMIN, **not own** (note required to decline) | `LeavePage.jsx` (`isAdmin` section + `enabled:` query) + `PATCH /api/leave-requests/:id/decision` |
 | Withdraw a leave request | the requester, while `PENDING` | `LeavePage.jsx` + `POST /api/leave-requests/:id/withdraw` |
+| Leave conflicts for one request (`GET /api/leave-requests/:id/conflicts`) | ADMIN | `LeavePage.jsx` (`conflictsQuery`, `enabled: approving != null`) → `LeaveApprovalDialog` |
+| "Affected by approved leave" list (`GET /api/appointments/leave-clashes`) | ADMIN, RECEPTIONIST | `AppointmentsPage.jsx` (`canSeeLeaveClashes` + `enabled:` query) |
 | `/doctors`, `/doctors/:id` (doctor directory) | `ALL_ROLES` | `Layout.jsx` (nav) + `App.jsx` (guard) |
 | `/profile` (own account) | `ALL_ROLES` | `App.jsx` (guard) — see note below on the missing nav entry |
 | "Book with this doctor" CTA on a profile | PATIENT | `DoctorProfilePage.jsx` (`user?.role === "PATIENT"`) |
@@ -75,8 +78,9 @@ signed-in admin's own row, and `PATCH /api/users/:id/status` documents the same 
 server-side — deactivating the only admin who could undo it would lock everyone out.
 
 Clinical fields for the DOCTOR case are `diagnosisType`, `diagnosisStage`, `bloodType`, `allergies`,
-`medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone` are **not** in that set — they
-sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly` is true.
+`medicalHistory`, `notes`. `emergencyContactName`/`emergencyContactPhone`/`nrc` are **not** in that
+set — they sit next to `phone`/`address` as registrar fields, disabled the same way when `clinicalOnly`
+is true. (`nrc` is the Myanmar National Registration Card; `isValidNrc` in `lib/validation.js` format-checks it. Staff also carry `nrc` — required in the "Add staff account" form, never editable from `/profile`.)
 The DOCTOR case is also **assignment-scoped**: `clinicalOnly` is true only when
 `patient.assignedDoctorId === user.id`, matching `PATCH /api/patients/:id`'s "on their assigned
 patients" clause — a doctor cannot open the editor on a patient who isn't theirs.
@@ -93,6 +97,12 @@ family: `userId` on a new request is taken from the token, not the body (you fil
 and an `ADMIN` may not decide a request where `userId` is their own — the same "can't act on yourself"
 shape as staff deactivation. Non-admin staff are scoped server-side to their own requests on
 `GET /api/leave-requests` regardless of the `userId` query param.
+
+An `APPROVED` leave request's effect on the calendar is entirely **derived** — no appointment is
+modified on approval (D4). `getAvailability` treats a covered day as fully booked; `listLeaveClashes`
+(`GET /api/appointments/leave-clashes`, `ADMIN`/`RECEPTIONIST`) and `leaveRequestConflicts`
+(`GET /api/leave-requests/:id/conflicts`, `ADMIN`) surface the already-booked appointments that now
+land on a leave day, for someone to reschedule by hand.
 
 ## The backend must enforce it too
 
