@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from "../context/AuthContext"
+import { useLanguage } from "../context/LanguageContext"
 import logoFull from '../assets/logo-full-hori.png'
 import logoMark from '../assets/logo-mark.png'
 
 export default function Navbar({ onMenuClick }) {
+  const { t } = useLanguage()
   // Track open profile dropdown by ID ('inner', 'outer', 'mobile', or null)
   const [activeProfileMenu, setActiveProfileMenu] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -91,17 +93,14 @@ export default function Navbar({ onMenuClick }) {
     }
   }
 
-  const getRoleName = () => {
-    if (!user) return ''
-    return user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
-  }
+  const roleName = () => (user ? t(`role.${user.role}`) : '')
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/our-doctors', label: 'Doctors' },
-    { to: '/rooms', label: 'Rooms' },
-    { to: '/about', label: 'About' },
-    { to: '/contact', label: 'Contact' },
+    { to: '/', labelKey: 'pub.linkHome' },
+    { to: '/our-doctors', labelKey: 'pub.linkDoctors' },
+    { to: '/rooms', labelKey: 'pub.linkRooms' },
+    { to: '/about', labelKey: 'pub.linkAbout' },
+    { to: '/contact', labelKey: 'pub.linkContact' },
   ]
 
   return (
@@ -172,7 +171,7 @@ export default function Navbar({ onMenuClick }) {
                     }`
                   }
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </NavLink>
               ))}
             </div>
@@ -220,7 +219,7 @@ export default function Navbar({ onMenuClick }) {
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition-colors hover:bg-ice-100 cursor-pointer"
                       >
                         <i className="fas fa-user w-5 text-ink-400"></i>
-                        My Profile
+                        {t('pub.myProfile')}
                       </button>
                       <button
                         type="button"
@@ -228,7 +227,7 @@ export default function Navbar({ onMenuClick }) {
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition-colors hover:bg-ice-100 cursor-pointer"
                       >
                         <i className="fas fa-chart-line w-5 text-ink-400"></i>
-                        {getRoleName()} Dashboard
+                        {t('pub.roleDashboard', { role: roleName() })}
                       </button>
                       <div className="mt-2 border-t border-hairline/70 pt-2">
                         <button
@@ -237,7 +236,7 @@ export default function Navbar({ onMenuClick }) {
                           className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer"
                         >
                           <i className="fas fa-sign-out-alt w-5 text-rose-400"></i>
-                          Logout
+                          {t('pub.logout')}
                         </button>
                       </div>
                     </div>
@@ -248,7 +247,7 @@ export default function Navbar({ onMenuClick }) {
                   to="/login" 
                   className="flex whitespace-nowrap items-center gap-1.5 rounded-full bg-serenity-600 px-3.5 py-1.5 text-xs font-semibold text-white transition-all hover:bg-serenity-700 cursor-pointer"
                 >
-                  Log in
+                  {t('pub.login')}
                   <span>→</span>
                 </NavLink>
               )}
@@ -284,7 +283,7 @@ export default function Navbar({ onMenuClick }) {
                   </div>
                   <div className="text-left hidden lg:block">
                     <p className="text-sm font-semibold text-ink-900 leading-tight">{user.name}</p>
-                    <p className="text-xs text-ink-400">{getRoleName()}</p>
+                    <p className="text-xs text-ink-400">{roleName()}</p>
                   </div>
                   <i className={`fas fa-chevron-down text-ink-400 text-xs transition-transform ${activeProfileMenu === 'outer' ? 'rotate-180' : ''}`}></i>
                 </button>
@@ -302,7 +301,7 @@ export default function Navbar({ onMenuClick }) {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition-colors hover:bg-ice-100 cursor-pointer"
                     >
                       <i className="fas fa-user w-5 text-ink-400"></i>
-                      My Profile
+                      {t('pub.myProfile')}
                     </button>
                     <button
                       type="button"
@@ -310,7 +309,7 @@ export default function Navbar({ onMenuClick }) {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 transition-colors hover:bg-ice-100 cursor-pointer"
                     >
                       <i className="fas fa-chart-line w-5 text-ink-400"></i>
-                      {getRoleName()} Dashboard
+                      {t('pub.roleDashboard', { role: roleName() })}
                     </button>
                     <div className="mt-2 border-t border-hairline/70 pt-2">
                       <button
@@ -319,7 +318,7 @@ export default function Navbar({ onMenuClick }) {
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer"
                       >
                         <i className="fas fa-sign-out-alt w-5 text-rose-400"></i>
-                        Logout
+                        {t('pub.logout')}
                       </button>
                     </div>
                   </div>
@@ -327,17 +326,17 @@ export default function Navbar({ onMenuClick }) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <NavLink 
-                  to="/login" 
+                <NavLink
+                  to="/login"
                   className="font-medium px-4 py-2 rounded-full transition-all cursor-pointer text-white hover:bg-white/10"
                 >
-                  Login
+                  {t('pub.login')}
                 </NavLink>
-                <NavLink 
-                  to="/register" 
+                <NavLink
+                  to="/register"
                   className="px-4 py-2 rounded-full font-medium transition-all cursor-pointer bg-white text-serenity-700 hover:bg-serenity-50 shadow-lg"
                 >
-                  Register
+                  {t('pub.register')}
                 </NavLink>
               </div>
             )}
@@ -350,7 +349,7 @@ export default function Navbar({ onMenuClick }) {
                 <button
                   type="button"
                   onClick={() => toggleProfileMenu('mobile')}
-                  aria-label="Open profile menu"
+                  aria-label={t('pub.openProfileMenu')}
                   aria-expanded={activeProfileMenu === 'mobile'}
                   className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 focus:outline-none cursor-pointer ${
                     'border-hairline bg-surface/60 text-ink-700 backdrop-blur-sm hover:bg-surface/80'
@@ -376,7 +375,7 @@ export default function Navbar({ onMenuClick }) {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-ice-100 cursor-pointer"
                     >
                       <i className="fas fa-user w-5 text-ink-400" aria-hidden="true"></i>
-                      My Profile
+                      {t('pub.myProfile')}
                     </button>
                     <button
                       type="button"
@@ -384,7 +383,7 @@ export default function Navbar({ onMenuClick }) {
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink-700 hover:bg-ice-100 cursor-pointer"
                     >
                       <i className="fas fa-chart-line w-5 text-ink-400" aria-hidden="true"></i>
-                      {getRoleName()} Dashboard
+                      {t('pub.roleDashboard', { role: roleName() })}
                     </button>
                     <button
                       type="button"
@@ -392,7 +391,7 @@ export default function Navbar({ onMenuClick }) {
                       className="flex w-full items-center gap-3 border-t border-hairline/70 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer"
                     >
                       <i className="fas fa-sign-out-alt w-5 text-rose-400" aria-hidden="true"></i>
-                      Logout
+                      {t('pub.logout')}
                     </button>
                   </div>
                 )}
@@ -401,7 +400,7 @@ export default function Navbar({ onMenuClick }) {
             <button
               type="button"
               onClick={onMenuClick || (() => setMobileMenuOpen(!mobileMenuOpen))}
-              aria-label="Open navigation menu"
+              aria-label={t('pub.openNavMenu')}
               className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors focus:outline-none cursor-pointer ${
                   'text-ink-700 hover:bg-surface/70'
               }`}
@@ -434,7 +433,7 @@ export default function Navbar({ onMenuClick }) {
                     }`
                   }
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                   <span className="text-xs opacity-60">→</span>
                 </NavLink>
               ))}

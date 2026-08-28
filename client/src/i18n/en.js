@@ -634,4 +634,22 @@ export const en = {
   "err.500Title": "Internal Server Error",
   "err.500Body": "Something went wrong on our server while processing your request. Please try again or return home.",
   "err.tryAgain": "Try Again",
+
+  // --- public shell (marketing nav / sidebar) ---------------
+  "pub.linkHome": "Home",
+  "pub.linkDoctors": "Doctors",
+  "pub.linkRooms": "Rooms",
+  "pub.linkAbout": "About",
+  "pub.linkContact": "Contact",
+  "pub.myProfile": "My Profile",
+  "pub.roleDashboard": "{role} Dashboard",
+  "pub.logout": "Logout",
+  "pub.login": "Log in",
+  "pub.register": "Register",
+  "pub.openProfileMenu": "Open profile menu",
+  "pub.openNavMenu": "Open navigation menu",
+  "pub.closeMenu": "Close menu",
+  "pub.signedInAs": "Signed in as {name}",
+  "pub.goToDashboard": "Go to Dashboard",
+  "pub.staffLogin": "Patient / Staff Login",
 };

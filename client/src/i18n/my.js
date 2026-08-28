@@ -634,4 +634,22 @@ export const my = {
   "err.500Title": "ဆာဗာ အတွင်းပိုင်း အမှား",
   "err.500Body": "သင့်တောင်းဆိုမှုကို ဆောင်ရွက်နေစဉ် ကျွန်ုပ်တို့၏ ဆာဗာတွင် တစ်စုံတစ်ခု အမှားဖြစ်သွားသည်။ ထပ်မံ ကြိုးစားပါ သို့မဟုတ် ပင်မသို့ ပြန်သွားပါ။",
   "err.tryAgain": "ထပ်မံ ကြိုးစားရန်",
+
+  // --- public shell (marketing nav / sidebar) ---------------
+  "pub.linkHome": "ပင်မ",
+  "pub.linkDoctors": "ဆရာဝန်များ",
+  "pub.linkRooms": "အခန်းများ",
+  "pub.linkAbout": "အကြောင်း",
+  "pub.linkContact": "ဆက်သွယ်ရန်",
+  "pub.myProfile": "ကျွန်ုပ်၏ ပရိုဖိုင်",
+  "pub.roleDashboard": "{role} ဒက်ရှ်ဘုတ်",
+  "pub.logout": "ထွက်မည်",
+  "pub.login": "လော့ဂ်အင်ဝင်ရန်",
+  "pub.register": "စာရင်းသွင်းရန်",
+  "pub.openProfileMenu": "ပရိုဖိုင် မီနူး ဖွင့်ရန်",
+  "pub.openNavMenu": "လမ်းညွှန် မီနူး ဖွင့်ရန်",
+  "pub.closeMenu": "မီနူး ပိတ်ရန်",
+  "pub.signedInAs": "{name} အဖြစ် ဝင်ရောက်ထားသည်",
+  "pub.goToDashboard": "ဒက်ရှ်ဘုတ်သို့ သွားရန်",
+  "pub.staffLogin": "လူနာ / ဝန်ထမ်း လော့ဂ်အင်",
 };
