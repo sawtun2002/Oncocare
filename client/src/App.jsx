@@ -76,7 +76,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected routes */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
         <Route element={<RoleLayout />}>
           <Route element={<ProtectedRoute allowedRoles={STAFF_ROLES} />}>
             <Route path="/dashboard" element={<DashboardPage />} />
