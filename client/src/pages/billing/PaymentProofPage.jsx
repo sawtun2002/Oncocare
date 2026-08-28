@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { formatCurrency } from "../../lib/format";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
+import Payment_QR from "../../assets/images/payment-qr.jpg";
 
 const MAX_RECEIPT_BYTES = 3 * 1024 * 1024;
-const PAYMENT_QR_URL = import.meta.env.VITE_PAYMENT_QR_URL;
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -84,13 +84,11 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
       <div className="mt-6 grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <section className="glass-panel p-6 text-center">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-400">Clinic payment QR</h2>
-          {PAYMENT_QR_URL ? (
-            <img src={PAYMENT_QR_URL} alt="Clinic payment QR code" className="mx-auto mt-4 aspect-square w-56 rounded-xl bg-white object-contain p-3 shadow-sm" />
-          ) : (
-            <div className="mx-auto mt-4 flex aspect-square w-56 items-center justify-center rounded-xl border-2 border-dashed border-hairline bg-surface p-6 text-center text-xs text-ink-400">
-              Configure VITE_PAYMENT_QR_URL to display the clinic payment QR code.
-            </div>
-          )}
+          <img 
+            src={Payment_QR} 
+            alt="Clinic payment QR code" 
+            className="mx-auto mt-4 aspect-square w-full object-contain shadow-sm" 
+          />
           <p className="mt-4 text-sm text-ink-700">Amount due: <strong className="text-ink-900">{formatCurrency(total)}</strong></p>
         </section>
 
