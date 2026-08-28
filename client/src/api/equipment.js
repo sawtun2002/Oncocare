@@ -1,6 +1,44 @@
 import { db, delay, nextId, persist } from "../mocks/db";
 import { ApiError } from "./errors";
 
+const DEFAULT_IMAGE_URL =
+  "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80";
+
+/**
+ * Creates the multipart body accepted by the backend equipment endpoints.
+ * `form` is JSON EquipmentCreateRequest/EquipmentUpdateRequest and `file` is
+ * the optional image upload. Do not set a Content-Type header manually when
+ * sending this FormData; the browser supplies the multipart boundary.
+ *
+ * @param {Object} input
+ * @param {File} [input.imageFile]
+ * @returns {FormData}
+ */
+export function toEquipmentMultipartFormData(input) {
+  const { imageFile, ...form } = input;
+  const formData = new FormData();
+  formData.append("form", new Blob([JSON.stringify(form)], { type: "application/json" }));
+  if (imageFile instanceof File) {
+    formData.append("file", imageFile);
+  }
+  return formData;
+}
+
+function imageFileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Unable to read the selected image."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function resolveImageUrl(input, fallback = DEFAULT_IMAGE_URL) {
+  return input.imageFile instanceof File
+    ? imageFileToDataUrl(input.imageFile)
+    : input.imageUrl?.trim() || fallback;
+}
+
 /**
  * List equipment posts.
  * Optional filters: category, featured (boolean), active (boolean), search (string).
@@ -78,6 +116,7 @@ export async function getEquipment(id) {
  * @param {string} [input.manufacturer]
  * @param {string} [input.model]
  * @param {string} [input.imageUrl]
+ * @param {File} [input.imageFile]
  * @param {boolean} [input.isFeatured]
  * @param {boolean} [input.isActive]
  * @param {import("../types").User} actor
@@ -95,6 +134,7 @@ export async function createEquipment(input, actor) {
     throw new Error("Category is required");
   }
 
+  const imageUrl = await resolveImageUrl(input);
   const now = new Date().toISOString();
   const newItem = {
     id: nextId("equipmentPost"),
@@ -103,7 +143,7 @@ export async function createEquipment(input, actor) {
     category: input.category.trim(),
     manufacturer: input.manufacturer?.trim() || "",
     model: input.model?.trim() || "",
-    imageUrl: input.imageUrl?.trim() || "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+    imageUrl,
     isFeatured: Boolean(input.isFeatured),
     isActive: input.isActive !== undefined ? Boolean(input.isActive) : true,
     createdBy: actor.id,
@@ -136,6 +176,9 @@ export async function updateEquipment(id, input, actor) {
   }
 
   const existing = db.equipmentPosts[index];
+  const uploadedImageUrl = input.imageFile instanceof File
+    ? await imageFileToDataUrl(input.imageFile)
+    : undefined;
   const updated = {
     ...existing,
     ...(input.title !== undefined && { title: input.title.trim() }),
@@ -143,7 +186,8 @@ export async function updateEquipment(id, input, actor) {
     ...(input.category !== undefined && { category: input.category.trim() }),
     ...(input.manufacturer !== undefined && { manufacturer: input.manufacturer.trim() }),
     ...(input.model !== undefined && { model: input.model.trim() }),
-    ...(input.imageUrl !== undefined && { imageUrl: input.imageUrl.trim() }),
+    ...(uploadedImageUrl !== undefined && { imageUrl: uploadedImageUrl }),
+    ...(uploadedImageUrl === undefined && input.imageUrl !== undefined && { imageUrl: input.imageUrl.trim() }),
     ...(input.isFeatured !== undefined && { isFeatured: Boolean(input.isFeatured) }),
     ...(input.isActive !== undefined && { isActive: Boolean(input.isActive) }),
     updatedAt: new Date().toISOString(),

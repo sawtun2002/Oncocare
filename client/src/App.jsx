@@ -27,6 +27,7 @@ import { LeavePage } from "./pages/leave/LeavePage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
 import { EquipmentPage } from "./pages/equipment/EquipmentPage";
+import { MedicalEquipmentPage } from "./pages/equipment/MedicalEquipmentPage";
 import { AdminEquipmentPage } from "./pages/admin/AdminEquipmentPage";
 
 // Error Pages
@@ -94,6 +95,10 @@ function App() {
             <Route path="/leave" element={<LeavePage />} />
           </Route>
 
+          <Route element={<ProtectedRoute allowedRoles={["DOCTOR", "NURSE", "RECEPTIONIST"]} />}>
+            <Route path="/staff/equipment" element={<MedicalEquipmentPage />} />
+          </Route>
+
           <Route element={<ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />}>
             <Route path="/billing" element={<BillingPage />} />
           </Route>
@@ -106,7 +111,6 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorProfilePage />} />
-            <Route path="/equipment" element={<EquipmentPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "./Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 
@@ -75,6 +75,7 @@ export function EquipmentFormDialog({
   const [manufacturer, setManufacturer] = useState(equipment?.manufacturer || "");
   const [model, setModel] = useState(equipment?.model || "");
   const [imageUrl, setImageUrl] = useState(equipment?.imageUrl || "");
+  const [imageFile, setImageFile] = useState(null);
   const [description, setDescription] = useState(equipment?.description || "");
   const [isFeatured, setIsFeatured] = useState(equipment?.isFeatured || false);
   const [isActive, setIsActive] = useState(equipment?.isActive !== undefined ? equipment.isActive : true);
@@ -82,6 +83,11 @@ export function EquipmentFormDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [imgPreviewError, setImgPreviewError] = useState(false);
+  const previewObjectUrl = useRef(null);
+
+  useEffect(() => () => {
+    if (previewObjectUrl.current) URL.revokeObjectURL(previewObjectUrl.current);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -103,16 +109,23 @@ export function EquipmentFormDialog({
 
     try {
       setSubmitting(true);
-      await onSubmit({
+      const payload = {
         title: title.trim(),
         category: finalCategory,
         manufacturer: manufacturer.trim(),
         model: model.trim(),
-        imageUrl: imageUrl.trim() || PRESET_IMAGES[0].url,
         description: description.trim(),
         isFeatured,
         isActive,
-      });
+      };
+
+      if (imageFile) {
+        payload.imageFile = imageFile;
+      } else {
+        payload.imageUrl = imageUrl.trim() || PRESET_IMAGES[0].url;
+      }
+
+      await onSubmit(payload);
       modalRef.current?.close();
     } catch (err) {
       setError(err.message || "Failed to save equipment post.");
@@ -123,6 +136,43 @@ export function EquipmentFormDialog({
 
   const handleCancel = () => {
     modalRef.current?.close();
+  };
+
+  const clearPreviewObjectUrl = () => {
+    if (previewObjectUrl.current) {
+      URL.revokeObjectURL(previewObjectUrl.current);
+      previewObjectUrl.current = null;
+    }
+  };
+
+  const handleImageFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image files must be 10 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    clearPreviewObjectUrl();
+    previewObjectUrl.current = URL.createObjectURL(file);
+    setImageFile(file);
+    setImageUrl(previewObjectUrl.current);
+    setImgPreviewError(false);
+    setError(null);
+  };
+
+  const selectPresetImage = (url) => {
+    clearPreviewObjectUrl();
+    setImageFile(null);
+    setImageUrl(url);
+    setImgPreviewError(false);
   };
 
   const previewImage =
@@ -260,7 +310,7 @@ export function EquipmentFormDialog({
             3. Image Media & Description
           </h4>
 
-          {/* Live Preview & URL */}
+          {/* Live Preview & Upload */}
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             {/* Live Image Preview */}
             <div className="relative h-28 w-36 shrink-0 overflow-hidden rounded-xl border border-hairline bg-slate-950/20">
@@ -277,19 +327,19 @@ export function EquipmentFormDialog({
 
             <div className="flex-1 w-full space-y-2">
               <label htmlFor="equipment-image" className={labelClass}>
-                Image URL
+                Upload equipment image
               </label>
               <input
                 id="equipment-image"
-                type="url"
-                value={imageUrl}
-                onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  setImgPreviewError(false);
-                }}
-                placeholder="https://images.unsplash.com/..."
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/bmp,image/tiff"
+                onChange={handleImageFileChange}
                 className={inputClass}
               />
+              <p className="text-xs text-ink-400">
+                PNG, JPG, WebP, GIF, AVIF, BMP, or TIFF. Maximum file size: 10 MB.
+                {imageFile && <span className="ml-1 font-medium text-ink-600">Selected: {imageFile.name}</span>}
+              </p>
               {/* Preset Sample Photos */}
               <div className="pt-1">
                 <span className="text-[11px] font-semibold text-ink-400 block mb-1">
@@ -300,10 +350,7 @@ export function EquipmentFormDialog({
                     <button
                       key={img.label}
                       type="button"
-                      onClick={() => {
-                        setImageUrl(img.url);
-                        setImgPreviewError(false);
-                      }}
+                      onClick={() => selectPresetImage(img.url)}
                       className="rounded bg-ice-100 px-2 py-0.5 text-[10px] font-medium text-ink-700 hover:bg-frost-500 hover:text-white transition cursor-pointer"
                     >
                       + {img.label}

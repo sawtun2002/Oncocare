@@ -25,7 +25,7 @@ export function MedicalEquipmentPage() {
   const [viewMode, setViewMode] = useState("table");
 
   const { data: equipmentList = [], isLoading, isError } = useQuery({
-    queryKey: ["doctor-equipment"],
+    queryKey: ["staff-equipment"],
     queryFn: () => listEquipment({ active: true }),
   });
 
