@@ -5,6 +5,7 @@ import { createAppointment, SLOT_MINUTES } from "../../api/appointments";
 import { listDoctors } from "../../api/users";
 import { GlassCard } from "../../components/GlassCard";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDateTime } from "../../lib/format";
 import { btnPrimary, errorText, inputClass, labelClass, pageTitle } from "../../lib/ui";
@@ -12,6 +13,7 @@ import { SlotPicker } from "./SlotPicker";
 
 export function BookAppointmentPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -56,10 +58,10 @@ export function BookAppointmentPage() {
       // and not a message rendered here: the next thing the patient sees is
       // their bookings list. A patient's booking is a *request* -- it isn't
       // confirmed until the doctor accepts it.
-      toast.success("Request sent — you'll hear back once the doctor confirms it.");
+      toast.success(t("book.requestSent"));
       navigate("/my-bookings");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
       // The slot may have gone while the form was open; refresh what's left.
       setSelectedStart(null);
       queryClient.invalidateQueries({ queryKey: ["availability"] });
@@ -69,22 +71,19 @@ export function BookAppointmentPage() {
   if (!patientId) {
     return (
       <GlassCard className="p-6">
-        <h1 className="text-lg font-semibold text-ink-900">Account not linked</h1>
-        <p className="mt-2 text-sm text-ink-700">
-          This login isn't connected to a patient record yet. Please contact reception.
-        </p>
+        <h1 className="text-lg font-semibold text-ink-900">{t("book.accountNotLinked")}</h1>
+        <p className="mt-2 text-sm text-ink-700">{t("book.contactReception")}</p>
       </GlassCard>
     );
   }
 
   return (
     <div>
-      <h1 className={pageTitle}>Request an appointment</h1>
+      <h1 className={pageTitle}>{t("book.title")}</h1>
       <p className="mt-2 text-sm text-ink-400">
-        Choose a doctor and a time that suits you, and they'll confirm it. Appointments run{" "}
-        {SLOT_MINUTES} minutes. Not sure who to see?{" "}
+        {t("book.intro", { mins: SLOT_MINUTES })} {t("book.notSure")}{" "}
         <Link to="/doctors" className="font-medium text-frost-600 transition hover:underline">
-          Browse doctor profiles
+          {t("book.browseDoctors")}
         </Link>
         .
       </p>
@@ -100,18 +99,18 @@ export function BookAppointmentPage() {
           />
 
           <label className={labelClass}>
-            Reason for visit
+            {t("book.reasonForVisit")}
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Follow-up consultation"
+              placeholder={t("book.reasonPlaceholder")}
               className={inputClass}
             />
           </label>
 
           {selectedStart && (
             <p className="rounded-lg bg-frost-300/20 px-3 py-2 text-sm text-ink-700">
-              Requesting{" "}
+              {t("book.requestingLabel")}{" "}
               <span className="font-medium text-ink-900">{formatDateTime(selectedStart)}</span>
             </p>
           )}
@@ -124,7 +123,7 @@ export function BookAppointmentPage() {
               disabled={createMutation.isPending || !selectedStart}
               className={btnPrimary}
             >
-              {createMutation.isPending ? "Sending…" : "Request appointment"}
+              {createMutation.isPending ? t("book.sending") : t("book.requestAppointment")}
             </button>
           </div>
         </form>

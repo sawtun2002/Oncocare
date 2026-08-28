@@ -255,4 +255,26 @@ export const en = {
   "pform.assignedDoctor": "Assigned doctor",
   "pform.inactive": "{name} (inactive)",
   "pform.medicalHistoryPlaceholder": "Past conditions, surgeries, relevant family history…",
+
+  // --- slot picker ----------------------------------------------------
+  "slot.selectDoctor": "Select a doctor",
+  "slot.date": "Date",
+  "slot.availableTimes": "Available times",
+  "slot.chooseDoctor": "Choose a doctor to see open times.",
+  "slot.loadError": "Could not load availability.",
+  "slot.noTimes": "No times left on this day. Try another date.",
+
+  // --- book appointment (patient) ------------------------------------
+  "book.accountNotLinked": "Account not linked",
+  "book.contactReception": "This login isn't connected to a patient record yet. Please contact reception.",
+  "book.title": "Request an appointment",
+  "book.intro": "Choose a doctor and a time that suits you, and they'll confirm it. Appointments run {mins} minutes.",
+  "book.notSure": "Not sure who to see?",
+  "book.browseDoctors": "Browse doctor profiles",
+  "book.reasonForVisit": "Reason for visit",
+  "book.reasonPlaceholder": "e.g. Follow-up consultation",
+  "book.requestingLabel": "Requesting",
+  "book.sending": "Sending…",
+  "book.requestAppointment": "Request appointment",
+  "book.requestSent": "Request sent — you'll hear back once the doctor confirms it.",
 };
