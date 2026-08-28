@@ -15,6 +15,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
  * @property {string} email
  * @property {string} [phone] Staff accounts only -- omit for a PATIENT.
  * @property {string} [department] Staff accounts only -- omit for a PATIENT.
+ * @property {string} [address] Staff accounts only -- omit for a PATIENT. NRC is deliberately not here:
+ *   it is an ADMIN-set identity field, changed only via createStaffUser.
  */
 
 /**
@@ -56,6 +58,8 @@ function toUser(m) {
     avatarUrl: m.avatarUrl,
     phone: m.phone,
     department: m.department,
+    address: m.address,
+    nrc: m.nrc,
     notifyAppointmentReminders: m.notifyAppointmentReminders,
     lastLoginAt: m.lastLoginAt,
     notificationsReadAt: m.notificationsReadAt,
@@ -184,6 +188,8 @@ export async function updateProfile(token, input) {
   match.email = input.email;
   match.phone = input.phone;
   match.department = input.department;
+  match.address = input.address;
+  // `nrc` is intentionally not touched here -- ProfileInput has no such field.
   persist();
   return delay(toUser(match));
 }

@@ -1,11 +1,17 @@
 import { useRef, useState } from "react";
+import { listAppointments } from "../../api/appointments";
+import { listInvoices } from "../../api/billing";
+import { listLeaveRequests } from "../../api/leave";
+import { getPatient } from "../../api/patients";
 import { Avatar } from "../../components/Avatar";
 import { GlassCard } from "../../components/GlassCard";
 import { PasswordStrength } from "../../components/PasswordStrength";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
-import { formatDateTime } from "../../lib/format";
+import { LANGUAGES, LANGUAGE_LABEL } from "../../i18n";
+import { formatDateTime, toDateInputValue } from "../../lib/format";
 import {
   btnGhost,
   btnPrimary,
@@ -17,14 +23,6 @@ import {
   sectionLabel,
 } from "../../lib/ui";
 import { evaluatePassword } from "../../lib/validation";
-
-const ROLE_LABEL = {
-  ADMIN: "Administrator",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-  PATIENT: "Patient",
-};
 
 /** A picked file, read into a data: URI. Rejects on any FileReader error. */
 function readAsDataUrl(file) {
@@ -48,13 +46,12 @@ function readAsDataUrl(file) {
  */
 export function ProfilePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div>
-      <h1 className={pageTitle}>Profile</h1>
-      <p className="mt-2 text-sm text-ink-400">
-        Your photo, sign-in details, and how the app looks and reaches you.
-      </p>
+      <h1 className={pageTitle}>{t("profile.title")}</h1>
+      <p className="mt-2 text-sm text-ink-400">{t("profile.subtitle")}</p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
@@ -64,6 +61,8 @@ export function ProfilePage() {
         </div>
         <div className="space-y-6">
           <PasswordCard />
+          <LanguageCard />
+          <PrivacyCard user={user} />
           <SecurityCard user={user} />
           <AppearanceCard />
         </div>
@@ -74,6 +73,7 @@ export function ProfilePage() {
 
 function AvatarCard({ user }) {
   const { updateAvatar } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -90,11 +90,11 @@ function AvatarCard({ user }) {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
+      setError(t("profile.photoNotImage"));
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("That image is too large -- please choose one under 1.5 MB.");
+      setError(t("profile.photoTooBig"));
       return;
     }
 
@@ -103,9 +103,9 @@ function AvatarCard({ user }) {
     try {
       const dataUrl = await readAsDataUrl(file);
       await updateAvatar(dataUrl);
-      toast.success("Your photo has been updated.");
+      toast.success(t("profile.photoUpdated"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setUploading(false);
     }
@@ -116,9 +116,9 @@ function AvatarCard({ user }) {
     setUploading(true);
     try {
       await updateAvatar(undefined);
-      toast.success("Your photo has been removed.");
+      toast.success(t("profile.photoRemoved"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setUploading(false);
     }
@@ -126,7 +126,7 @@ function AvatarCard({ user }) {
 
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Photo</h2>
+      <h2 className={sectionLabel}>{t("profile.photo")}</h2>
       <div className="mt-4 flex items-center gap-4">
         <Avatar name={user.name} avatarUrl={user.avatarUrl} size="lg" />
         <div className="space-y-2">
@@ -137,7 +137,11 @@ function AvatarCard({ user }) {
               disabled={uploading}
               className={btnGhost}
             >
-              {uploading ? "Uploading…" : user.avatarUrl ? "Change photo" : "Upload photo"}
+              {uploading
+                ? t("profile.uploading")
+                : user.avatarUrl
+                  ? t("profile.changePhoto")
+                  : t("profile.uploadPhoto")}
             </button>
             {user.avatarUrl && (
               <button
@@ -146,11 +150,11 @@ function AvatarCard({ user }) {
                 disabled={uploading}
                 className={`rounded-lg px-3 py-2 text-sm font-medium ${dangerAction}`}
               >
-                Remove
+                {t("profile.remove")}
               </button>
             )}
           </div>
-          <p className="text-xs text-ink-400">JPG, PNG or GIF, up to 1.5 MB.</p>
+          <p className="text-xs text-ink-400">{t("profile.photoHint")}</p>
         </div>
       </div>
       {/* Hidden and driven by the buttons above, rather than a native file
@@ -164,6 +168,7 @@ function AvatarCard({ user }) {
 
 function DetailsCard({ user }) {
   const { updateProfile } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   // A patient's phone lives on their Patient record, not their login (see
   // API_CONTRACT.md) -- these fields exist for staff only.
@@ -172,6 +177,7 @@ function DetailsCard({ user }) {
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [department, setDepartment] = useState(user.department ?? "");
+  const [address, setAddress] = useState(user.address ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -179,17 +185,19 @@ function DetailsCard({ user }) {
     name === user.name &&
     email === user.email &&
     phone === (user.phone ?? "") &&
-    department === (user.department ?? "");
+    department === (user.department ?? "") &&
+    address === (user.address ?? "");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await updateProfile(isStaff ? { name, email, phone, department } : { name, email });
-      toast.success("Your details have been saved.");
+      // `nrc` is not sent -- it is ADMIN-set and ProfileInput has no such field.
+      await updateProfile(isStaff ? { name, email, phone, department, address } : { name, email });
+      toast.success(t("profile.detailsSaved"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -197,14 +205,14 @@ function DetailsCard({ user }) {
 
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Account details</h2>
+      <h2 className={sectionLabel}>{t("profile.accountDetails")}</h2>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <label className={labelClass}>
-          Full name
+          {t("profile.fullName")}
           <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
         </label>
         <label className={labelClass}>
-          Email
+          {t("profile.email")}
           <input
             type="email"
             required
@@ -215,35 +223,45 @@ function DetailsCard({ user }) {
         </label>
 
         {isStaff && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className={labelClass}>
+                {t("profile.phone")}
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+              </label>
+              <label className={labelClass}>
+                {t("profile.department")}
+                <input
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder={t("profile.departmentPlaceholder")}
+                  className={inputClass}
+                />
+              </label>
+            </div>
             <label className={labelClass}>
-              Phone
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
-            </label>
-            <label className={labelClass}>
-              Department
+              {t("profile.address")}
               <input
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                placeholder="e.g. Oncology Ward 3"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 className={inputClass}
               />
             </label>
-          </div>
+          </>
         )}
 
         {/* Read-only on purpose. A role is granted by an administrator on the
             staff accounts screen; an account that could raise its own would make
             every other role check in the app decorative. */}
         <div>
-          <span className={labelClass}>Role</span>
-          <p className="mt-1 text-sm text-ink-700">{ROLE_LABEL[user.role]}</p>
+          <span className={labelClass}>{t("profile.role")}</span>
+          <p className="mt-1 text-sm text-ink-700">{t(`role.${user.role}`)}</p>
         </div>
 
         {error && <p className={errorText}>{error}</p>}
 
         <button type="submit" disabled={submitting || unchanged} className={btnPrimary}>
-          {submitting ? "Saving…" : "Save changes"}
+          {submitting ? t("common.saving") : t("common.saveChanges")}
         </button>
       </form>
     </GlassCard>
@@ -252,6 +270,7 @@ function DetailsCard({ user }) {
 
 function NotificationsCard({ user }) {
   const { updateNotificationPreferences } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -262,9 +281,9 @@ function NotificationsCard({ user }) {
     setSaving(true);
     try {
       await updateNotificationPreferences({ notifyAppointmentReminders: next });
-      toast.success(next ? "Appointment reminders turned on." : "Appointment reminders turned off.");
+      toast.success(next ? t("profile.remindersOn") : t("profile.remindersOff"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSaving(false);
     }
@@ -272,7 +291,7 @@ function NotificationsCard({ user }) {
 
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Notifications</h2>
+      <h2 className={sectionLabel}>{t("profile.notifications")}</h2>
       <label className="mt-4 flex items-start gap-3 text-sm text-ink-700">
         <input
           type="checkbox"
@@ -282,10 +301,8 @@ function NotificationsCard({ user }) {
           className="mt-0.5 h-4 w-4 rounded border-hairline/80 text-frost-500 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
         />
         <span>
-          Email me a reminder before upcoming appointments.
-          <span className="block text-xs text-ink-400">
-            Mock setting for now -- there's no real email backend yet to act on it.
-          </span>
+          {t("profile.remindersLabel")}
+          <span className="block text-xs text-ink-400">{t("profile.remindersHint")}</span>
         </span>
       </label>
       {error && <p className={`mt-3 ${errorText}`}>{error}</p>}
@@ -295,6 +312,7 @@ function NotificationsCard({ user }) {
 
 function PasswordCard() {
   const { changePassword } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -307,13 +325,13 @@ function PasswordCard() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!pw.ok) {
-      setError("Choose a stronger password — every requirement below must be met.");
+      setError(t("profile.pwWeak"));
       return;
     }
     // Checked here rather than server-side: the confirmation field exists to
     // catch a typo in this form, and never leaves it.
     if (newPassword !== confirm) {
-      setError("The new passwords do not match.");
+      setError(t("profile.pwMismatch"));
       return;
     }
     setError(null);
@@ -323,9 +341,9 @@ function PasswordCard() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirm("");
-      toast.success("Your password has been changed.");
+      toast.success(t("profile.passwordChanged"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -333,10 +351,10 @@ function PasswordCard() {
 
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Password</h2>
+      <h2 className={sectionLabel}>{t("profile.password")}</h2>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <label className={labelClass}>
-          Current password
+          {t("profile.currentPassword")}
           <input
             type="password"
             required
@@ -347,7 +365,7 @@ function PasswordCard() {
           />
         </label>
         <label className={labelClass}>
-          New password
+          {t("profile.newPassword")}
           <input
             type="password"
             required
@@ -361,7 +379,7 @@ function PasswordCard() {
         {newPassword.length > 0 && <PasswordStrength result={pw} />}
 
         <label className={labelClass}>
-          Confirm new password
+          {t("profile.confirmPassword")}
           <input
             type="password"
             required
@@ -375,43 +393,130 @@ function PasswordCard() {
         {error && <p className={errorText}>{error}</p>}
 
         <button type="submit" disabled={submitting} className={btnPrimary}>
-          {submitting ? "Changing…" : "Change password"}
+          {submitting ? t("profile.changingPassword") : t("profile.changePassword")}
         </button>
       </form>
     </GlassCard>
   );
 }
 
-function SecurityCard({ user }) {
-  const { logout } = useAuth();
+function LanguageCard() {
+  const { lang, setLang, t } = useLanguage();
 
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Session</h2>
+      <h2 className={sectionLabel}>{t("profile.language")}</h2>
+      <p className="mt-3 text-sm text-ink-700">{t("profile.languageNote")}</p>
+      <div
+        role="radiogroup"
+        aria-label={t("profile.language")}
+        className="mt-3 flex gap-0.5 rounded-lg border border-hairline/70 bg-surface/40 p-0.5"
+      >
+        {LANGUAGES.map((code) => {
+          const active = lang === code;
+          return (
+            <button
+              key={code}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setLang(code)}
+              className={`flex flex-1 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-frost-400/60 ${
+                active
+                  ? "bg-gradient-to-r from-frost-500/90 to-aqua-400/80 text-white shadow-sm"
+                  : "text-ink-400 hover:bg-surface/70 hover:text-ink-700"
+              }`}
+            >
+              {LANGUAGE_LABEL[code]}
+            </button>
+          );
+        })}
+      </div>
+      {lang === "MY" && (
+        <p className="mt-3 text-xs text-ink-400">{t("profile.languageNeedsReview")}</p>
+      )}
+    </GlassCard>
+  );
+}
+
+function PrivacyCard({ user }) {
+  const { t } = useLanguage();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+
+  async function handleDownload() {
+    setBusy(true);
+    try {
+      const bundle = { exportedAt: new Date().toISOString(), account: user };
+      if (user.role === "PATIENT" && user.patientId) {
+        bundle.patient = await getPatient(user.patientId);
+        bundle.appointments = (await listAppointments()).filter((a) => a.patientId === user.patientId);
+        bundle.invoices = (await listInvoices()).filter((i) => i.patientId === user.patientId);
+      } else {
+        bundle.leaveRequests = (
+          await listLeaveRequests({ userId: user.id, role: user.role })
+        ).filter((r) => r.userId === user.id);
+      }
+
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `oncocare-${user.email}-${toDateInputValue()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(t("profile.dataDownloaded"));
+    } catch {
+      toast.error(t("profile.downloadFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <GlassCard className="p-6">
+      <h2 className={sectionLabel}>{t("profile.privacy")}</h2>
+      <p className="mt-3 text-sm text-ink-700">{t("profile.privacySummary")}</p>
+      <button type="button" onClick={handleDownload} disabled={busy} className={`mt-4 ${btnGhost}`}>
+        {busy ? t("profile.preparingDownload") : t("profile.downloadData")}
+      </button>
+      <p className="mt-2 text-xs text-ink-400">{t("profile.downloadNote")}</p>
+    </GlassCard>
+  );
+}
+
+function SecurityCard({ user }) {
+  const { logout } = useAuth();
+  const { t } = useLanguage();
+
+  return (
+    <GlassCard className="p-6">
+      <h2 className={sectionLabel}>{t("profile.session")}</h2>
       <dl className="mt-4 space-y-1 text-sm">
         <div className="flex items-center justify-between gap-4">
-          <dt className="text-ink-400">Last signed in</dt>
-          <dd className="text-ink-700">{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "—"}</dd>
+          <dt className="text-ink-400">{t("profile.lastSignedIn")}</dt>
+          <dd className="text-ink-700">
+            {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : t("common.dash")}
+          </dd>
         </div>
       </dl>
-      <p className="mt-3 text-xs text-ink-400">
-        There's only ever one session in this app today -- logging out here ends the one you're using.
-      </p>
+      <p className="mt-3 text-xs text-ink-400">{t("profile.sessionNote")}</p>
       <button type="button" onClick={logout} className={`mt-4 ${btnGhost}`}>
-        Log out
+        {t("layout.logOut")}
       </button>
     </GlassCard>
   );
 }
 
 function AppearanceCard() {
+  const { t } = useLanguage();
+
   return (
     <GlassCard className="p-6">
-      <h2 className={sectionLabel}>Appearance</h2>
-      <p className="mt-3 text-sm text-ink-700">
-        The same control as the one in the sidebar. It is stored in this browser, not on your account,
-        so each device can differ.
-      </p>
+      <h2 className={sectionLabel}>{t("profile.appearance")}</h2>
+      <p className="mt-3 text-sm text-ink-700">{t("profile.appearanceNote")}</p>
       <ThemeToggle />
     </GlassCard>
   );

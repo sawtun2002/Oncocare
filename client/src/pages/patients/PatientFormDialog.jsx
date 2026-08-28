@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
+import { isValidNrc } from "../../lib/validation";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -10,6 +12,7 @@ const EMPTY = {
   sex: "Female",
   phone: "",
   address: "",
+  nrc: "",
   emergencyContactName: "",
   emergencyContactPhone: "",
   diagnosisType: "",
@@ -32,6 +35,7 @@ const EMPTY = {
  * needs to be able to update them without going through reception.
  */
 export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onSubmit }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState(
     initial
       ? {
@@ -40,6 +44,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           sex: initial.sex,
           phone: initial.phone,
           address: initial.address ?? "",
+          nrc: initial.nrc ?? "",
           emergencyContactName: initial.emergencyContactName ?? "",
           emergencyContactPhone: initial.emergencyContactPhone ?? "",
           diagnosisType: initial.diagnosisType,
@@ -67,25 +72,37 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
     (d) => d.id === form.assignedDoctorId && d.status === "INACTIVE"
   );
 
+  // NRC is a registrar field, so a DOCTOR (clinicalOnly) never edits it and the
+  // check is skipped for them. Optional -- only validated when something's typed.
+  const nrcError = !disabled && form.nrc.trim() !== "" && !isValidNrc(form.nrc);
+
   async function handleSubmit(e) {
     e.preventDefault();
+    if (nrcError) {
+      setError(t("pform.nrcInvalid"));
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
-      await onSubmit(form);
+      await onSubmit({ ...form, nrc: form.nrc.trim() });
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title={initial ? "Edit patient" : "Register patient"} onClose={onClose} ref={modalRef}>
+    <Modal
+      title={initial ? t("pform.editTitle") : t("pform.registerTitle")}
+      onClose={onClose}
+      ref={modalRef}
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Full name" required>
+          <Field label={t("profile.fullName")} required>
             <input
               required
               disabled={disabled}
@@ -94,7 +111,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               className={inputClass}
             />
           </Field>
-          <Field label="Date of birth" required>
+          <Field label={t("login.dob")} required>
             <input
               type="date"
               required
@@ -104,19 +121,19 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               className={inputClass}
             />
           </Field>
-          <Field label="Sex">
+          <Field label={t("login.sex")}>
             <select
               disabled={disabled}
               value={form.sex}
               onChange={(e) => setForm({ ...form, sex: e.target.value })}
               className={inputClass}
             >
-              <option>Female</option>
-              <option>Male</option>
-              <option>Other</option>
+              <option value="Female">{t("login.sexFemale")}</option>
+              <option value="Male">{t("login.sexMale")}</option>
+              <option value="Other">{t("login.sexOther")}</option>
             </select>
           </Field>
-          <Field label="Phone" required>
+          <Field label={t("profile.phone")} required>
             <input
               required
               disabled={disabled}
@@ -127,17 +144,30 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           </Field>
         </div>
 
-        <Field label="Address">
-          <input
-            disabled={disabled}
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            className={inputClass}
-          />
-        </Field>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label={t("profile.address")}>
+            <input
+              disabled={disabled}
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className={inputClass}
+            />
+          </Field>
+          <Field label={t("patient.nrc")}>
+            <input
+              disabled={disabled}
+              value={form.nrc}
+              onChange={(e) => setForm({ ...form, nrc: e.target.value })}
+              placeholder="12/MABANA(N)123456"
+              aria-invalid={nrcError}
+              className={inputClass}
+            />
+            {nrcError && <span className={`mt-1 block ${errorText}`}>{t("pform.nrcFormat")}</span>}
+          </Field>
+        </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Emergency contact name">
+          <Field label={t("pform.emergencyContactName")}>
             <input
               disabled={disabled}
               value={form.emergencyContactName}
@@ -145,7 +175,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               className={inputClass}
             />
           </Field>
-          <Field label="Emergency contact phone">
+          <Field label={t("pform.emergencyContactPhone")}>
             <input
               disabled={disabled}
               value={form.emergencyContactPhone}
@@ -156,7 +186,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Diagnosis type" required>
+          <Field label={t("pform.diagnosisType")} required>
             <input
               required
               value={form.diagnosisType}
@@ -164,7 +194,7 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               className={inputClass}
             />
           </Field>
-          <Field label="Stage">
+          <Field label={t("patient.stage")}>
             <input
               value={form.diagnosisStage}
               onChange={(e) => setForm({ ...form, diagnosisStage: e.target.value })}
@@ -177,13 +207,13 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
             history are clinical facts, and a DOCTOR (clinicalOnly) may update
             them the same as diagnosis/stage/notes below. */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Blood type">
+          <Field label={t("patient.bloodType")}>
             <select
               value={form.bloodType}
               onChange={(e) => setForm({ ...form, bloodType: e.target.value })}
               className={inputClass}
             >
-              <option value="">Unknown</option>
+              <option value="">{t("pform.bloodUnknown")}</option>
               {BLOOD_TYPES.map((bt) => (
                 <option key={bt} value={bt}>
                   {bt}
@@ -191,17 +221,17 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
               ))}
             </select>
           </Field>
-          <Field label="Allergies">
+          <Field label={t("patient.allergies")}>
             <input
               value={form.allergies}
               onChange={(e) => setForm({ ...form, allergies: e.target.value })}
-              placeholder="e.g. Penicillin"
+              placeholder={t("pform.allergiesPlaceholder")}
               className={inputClass}
             />
           </Field>
         </div>
 
-        <Field label="Assigned doctor">
+        <Field label={t("pform.assignedDoctor")}>
           <select
             disabled={disabled}
             value={form.assignedDoctorId ?? ""}
@@ -210,10 +240,10 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
             }
             className={inputClass}
           >
-            <option value="">Unassigned</option>
+            <option value="">{t("patient.unassigned")}</option>
             {assignedInactiveDoctor && (
               <option value={assignedInactiveDoctor.id} disabled>
-                {assignedInactiveDoctor.name} (inactive)
+                {t("pform.inactive", { name: assignedInactiveDoctor.name })}
               </option>
             )}
             {activeDoctors.map((d) => (
@@ -224,17 +254,17 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
           </select>
         </Field>
 
-        <Field label="Medical history">
+        <Field label={t("patient.medicalHistory")}>
           <textarea
             rows={2}
             value={form.medicalHistory}
             onChange={(e) => setForm({ ...form, medicalHistory: e.target.value })}
-            placeholder="Past conditions, surgeries, relevant family history…"
+            placeholder={t("pform.medicalHistoryPlaceholder")}
             className={inputClass}
           />
         </Field>
 
-        <Field label="Notes">
+        <Field label={t("patient.notes")}>
           <textarea
             rows={3}
             value={form.notes}
@@ -247,10 +277,10 @@ export function PatientFormDialog({ doctors, initial, clinicalOnly, onClose, onS
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={() => modalRef.current?.close()} className={btnGhost}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" disabled={submitting} className={btnPrimary}>
-            {submitting ? "Saving…" : "Save"}
+            {submitting ? t("common.saving") : t("common.save")}
           </button>
         </div>
       </form>

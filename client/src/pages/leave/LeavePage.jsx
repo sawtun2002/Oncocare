@@ -3,9 +3,11 @@ import { useState } from "react";
 import {
   createLeaveRequest,
   decideLeaveRequest,
+  leaveRequestConflicts,
   listLeaveRequests,
   withdrawLeaveRequest,
 } from "../../api/leave";
+import { listPatients } from "../../api/patients";
 import { listUsers } from "../../api/users";
 import { Badge } from "../../components/Badge";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -24,6 +26,7 @@ import {
   tableRow,
   tableWrap,
 } from "../../lib/ui";
+import { LeaveApprovalDialog } from "./LeaveApprovalDialog";
 import { LeaveRequestFormDialog } from "./LeaveRequestFormDialog";
 
 const TYPE_LABEL = {
@@ -47,6 +50,7 @@ export function LeavePage() {
   const actor = { userId: user?.id, role: user?.role };
 
   const [showForm, setShowForm] = useState(false);
+  const [approving, setApproving] = useState(null);
   const [declining, setDeclining] = useState(null);
   const [withdrawing, setWithdrawing] = useState(null);
 
@@ -54,8 +58,26 @@ export function LeavePage() {
   // (scoped server-side). The two views below are slices of this.
   const leaveQuery = useQuery({ queryKey: ["leave-requests"], queryFn: () => listLeaveRequests(actor) });
   const usersQuery = useQuery({ queryKey: ["users"], queryFn: () => listUsers(), enabled: isAdmin });
+  // Fetched here, not in the approval dialog -- dialogs don't fetch. Only runs
+  // while an approval is being reviewed.
+  const conflictsQuery = useQuery({
+    queryKey: ["leave-conflicts", approving?.id],
+    queryFn: () => leaveRequestConflicts(approving.id),
+    enabled: approving != null,
+  });
+  const patientsQuery = useQuery({
+    queryKey: ["patients"],
+    queryFn: listPatients,
+    enabled: approving != null,
+  });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+    // An approval changes what's bookable and what now clashes -- refresh the
+    // derived views on the booking pages too.
+    queryClient.invalidateQueries({ queryKey: ["leave-clashes"] });
+    queryClient.invalidateQueries({ queryKey: ["availability"] });
+  };
 
   const createMutation = useMutation({
     mutationFn: (input) => createLeaveRequest(input, actor),
@@ -86,6 +108,7 @@ export function LeavePage() {
   const pending = isAdmin ? all.filter((r) => r.status === "PENDING" && r.userId !== user?.id) : [];
 
   const userName = (id) => usersQuery.data?.find((u) => u.id === id)?.name ?? `#${id}`;
+  const patientName = (id) => patientsQuery.data?.find((p) => p.id === id)?.name ?? `Patient #${id}`;
 
   return (
     <div>
@@ -129,12 +152,7 @@ export function LeavePage() {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() =>
-                              decideMutation.mutate(
-                                { id: r.id, status: "APPROVED" },
-                                { onError: (err) => toast.error(err instanceof Error ? err.message : "Could not approve that.") }
-                              )
-                            }
+                            onClick={() => setApproving(r)}
                             className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                           >
                             Approve
@@ -215,6 +233,20 @@ export function LeavePage() {
           onClose={() => setShowForm(false)}
           onSubmit={async (input) => {
             await createMutation.mutateAsync(input);
+          }}
+        />
+      )}
+
+      {approving && (
+        <LeaveApprovalDialog
+          staffName={userName(approving.userId)}
+          dateRange={dateRange(approving)}
+          conflicts={conflictsQuery.data ?? []}
+          loading={conflictsQuery.isLoading}
+          patientName={patientName}
+          onClose={() => setApproving(null)}
+          onConfirm={async () => {
+            await decideMutation.mutateAsync({ id: approving.id, status: "APPROVED" });
           }}
         />
       )}

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import { STAFF_ROLES } from "../../lib/roles";
+import { isValidNrc } from "../../lib/validation";
 
 const ROLE_LABEL = {
   ADMIN: "Administrator",
@@ -20,9 +21,13 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(STAFF_ROLES[0]);
+  const [nrc, setNrc] = useState("");
+  const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const modalRef = useRef(null);
+
+  const nrcError = nrc !== "" && !isValidNrc(nrc);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -30,10 +35,14 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
+    if (!isValidNrc(nrc)) {
+      setError("Enter a valid NRC, e.g. 12/MABANA(N)123456.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
-      await onSubmit({ name, email, password, role });
+      await onSubmit({ name, email, password, role, nrc: nrc.trim(), address: address.trim() });
       modalRef.current?.close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -82,6 +91,33 @@ export function StaffUserFormDialog({ onClose, onSubmit }) {
               </option>
             ))}
           </select>
+        </label>
+
+        <label className={labelClass}>
+          NRC
+          <input
+            required
+            value={nrc}
+            onChange={(e) => setNrc(e.target.value)}
+            placeholder="12/MABANA(N)123456"
+            aria-invalid={nrcError}
+            className={inputClass}
+          />
+          {nrcError && (
+            <span className={`mt-1 block ${errorText}`}>
+              Format: region/township(type)number, e.g. 12/MABANA(N)123456.
+            </span>
+          )}
+        </label>
+
+        <label className={labelClass}>
+          Address <span className="font-normal text-ink-400">(optional)</span>
+          <input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="They can add this later from their profile"
+            className={inputClass}
+          />
         </label>
 
         {error && <p className={errorText}>{error}</p>}
