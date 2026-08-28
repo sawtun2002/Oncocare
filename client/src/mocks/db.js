@@ -1,6 +1,7 @@
 import {
   seedAppointments,
   seedDoctorProfiles,
+  seedEquipmentPosts,
   seedInvoices,
   seedLeaveRequests,
   seedPatients,
@@ -37,7 +38,11 @@ import {
 // v10 gave invoices a required `events[]` history (who marked it paid/unpaid, and
 // when). A v9 invoice has no `events` array, which the receipt dialog assumes is
 // present -- so the v9 store is dropped for the v10 seed like every bump before.
-const STORAGE_KEY = "cancer-hms-mock-db-v10";
+// v11 added the equipmentPosts array (hospital equipment catalog) and its
+// nextIds.equipmentPost kind. A v10 store has no equipmentPosts key, which the
+// equipment list would spread as undefined -- so the v10 store is dropped for the
+// v11 seed like every bump before.
+const STORAGE_KEY = "cancer-hms-mock-db-v11";
 
 /**
  * @typedef {Object} MockDb
@@ -47,7 +52,8 @@ const STORAGE_KEY = "cancer-hms-mock-db-v10";
  * @property {import("../types").Appointment[]} appointments
  * @property {import("../types").Invoice[]} invoices
  * @property {import("../types").LeaveRequest[]} leaveRequests
- * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number}} nextIds
+ * @property {import("../types").EquipmentPost[]} equipmentPosts
+ * @property {{user: number, patient: number, appointment: number, invoice: number, invoiceItem: number, leaveRequest: number, equipmentPost: number}} nextIds
  */
 
 /** @returns {MockDb} */
@@ -67,6 +73,7 @@ function loadInitial() {
     appointments: seedAppointments,
     invoices: seedInvoices,
     leaveRequests: seedLeaveRequests,
+    equipmentPosts: seedEquipmentPosts,
     nextIds: {
       user: seedUsers.length + 1,
       patient: seedPatients.length + 1,
@@ -74,6 +81,7 @@ function loadInitial() {
       invoice: seedInvoices.length + 1,
       invoiceItem: seedInvoices.flatMap((i) => i.items).length + 1,
       leaveRequest: seedLeaveRequests.length + 1,
+      equipmentPost: seedEquipmentPosts.length + 1,
     },
   };
 }

@@ -98,6 +98,7 @@ export default function Navbar({ onMenuClick }) {
   const navLinks = [
     { to: '/', labelKey: 'pub.linkHome' },
     { to: '/our-doctors', labelKey: 'pub.linkDoctors' },
+    { to: '/equipment', labelKey: 'pub.linkEquipment' },
     { to: '/rooms', labelKey: 'pub.linkRooms' },
     { to: '/about', labelKey: 'pub.linkAbout' },
     { to: '/contact', labelKey: 'pub.linkContact' },

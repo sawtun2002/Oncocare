@@ -23,7 +23,7 @@ export const btnGhost =
   "inline-flex items-center justify-center gap-1.5 rounded-lg border border-hairline/80 bg-surface/70 px-4 py-2 text-sm font-medium text-ink-700 shadow-sm transition hover:bg-surface focus:outline-none focus:ring-2 focus:ring-frost-400/50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer";
 
 export const btnDanger =
-  "inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/80 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:focus:ring-rose-400/40";
+  "inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/80 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/20 dark:focus:ring-rose-400/40";
 
 /**
  * Inline form and query error text. Was hand-written as `text-sm text-rose-600`
@@ -46,7 +46,7 @@ export const okText = "text-xs text-emerald-600 dark:text-emerald-400";
  * tables) and text-sm, so sizing stays at the call site.
  */
 export const dangerAction =
-  "text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-300/60 dark:text-rose-400 dark:hover:bg-rose-400/15";
+  "text-rose-600 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-300/60 cursor-pointer dark:text-rose-400 dark:hover:bg-rose-400/15";
 
 /**
  * Data tables use the solid surface -- dense text must not sit on a live blur.

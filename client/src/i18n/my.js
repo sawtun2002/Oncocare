@@ -60,6 +60,7 @@ export const my = {
   "nav.book": "ချိန်းဆိုရန်",
   "nav.myBills": "ကျွန်ုပ်၏ ငွေတောင်းခံလွှာ",
   "nav.doctors": "ကျွန်ုပ်တို့၏ ဆရာဝန်များ",
+  "nav.equipment": "ပစ္စည်းကိရိယာများ",
   "layout.openNav": "မီနူးဖွင့်ရန်",
   "layout.logOut": "ထွက်မည်",
 
@@ -279,6 +280,7 @@ export const my = {
   "book.sending": "ပို့နေသည်…",
   "book.requestAppointment": "ချိန်းဆိုမှု တောင်းဆိုရန်",
   "book.requestSent": "တောင်းဆိုချက် ပို့ပြီးပါပြီ — ဆရာဝန် အတည်ပြုပြီးလျှင် အကြောင်းကြားပါမည်။",
+  "book.tokenGenerated": "တောင်းဆိုချက် ပို့ပြီးပါပြီ — သင်၏ ဒစ်ဂျစ်တယ် တိုကင်ကတ် ထုတ်ပေးပြီးပါပြီ။",
 
   // --- invoice card + printable receipt -------------------------------
   "invoice.issued": "ထုတ်ပြန် {date}",
@@ -638,6 +640,7 @@ export const my = {
   // --- public shell (marketing nav / sidebar) ---------------
   "pub.linkHome": "ပင်မ",
   "pub.linkDoctors": "ဆရာဝန်များ",
+  "pub.linkEquipment": "ပစ္စည်းကိရိယာများ",
   "pub.linkRooms": "အခန်းများ",
   "pub.linkAbout": "အကြောင်း",
   "pub.linkContact": "ဆက်သွယ်ရန်",

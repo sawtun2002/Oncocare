@@ -336,6 +336,7 @@ interface AppointmentEvent {
 
 interface Appointment {
   id: number;
+  tokenNumber?: string;   // unique digital check-in token (e.g. TK-2026-0841)
   patientId: number;
   doctorId: number;
   scheduledAt: string;    // ISO datetime
@@ -465,6 +466,34 @@ An `APPROVED` `LeaveRequest` acts on the calendar in two places, both **derived,
 `GET /api/appointments/leave-clashes` lists the already-booked appointments that now sit on one — the
 approval itself cancels nothing (D4). `GET /api/leave-requests/:id/conflicts` is the same list scoped to
 one pending request, shown to the admin before they approve.
+
+## Equipment Posts
+
+Hospital equipment and medical technology showcase posts. Any user (including patients and unauthenticated visitors) can read equipment posts. **Only an `ADMIN` can create, update, or delete equipment posts.**
+
+- `GET /api/equipment?category=&active=&featured=` — → `EquipmentPost[]`. Query parameters are optional filters. Returns active equipment by default for public/patient callers; Admins see all equipment posts.
+- `GET /api/equipment/:id` — → `EquipmentPost`. Returns a single equipment item by ID. 404 if not found.
+- `POST /api/equipment` — body `EquipmentPostInput` → created `EquipmentPost`. Allowed roles: `ADMIN` only.
+- `PUT /api/equipment/:id` — body `EquipmentPostInput` → updated `EquipmentPost`. Allowed roles: `ADMIN` only.
+- `DELETE /api/equipment/:id` — → `204 No Content`. Allowed roles: `ADMIN` only.
+
+```ts
+interface EquipmentPost {
+  id: number;
+  title: string;
+  description?: string;
+  category: string;
+  manufacturer?: string;
+  model?: string;
+  imageUrl?: string;
+  isFeatured: boolean;
+  isActive: boolean;
+  createdBy: number;       // User ID of the admin creator
+  createdAt: string;       // ISO datetime
+  updatedAt: string;       // ISO datetime
+}
+type EquipmentPostInput = Omit<EquipmentPost, "id" | "createdBy" | "createdAt" | "updatedAt">;
+```
 
 ## Notes for the merge
 

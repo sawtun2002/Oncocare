@@ -147,7 +147,7 @@ export function Modal({ title, onClose, children, ref }) {
                 type="button"
                 data-modal-close
                 onClick={requestClose}
-                className="rounded-full p-1 text-ink-400 transition hover:bg-surface/70 hover:text-ink-700 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
+                className="rounded-full p-1 text-ink-400 transition hover:bg-surface/70 hover:text-ink-700 focus:outline-none focus:ring-2 focus:ring-frost-400/50 cursor-pointer"
                 aria-label={t("common.close")}
               >
                 ✕

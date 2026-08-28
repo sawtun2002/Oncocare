@@ -60,6 +60,7 @@ export const en = {
   "nav.book": "Book appointment",
   "nav.myBills": "My bill",
   "nav.doctors": "Our doctors",
+  "nav.equipment": "Equipment",
   "layout.openNav": "Open navigation",
   "layout.logOut": "Log out",
 
@@ -279,6 +280,7 @@ export const en = {
   "book.sending": "Sending…",
   "book.requestAppointment": "Request appointment",
   "book.requestSent": "Request sent — you'll hear back once the doctor confirms it.",
+  "book.tokenGenerated": "Request sent — your digital token pass has been generated.",
 
   // --- invoice card + printable receipt -------------------------------
   "invoice.issued": "Issued {date}",
@@ -638,6 +640,7 @@ export const en = {
   // --- public shell (marketing nav / sidebar) ---------------
   "pub.linkHome": "Home",
   "pub.linkDoctors": "Doctors",
+  "pub.linkEquipment": "Equipment",
   "pub.linkRooms": "Rooms",
   "pub.linkAbout": "About",
   "pub.linkContact": "Contact",

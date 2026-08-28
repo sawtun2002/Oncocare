@@ -14,6 +14,30 @@ body::-webkit-scrollbar,
   display: none;
 }
 
+/* Enforce pointer cursor on all interactive/actionable UI elements globally */
+button,
+a,
+select,
+summary,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed !important;
+}
+
 /* Dark mode is driven by `data-theme` on <html>, not by a media query alone --
    the app offers an explicit light/dark/system choice (see ThemeContext), and a
    media query cannot express "the user picked light while their OS is dark".
