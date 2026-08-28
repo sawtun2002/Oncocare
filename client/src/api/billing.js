@@ -60,8 +60,8 @@ export async function updateInvoiceStatus(id, status) {
 }
 
 /**
- * Submit payment evidence for the signed-in patient's invoice. Staff must
- * verify the proof and change the invoice status separately.
+ * Save a patient's payment evidence for staff review without marking the
+ * invoice paid automatically.
  */
 export async function submitPaymentProof(id, input) {
   const invoice = db.invoices.find((item) => item.id === id);
