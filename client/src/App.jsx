@@ -25,6 +25,8 @@ import { MyBillsPage } from "./pages/billing/MyBillsPage";
 import { LeavePage } from "./pages/leave/LeavePage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { UsersPage } from "./pages/users/UsersPage";
+import { EquipmentPage } from "./pages/equipment/EquipmentPage";
+import { AdminEquipmentPage } from "./pages/admin/AdminEquipmentPage";
 
 // Error Pages
 import NotFoundPage from "./pages/errors/NotFoundPage";
@@ -60,6 +62,7 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/doctors" element={<OurDoctorsPage />} />
+        <Route path="/equipment" element={<EquipmentPage />} />
       </Route>
 
       {/* Error pages */}
@@ -89,11 +92,13 @@ function App() {
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/admin/equipment" element={<AdminEquipmentPage />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorProfilePage />} />
+            <Route path="/equipment" element={<EquipmentPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

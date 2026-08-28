@@ -409,9 +409,10 @@ const OurDoctorsPage = () => {
                   </div>
 
                   <div className="flex gap-2">
+                    
                     <Link
                       to={`/doctors/${doctor.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-serenity-600 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-serenity-700 transition-colors shadow-xs"
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-serenity-700 text-serenity-700 px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-serenity-700 hover:text-white transition-colors shadow-xs"
                     >
                       <span>View Profile</span>
                       <i className="fas fa-arrow-right text-[10px]"></i>

@@ -133,6 +133,7 @@
 /**
  * @typedef {Object} Appointment
  * @property {number} id
+ * @property {string} [tokenNumber] Unique digital check-in token (e.g. TK-2026-0841).
  * @property {number} patientId
  * @property {number} doctorId
  * @property {string} scheduledAt
@@ -208,6 +209,24 @@
  * @property {number} [decidedByUserId] The ADMIN who approved or declined it.
  * @property {string} [decidedAt] ISO datetime of the decision.
  * @property {string} [decisionNote] Required on DECLINED, optional on APPROVED.
+ */
+
+/**
+ * Hospital equipment and technology post matching equipment_posts table.
+ *
+ * @typedef {Object} EquipmentPost
+ * @property {number} id
+ * @property {string} title
+ * @property {string} [description]
+ * @property {string} category
+ * @property {string} [manufacturer]
+ * @property {string} [model]
+ * @property {string} [imageUrl]
+ * @property {boolean} isFeatured
+ * @property {boolean} isActive
+ * @property {number} createdBy Admin User ID who created the post.
+ * @property {string} createdAt ISO datetime.
+ * @property {string} updatedAt ISO datetime.
  */
 
 export {};

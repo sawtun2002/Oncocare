@@ -161,9 +161,14 @@ export async function createAppointment(input, actor) {
   }
 
   const isPatient = actor?.role === "PATIENT";
+  const id = nextId("appointment");
+  const year = new Date().getFullYear();
+  const tokenNumber = input.tokenNumber || `TK-${year}-${String(id).padStart(4, "0")}`;
+
   const appointment = {
     ...input,
-    id: nextId("appointment"),
+    id,
+    tokenNumber,
     status: isPatient ? "REQUESTED" : "SCHEDULED",
     events: [event(isPatient ? "REQUESTED" : "ACCEPTED", actor)],
   };
