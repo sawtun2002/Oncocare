@@ -76,32 +76,6 @@ export function AuthProvider({ children }) {
     setUser(withProfileOverrides(response.user));
   }
 
-  async function updateProfile(input) {
-    if (!user) throw new Error("You must be signed in to update your profile.");
-    
-    // Try API first
-    if (token) {
-      const updatedUser = await apiUpdateProfile(token, input);
-      setUser(withProfileOverrides(updatedUser));
-      return updatedUser;
-    }
-    
-    // Fallback to local storage (shouldn't happen in production)
-    const profiles = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-    profiles[user.id] = { name: input.name, email: input.email };
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profiles));
-    setUser((current) => ({ ...current, ...profiles[user.id] }));
-    return user;
-  }
-
-  async function changePassword(currentPassword, newPassword) {
-    if (!user) throw new Error("You must be signed in to change your password.");
-    if (!token) throw new Error("No valid session found.");
-    
-    await apiChangePassword(token, currentPassword, newPassword);
-    return true;
-  }
-
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);

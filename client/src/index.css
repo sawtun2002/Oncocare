@@ -123,6 +123,26 @@ textarea:disabled {
   --chrome-5: #a9bed2;
   --chrome-6: #6b8199;
   --chrome-shadow: rgb(31 45 61 / 0.25);
+
+  /* Semantic colors for status, feedback, and alerts. */
+  --success-50: #ecfdf5;
+  --success-100: #d1fae5;
+  --success-500: #10b981;
+  --success-600: #059669;
+  --success-700: #047857;
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  --error-50: #fef2f2;
+  --error-100: #fee2e2;
+  --error-500: #ef4444;
+  --error-600: #dc2626;
+  --error-700: #b91c1c;
+  --info-50: #eff6ff;
+  --info-100: #dbeafe;
+  --info-500: #3b82f6;
+  --info-600: #2563eb;
 }
 
 [data-theme="dark"] {
@@ -167,6 +187,25 @@ textarea:disabled {
   --chrome-5: #9db4cd;
   --chrome-6: #6d88a5;
   --chrome-shadow: rgb(0 0 0 / 0.45);
+
+  --success-50: #0a2e1f;
+  --success-100: #134e34;
+  --success-500: #34d399;
+  --success-600: #10b981;
+  --success-700: #059669;
+  --warning-50: #2e1f0a;
+  --warning-100: #4e3413;
+  --warning-500: #fbbf24;
+  --warning-600: #f59e0b;
+  --error-50: #2e0a0a;
+  --error-100: #4e1313;
+  --error-500: #f87171;
+  --error-600: #ef4444;
+  --error-700: #dc2626;
+  --info-50: #0a1a2e;
+  --info-100: #132e4e;
+  --info-500: #60a5fa;
+  --info-600: #3b82f6;
 }
 
 /* ---------------------------------------------------------------------------
@@ -205,6 +244,25 @@ textarea:disabled {
   --color-frost-600: #4a8fd4;
   --color-frost-700: #3b74ae;
   --color-aqua-400: #5ec8e5;
+
+  --color-success-50: var(--success-50);
+  --color-success-100: var(--success-100);
+  --color-success-500: var(--success-500);
+  --color-success-600: var(--success-600);
+  --color-success-700: var(--success-700);
+  --color-warning-50: var(--warning-50);
+  --color-warning-100: var(--warning-100);
+  --color-warning-500: var(--warning-500);
+  --color-warning-600: var(--warning-600);
+  --color-error-50: var(--error-50);
+  --color-error-100: var(--error-100);
+  --color-error-500: var(--error-500);
+  --color-error-600: var(--error-600);
+  --color-error-700: var(--error-700);
+  --color-info-50: var(--info-50);
+  --color-info-100: var(--info-100);
+  --color-info-500: var(--info-500);
+  --color-info-600: var(--info-600);
 }
 
 @layer base {
