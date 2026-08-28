@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Modal } from "../../components/Modal";
 import { Skeleton } from "../../components/Skeleton";
+import { useLanguage } from "../../context/LanguageContext";
 import { formatDateTime } from "../../lib/format";
 import { btnGhost, btnPrimary, errorText } from "../../lib/ui";
 
@@ -23,6 +24,7 @@ export function LeaveApprovalDialog({
   onClose,
   onConfirm,
 }) {
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const modalRef = useRef(null);
@@ -34,16 +36,16 @@ export function LeaveApprovalDialog({
       await onConfirm();
       modalRef.current?.close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t("common.somethingWrong"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Modal title="Approve leave" onClose={onClose} ref={modalRef}>
+    <Modal title={t("leaveApp.title")} onClose={onClose} ref={modalRef}>
       <p className="text-sm text-ink-700">
-        {staffName}&rsquo;s leave for <span className="font-medium text-ink-900">{dateRange}</span>.
+        {t("leaveApp.intro", { name: staffName, dates: dateRange })}
       </p>
 
       <div className="mt-4">
@@ -53,12 +55,11 @@ export function LeaveApprovalDialog({
             <Skeleton className="h-4 w-56" />
           </div>
         ) : conflicts.length === 0 ? (
-          <p className="text-sm text-ink-400">No appointments clash with these dates.</p>
+          <p className="text-sm text-ink-400">{t("leaveApp.noClash")}</p>
         ) : (
           <>
             <p className="text-sm font-medium text-ink-900">
-              {conflicts.length} appointment{conflicts.length === 1 ? "" : "s"} fall on these days and
-              will need rescheduling:
+              {t("leaveApp.willNeedResched", { count: conflicts.length })}
             </p>
             <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-sm">
               {conflicts.map((a) => (
@@ -68,10 +69,7 @@ export function LeaveApprovalDialog({
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-xs text-ink-400">
-              Approving won&rsquo;t cancel them &mdash; they&rsquo;ll appear under &ldquo;Affected by
-              approved leave&rdquo; on the Bookings page for reception to move.
-            </p>
+            <p className="mt-2 text-xs text-ink-400">{t("leaveApp.wontCancel")}</p>
           </>
         )}
       </div>
@@ -85,10 +83,10 @@ export function LeaveApprovalDialog({
           className={btnGhost}
           disabled={submitting}
         >
-          Back
+          {t("common.back")}
         </button>
         <button type="button" onClick={handleConfirm} disabled={submitting || loading} className={btnPrimary}>
-          {submitting ? "Approving…" : "Approve leave"}
+          {submitting ? t("leaveApp.submitting") : t("leaveApp.confirm")}
         </button>
       </div>
     </Modal>

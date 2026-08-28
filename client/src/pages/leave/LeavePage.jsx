@@ -14,6 +14,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { ReasonDialog } from "../../components/ReasonDialog";
 import { TableSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDateOnly, formatDateTime } from "../../lib/format";
 import {
@@ -29,13 +30,6 @@ import {
 import { LeaveApprovalDialog } from "./LeaveApprovalDialog";
 import { LeaveRequestFormDialog } from "./LeaveRequestFormDialog";
 
-const TYPE_LABEL = {
-  ANNUAL: "Annual",
-  SICK: "Sick",
-  TRAINING: "Training",
-  OTHER: "Other",
-};
-
 function dateRange(r) {
   return r.startDate === r.endDate
     ? formatDateOnly(r.startDate)
@@ -44,9 +38,11 @@ function dateRange(r) {
 
 export function LeavePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const isAdmin = user?.role === "ADMIN";
+  const typeLabel = (type) => t(`leave.type${type}`);
   const actor = { userId: user?.id, role: user?.role };
 
   const [showForm, setShowForm] = useState(false);
@@ -83,7 +79,7 @@ export function LeavePage() {
     mutationFn: (input) => createLeaveRequest(input, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Leave request submitted.");
+      toast.success(t("leave.submitted"));
     },
   });
 
@@ -91,7 +87,7 @@ export function LeavePage() {
     mutationFn: ({ id, status, note }) => decideLeaveRequest(id, { status, note }, actor),
     onSuccess: (updated) => {
       invalidate();
-      toast.success(updated.status === "APPROVED" ? "Leave approved." : "Leave declined.");
+      toast.success(updated.status === "APPROVED" ? t("leave.approved") : t("leave.declined"));
     },
   });
 
@@ -99,7 +95,7 @@ export function LeavePage() {
     mutationFn: (id) => withdrawLeaveRequest(id, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Request withdrawn.");
+      toast.success(t("leave.withdrawn"));
     },
   });
 
@@ -113,39 +109,39 @@ export function LeavePage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className={pageTitle}>Leave</h1>
+        <h1 className={pageTitle}>{t("leave.title")}</h1>
         <button onClick={() => setShowForm(true)} className={btnPrimary}>
-          + Request leave
+          {t("leave.request")}
         </button>
       </div>
       <p className="mt-2 text-sm text-ink-400">
-        Your time-off requests{isAdmin ? ", and requests from other staff awaiting your decision" : ""}.
+        {isAdmin ? t("leave.subtitleAdmin") : t("leave.subtitleSelf")}
       </p>
 
       {isAdmin && (
         <section className="mt-8">
-          <h2 className={sectionLabel}>Awaiting your decision</h2>
+          <h2 className={sectionLabel}>{t("leave.awaitingDecision")}</h2>
           <div className={`mt-3 ${tableWrap}`}>
             {leaveQuery.isLoading ? (
               <TableSkeleton columns={5} />
             ) : pending.length === 0 ? (
-              <p className="p-4 text-sm text-ink-400">Nothing to review.</p>
+              <p className="p-4 text-sm text-ink-400">{t("leave.nothingToReview")}</p>
             ) : (
               <table className={tableBase}>
                 <thead className={tableHead}>
                   <tr>
-                    <th className="px-4 py-2.5">Staff member</th>
-                    <th className="px-4 py-2.5">Type</th>
-                    <th className="px-4 py-2.5">Dates</th>
-                    <th className="px-4 py-2.5">Reason</th>
-                    <th className="px-4 py-2.5">Actions</th>
+                    <th className="px-4 py-2.5">{t("leave.colStaff")}</th>
+                    <th className="px-4 py-2.5">{t("leave.colType")}</th>
+                    <th className="px-4 py-2.5">{t("leave.colDates")}</th>
+                    <th className="px-4 py-2.5">{t("leave.colReason")}</th>
+                    <th className="px-4 py-2.5">{t("leave.colActions")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((r) => (
                     <tr key={r.id} className={tableRow}>
                       <td className="px-4 py-2.5 font-medium text-ink-900">{userName(r.userId)}</td>
-                      <td className="px-4 py-2.5 text-ink-700">{TYPE_LABEL[r.type]}</td>
+                      <td className="px-4 py-2.5 text-ink-700">{typeLabel(r.type)}</td>
                       <td className="px-4 py-2.5 text-ink-400">{dateRange(r)}</td>
                       <td className="px-4 py-2.5 text-ink-400">{r.reason}</td>
                       <td className="px-4 py-2.5">
@@ -155,14 +151,14 @@ export function LeavePage() {
                             onClick={() => setApproving(r)}
                             className="rounded-lg px-2 py-1 text-xs font-medium text-ink-700 transition hover:bg-surface/70"
                           >
-                            Approve
+                            {t("leave.approve")}
                           </button>
                           <button
                             type="button"
                             onClick={() => setDeclining(r)}
                             className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
                           >
-                            Decline
+                            {t("leave.decline")}
                           </button>
                         </div>
                       </td>
@@ -176,27 +172,27 @@ export function LeavePage() {
       )}
 
       <section className="mt-8">
-        <h2 className={sectionLabel}>My requests</h2>
+        <h2 className={sectionLabel}>{t("leave.myRequests")}</h2>
         <div className={`mt-3 ${tableWrap}`}>
           {leaveQuery.isLoading ? (
             <TableSkeleton columns={5} />
           ) : mine.length === 0 ? (
-            <p className="p-4 text-sm text-ink-400">You haven't requested any leave yet.</p>
+            <p className="p-4 text-sm text-ink-400">{t("leave.noneYet")}</p>
           ) : (
             <table className={tableBase}>
               <thead className={tableHead}>
                 <tr>
-                  <th className="px-4 py-2.5">Type</th>
-                  <th className="px-4 py-2.5">Dates</th>
-                  <th className="px-4 py-2.5">Requested</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Actions</th>
+                  <th className="px-4 py-2.5">{t("leave.colType")}</th>
+                  <th className="px-4 py-2.5">{t("leave.colDates")}</th>
+                  <th className="px-4 py-2.5">{t("leave.colRequested")}</th>
+                  <th className="px-4 py-2.5">{t("leave.colStatus")}</th>
+                  <th className="px-4 py-2.5">{t("leave.colActions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {mine.map((r) => (
                   <tr key={r.id} className={tableRow}>
-                    <td className="px-4 py-2.5 font-medium text-ink-900">{TYPE_LABEL[r.type]}</td>
+                    <td className="px-4 py-2.5 font-medium text-ink-900">{typeLabel(r.type)}</td>
                     <td className="px-4 py-2.5 text-ink-700">{dateRange(r)}</td>
                     <td className="px-4 py-2.5 text-ink-400">{formatDateTime(r.requestedAt)}</td>
                     <td className="px-4 py-2.5">
@@ -214,10 +210,10 @@ export function LeavePage() {
                           onClick={() => setWithdrawing(r)}
                           className={`rounded-lg px-2 py-1 text-xs font-medium ${dangerAction}`}
                         >
-                          Withdraw
+                          {t("leave.withdraw")}
                         </button>
                       ) : (
-                        <span className="text-xs text-ink-400">—</span>
+                        <span className="text-xs text-ink-400">{t("common.dash")}</span>
                       )}
                     </td>
                   </tr>
@@ -253,11 +249,13 @@ export function LeavePage() {
 
       {declining && (
         <ReasonDialog
-          title="Decline this request?"
-          intro={`${userName(declining.userId)}'s ${TYPE_LABEL[declining.type].toLowerCase()} leave for ${dateRange(
-            declining
-          )}. They'll see your note.`}
-          confirmLabel="Decline leave"
+          title={t("leave.declineTitle")}
+          intro={t("leave.declineIntro", {
+            name: userName(declining.userId),
+            type: typeLabel(declining.type),
+            dates: dateRange(declining),
+          })}
+          confirmLabel={t("leave.declineConfirm")}
           danger
           onClose={() => setDeclining(null)}
           onSubmit={async (note) => {
@@ -268,11 +266,12 @@ export function LeavePage() {
 
       {withdrawing && (
         <ConfirmDialog
-          title="Withdraw this request?"
-          message={`Your ${TYPE_LABEL[withdrawing.type].toLowerCase()} leave request for ${dateRange(
-            withdrawing
-          )} will be withdrawn. You can file a new one any time.`}
-          confirmLabel="Withdraw"
+          title={t("leave.withdrawTitle")}
+          message={t("leave.withdrawMsg", {
+            type: typeLabel(withdrawing.type),
+            dates: dateRange(withdrawing),
+          })}
+          confirmLabel={t("leave.withdrawConfirm")}
           danger
           onClose={() => setWithdrawing(null)}
           onConfirm={async () => {
