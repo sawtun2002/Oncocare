@@ -23,6 +23,8 @@ export const my = {
   "common.never": "မရှိသေးပါ",
   "common.dash": "—",
   "common.optional": "(မဖြည့်လည်းရသည်)",
+  "common.loading": "ဖွင့်နေသည်…",
+  "common.dismiss": "ပိတ်ရန်",
 
   // --- roles -----------------------------------------------------------------
   "role.ADMIN": "စီမံခန့်ခွဲသူ",
@@ -560,4 +562,28 @@ export const my = {
   "docProfile.education": "ပညာရေးနှင့် လေ့ကျင့်မှု",
   "docProfile.certifications": "လက်မှတ်များ",
   "docProfile.languages": "ပြောဆိုသော ဘာသာစကားများ",
+
+  // --- my bookings (patient) -----------------------------------
+  "myb.title": "ကျွန်ုပ်၏ ချိန်းဆိုမှုများ",
+  "myb.subtitle": "သင်၏ တောင်းဆိုမှုများ၊ လာမည့် လာရောက်မှုများနှင့် ပြီးခဲ့သော ချိန်းဆိုမှုများ။",
+  "myb.requestAppointment": "ချိန်းဆိုမှု တောင်းဆိုရန်",
+  "myb.awaitingConfirmation": "အတည်ပြုချက် စောင့်ဆိုင်းဆဲ",
+  "myb.noRequests": "ဆရာဝန် စောင့်ဆိုင်းနေသော တောင်းဆိုမှု မရှိပါ။",
+  "myb.expiresBy": "{date} အထိ မဖြေဆိုပါက သက်တမ်းကုန်မည်",
+  "myb.withdraw": "ရုပ်သိမ်းမည်",
+  "myb.upcoming": "လာမည့်",
+  "myb.nothingConfirmed": "အတည်ပြုထားခြင်း မရှိသေးပါ။",
+  "myb.requestAnAppointment": "ချိန်းဆိုမှု တောင်းဆိုရန်",
+  "myb.minShort": "မိနစ်",
+  "myb.history": "မှတ်တမ်း",
+  "myb.moved": "သင်၏ ချိန်းဆိုမှုကို ရွှေ့ပြောင်းပြီးပါပြီ။",
+  "myb.cancelled": "သင်၏ ချိန်းဆိုမှုကို ပယ်ဖျက်ပြီးပါပြီ။",
+  "myb.withdrawTitle": "ဤတောင်းဆိုမှုကို ရုပ်သိမ်းမလား။",
+  "myb.cancelTitle": "ဤချိန်းဆိုမှုကို ပယ်ဖျက်မလား။",
+  "myb.withdrawMsg": "{dr} နှင့် {when} အတွက် သင်၏ တောင်းဆိုမှုကို ရုပ်သိမ်းပါမည်။",
+  "myb.cancelMsg": "{dr} နှင့် {when} ရှိ သင်၏ ချိန်းဆိုမှုကို ပယ်ဖျက်ပါမည်။",
+  "myb.lateSuffix": " ၂၄ နာရီထက် နည်းပါပြီ — အရေးပေါ်ဖြစ်ပါက ဆေးခန်းသို့ ဖုန်းဆက်ပါ။",
+  "myb.laterSuffix": " အခြားအချိန်တစ်ခု အမြဲ ပြန်ချိန်းဆိုနိုင်ပါသည်။",
+  "myb.withdrawConfirm": "တောင်းဆိုမှု ရုပ်သိမ်းမည်",
+  "myb.cancelConfirm": "ချိန်းဆိုမှု ပယ်ဖျက်မည်",
 };

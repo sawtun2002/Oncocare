@@ -9,6 +9,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { GlassCard } from "../../components/GlassCard";
 import { CardSkeleton } from "../../components/Skeleton";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { formatDate, formatDateTime } from "../../lib/format";
 import { btnGhost, btnPrimary, dangerAction, pageTitle, sectionLabel } from "../../lib/ui";
@@ -16,6 +17,7 @@ import { RescheduleFormDialog } from "./RescheduleFormDialog";
 
 export function MyBookingsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [rescheduling, setRescheduling] = useState(null);
@@ -38,7 +40,7 @@ export function MyBookingsPage() {
     mutationFn: ({ id, ...input }) => updateAppointment(id, input, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Your appointment has been moved.");
+      toast.success(t("myb.moved"));
     },
   });
 
@@ -46,7 +48,7 @@ export function MyBookingsPage() {
     mutationFn: (id) => cancelAppointment(id, actor),
     onSuccess: () => {
       invalidate();
-      toast.success("Your appointment has been cancelled.");
+      toast.success(t("myb.cancelled"));
     },
   });
 
@@ -70,10 +72,8 @@ export function MyBookingsPage() {
   if (!patientId) {
     return (
       <GlassCard className="p-6">
-        <h1 className="text-lg font-semibold text-ink-900">Account not linked</h1>
-        <p className="mt-2 text-sm text-ink-700">
-          This login isn't connected to a patient record yet. Please contact reception.
-        </p>
+        <h1 className="text-lg font-semibold text-ink-900">{t("book.accountNotLinked")}</h1>
+        <p className="mt-2 text-sm text-ink-700">{t("book.contactReception")}</p>
       </GlassCard>
     );
   }
@@ -82,22 +82,22 @@ export function MyBookingsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className={pageTitle}>My bookings</h1>
-          <p className="mt-2 text-sm text-ink-400">Your requests, upcoming visits and past appointments.</p>
+          <h1 className={pageTitle}>{t("myb.title")}</h1>
+          <p className="mt-2 text-sm text-ink-400">{t("myb.subtitle")}</p>
         </div>
         <Link to="/book" className={btnPrimary}>
-          Request appointment
+          {t("myb.requestAppointment")}
         </Link>
       </div>
 
       <section className="mt-8">
-        <h2 className={sectionLabel}>Awaiting confirmation</h2>
+        <h2 className={sectionLabel}>{t("myb.awaitingConfirmation")}</h2>
         <div className="mt-3 space-y-3">
           {appointmentsQuery.isLoading ? (
             <CardSkeleton lines={1} />
           ) : awaiting.length === 0 ? (
             <GlassCard className="p-6">
-              <p className="text-sm text-ink-400">No requests waiting on a doctor.</p>
+              <p className="text-sm text-ink-400">{t("myb.noRequests")}</p>
             </GlassCard>
           ) : (
             awaiting.map((a) => (
@@ -115,7 +115,7 @@ export function MyBookingsPage() {
                   </div>
                   {a.expiresAt && (
                     <div className="mt-1 text-xs text-ink-400">
-                      Expires if unanswered by {formatDate(a.expiresAt)}
+                      {t("myb.expiresBy", { date: formatDate(a.expiresAt) })}
                     </div>
                   )}
                 </div>
@@ -126,7 +126,7 @@ export function MyBookingsPage() {
                     onClick={() => setCancelling(a)}
                     className={`rounded-lg px-3 py-2 text-sm font-medium ${dangerAction}`}
                   >
-                    Withdraw
+                    {t("myb.withdraw")}
                   </button>
                 </div>
               </GlassCard>
@@ -136,16 +136,16 @@ export function MyBookingsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className={sectionLabel}>Upcoming</h2>
+        <h2 className={sectionLabel}>{t("myb.upcoming")}</h2>
         <div className="mt-3 space-y-3">
           {appointmentsQuery.isLoading ? (
             <CardSkeleton />
           ) : upcoming.length === 0 ? (
             <GlassCard className="p-6">
               <p className="text-sm text-ink-400">
-                Nothing confirmed yet.{" "}
+                {t("myb.nothingConfirmed")}{" "}
                 <Link to="/book" className="font-medium text-frost-600 hover:underline">
-                  Request an appointment
+                  {t("myb.requestAnAppointment")}
                 </Link>
                 .
               </p>
@@ -162,20 +162,20 @@ export function MyBookingsPage() {
                     >
                       {doctorName(a.doctorId)}
                     </Link>{" "}
-                    · {a.durationMinutes} min{a.reason ? ` · ${a.reason}` : ""}
+                    · {a.durationMinutes} {t("myb.minShort")}{a.reason ? ` · ${a.reason}` : ""}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge status={a.status} />
                   <button type="button" onClick={() => setRescheduling(a)} className={btnGhost}>
-                    Reschedule
+                    {t("appt.reschedule")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCancelling(a)}
                     className={`rounded-lg px-3 py-2 text-sm font-medium ${dangerAction}`}
                   >
-                    Cancel
+                    {t("appt.cancel")}
                   </button>
                 </div>
               </GlassCard>
@@ -185,13 +185,13 @@ export function MyBookingsPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className={sectionLabel}>History</h2>
+        <h2 className={sectionLabel}>{t("myb.history")}</h2>
         <div className="mt-3 space-y-3">
           {appointmentsQuery.isLoading ? (
             <CardSkeleton lines={1} />
           ) : history.length === 0 ? (
             <GlassCard className="p-6">
-              <p className="text-sm text-ink-400">No past appointments.</p>
+              <p className="text-sm text-ink-400">{t("patient.noPast")}</p>
             </GlassCard>
           ) : (
             history.map((a) => (
@@ -233,21 +233,23 @@ export function MyBookingsPage() {
 
       {cancelling && (
         <ConfirmDialog
-          title={cancelling.status === "REQUESTED" ? "Withdraw this request?" : "Cancel this booking?"}
+          title={cancelling.status === "REQUESTED" ? t("myb.withdrawTitle") : t("myb.cancelTitle")}
           message={
             (cancelling.status === "REQUESTED"
-              ? `Your request for ${formatDateTime(cancelling.scheduledAt)} with ${doctorName(
-                  cancelling.doctorId
-                )} will be withdrawn.`
-              : `Your appointment on ${formatDateTime(cancelling.scheduledAt)} with ${doctorName(
-                  cancelling.doctorId
-                )} will be cancelled.`) +
+              ? t("myb.withdrawMsg", {
+                  when: formatDateTime(cancelling.scheduledAt),
+                  dr: doctorName(cancelling.doctorId),
+                })
+              : t("myb.cancelMsg", {
+                  when: formatDateTime(cancelling.scheduledAt),
+                  dr: doctorName(cancelling.doctorId),
+                })) +
             (new Date(cancelling.scheduledAt).getTime() - now < 24 * 60 * 60 * 1000 &&
             new Date(cancelling.scheduledAt).getTime() > now
-              ? " That's less than 24 hours away — please call the clinic if it's urgent."
-              : " You can always book another time.")
+              ? t("myb.lateSuffix")
+              : t("myb.laterSuffix"))
           }
-          confirmLabel={cancelling.status === "REQUESTED" ? "Withdraw request" : "Cancel booking"}
+          confirmLabel={cancelling.status === "REQUESTED" ? t("myb.withdrawConfirm") : t("myb.cancelConfirm")}
           danger
           onClose={() => setCancelling(null)}
           onConfirm={async () => {

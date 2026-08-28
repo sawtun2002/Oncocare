@@ -23,6 +23,8 @@ export const en = {
   "common.never": "Never",
   "common.dash": "—",
   "common.optional": "(optional)",
+  "common.loading": "Loading…",
+  "common.dismiss": "Dismiss",
 
   // --- roles -----------------------------------------------------------------
   "role.ADMIN": "Administrator",
@@ -560,4 +562,28 @@ export const en = {
   "docProfile.education": "Education & training",
   "docProfile.certifications": "Certifications",
   "docProfile.languages": "Languages spoken",
+
+  // --- my bookings (patient) -----------------------------------
+  "myb.title": "My bookings",
+  "myb.subtitle": "Your requests, upcoming visits and past appointments.",
+  "myb.requestAppointment": "Request appointment",
+  "myb.awaitingConfirmation": "Awaiting confirmation",
+  "myb.noRequests": "No requests waiting on a doctor.",
+  "myb.expiresBy": "Expires if unanswered by {date}",
+  "myb.withdraw": "Withdraw",
+  "myb.upcoming": "Upcoming",
+  "myb.nothingConfirmed": "Nothing confirmed yet.",
+  "myb.requestAnAppointment": "Request an appointment",
+  "myb.minShort": "min",
+  "myb.history": "History",
+  "myb.moved": "Your appointment has been moved.",
+  "myb.cancelled": "Your appointment has been cancelled.",
+  "myb.withdrawTitle": "Withdraw this request?",
+  "myb.cancelTitle": "Cancel this booking?",
+  "myb.withdrawMsg": "Your request for {when} with {dr} will be withdrawn.",
+  "myb.cancelMsg": "Your appointment on {when} with {dr} will be cancelled.",
+  "myb.lateSuffix": " That's less than 24 hours away — please call the clinic if it's urgent.",
+  "myb.laterSuffix": " You can always book another time.",
+  "myb.withdrawConfirm": "Withdraw request",
+  "myb.cancelConfirm": "Cancel booking",
 };
