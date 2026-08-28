@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import logoFull from "../assets/logo-full.png";
 import logoMark from "../assets/logo-mark.png";
 import { PasswordStrength } from "../components/PasswordStrength";
@@ -21,6 +21,7 @@ const DEMO_ACCOUNTS = [
 export function LoginPage({ initialMode = "login" }) {
   const { user, loading, login, signup } = useAuth();
   const { lang, setLang, t } = useLanguage();
+  const location = useLocation();
   const [mode, setMode] = useState(initialMode);
 
   // Login fields
@@ -54,7 +55,12 @@ export function LoginPage({ initialMode = "login" }) {
   }
 
   if (user) {
-    return <Navigate to={homePathFor(user.role)} replace />;
+    // If the guard sent them here from a protected page (e.g. "Book appointment"
+    // on the public site), go back there once they're a PATIENT; otherwise land
+    // on the role's own home.
+    const from = location.state?.from;
+    const dest = from && user.role === "PATIENT" ? from : homePathFor(user.role);
+    return <Navigate to={dest} replace />;
   }
 
   function switchMode(next) {

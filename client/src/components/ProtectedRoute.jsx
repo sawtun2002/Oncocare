@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { homePathFor } from "../lib/roles";
@@ -8,24 +7,14 @@ export function ProtectedRoute({ allowedRoles }) {
   const location = useLocation();
   const isRoleAllowed = !allowedRoles || allowedRoles.includes(user?.role);
 
-  useEffect(() => {
-    if (loading) return;
-
-    if (!user) {
-      window.alert("Please log in to access this page.");
-      return;
-    }
-
-    if (!isRoleAllowed) {
-      window.alert("You do not have permission to access this page.");
-    }
-  }, [isRoleAllowed, loading, location.pathname, user]);
-
   if (loading) {
     return <div className="flex h-screen items-center justify-center text-sm text-ink-400">Loading…</div>;
   }
+  // Not signed in -- send to login and remember where they were headed, so a
+  // "Book appointment" click from the public site lands on the booking screen
+  // straight after sign-in. No alert: a route guard should redirect quietly.
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
   if (!isRoleAllowed) {
     // Send them to their own home, not a hardcoded "/" -- for a PATIENT that
