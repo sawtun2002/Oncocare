@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listDoctorProfiles } from '../../api/doctors'
-import { listEquipment } from '../../api/equipment'
 import doctorImage from "../../assets/images/doctor&logo.png"
 import building from "../../assets/images/building.jpg"
 
@@ -29,14 +28,8 @@ export default function HomePage() {
     queryFn: listDoctorProfiles
   })
 
-  const { data: equipmentList = [], isLoading: isEquipmentLoading } = useQuery({
-    queryKey: ['equipment-showcase'],
-    queryFn: () => listEquipment({ active: true, featured: true }),
-  })
-
-  // Limit showcase to top 3 doctors and top 3 featured equipment
+  // Limit showcase to top 3 doctors
   const displayedDoctors = doctors.slice(0, 3)
-  const displayedEquipment = equipmentList.slice(0, 3)
 
   // 
 
@@ -305,84 +298,6 @@ export default function HomePage() {
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-serenity-600 hover:text-serenity-800 transition-colors group-hover:gap-2"
                   >
                     <span>View Schedule</span>
-                    <i className="fas fa-chevron-right text-[10px]" />
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Equipment Showcase */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-slate-200/60 pb-6">
-          <div>
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-serenity-600 mb-2">
-              <i className="fas fa-microscope text-serenity-500" />
-              Advanced Technology
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Oncology Equipment Showcase</h2>
-          </div>
-          
-          <Link 
-            to="/equipment" 
-            className="inline-flex items-center gap-2 text-sm font-semibold text-serenity-600 hover:text-serenity-800 transition-colors group self-start sm:self-auto"
-          >
-            <span>Explore All Equipment</span>
-            <i className="fas fa-arrow-right text-xs transition-transform duration-200 group-hover:translate-x-1" />
-          </Link>
-        </div>
-
-        {isEquipmentLoading ? (
-          <div className="grid gap-6 md:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
-              <DoctorSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-3">
-            {displayedEquipment.map((item) => (
-              <article
-                key={item.id}
-                className="group rounded-2xl border border-serenity-100 bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:border-serenity-200 hover:-translate-y-1 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="relative h-48 w-full overflow-hidden bg-slate-100">
-                    <img
-                      src={item.imageUrl || "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span className="rounded-full bg-slate-900/70 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white">
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-serenity-700 transition-colors mb-2 line-clamp-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs font-medium text-serenity-600 mb-3">
-                      {[item.manufacturer, item.model].filter(Boolean).join(" • ") || item.category}
-                    </p>
-                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
-                  <span className="text-xs font-medium text-slate-500">
-                    <i className="fas fa-check-circle text-emerald-500 mr-1" /> Hospital Active
-                  </span>
-                  <Link
-                    to="/equipment"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-serenity-600 hover:text-serenity-800 transition-colors group-hover:gap-2"
-                  >
-                    <span>Details</span>
                     <i className="fas fa-chevron-right text-[10px]" />
                   </Link>
                 </div>
