@@ -6,10 +6,9 @@ import { listLeaveRequests } from "../api/leave";
 import { listPatients } from "../api/patients";
 import { listDoctors, listUsers } from "../api/users";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { formatDateOnly, formatDateTime } from "../lib/format";
 import { noticesFor, unreadCount } from "../lib/notices";
-
-const LEAVE_TYPE_WORD = { ANNUAL: "annual", SICK: "sick", TRAINING: "training", OTHER: "" };
 
 // Where a notice takes you when clicked: the screen that shows it. Leave
 // notices are ADMIN-only and belong on /leave; an appointment notice belongs
@@ -20,16 +19,16 @@ function hrefFor(notice, role) {
 }
 
 // One notice, as a sentence. The event log stays neutral ("DECLINED by the
-// doctor"); the phrasing that suits *this* viewer lives here.
-function describe(notice, user, names) {
+// doctor"); the phrasing that suits *this* viewer lives in the catalog, keyed
+// per case so word order is a translator's decision, not a concat.
+function describe(notice, user, names, t) {
   if (notice.kind === "leave") {
     const { request } = notice;
-    const word = LEAVE_TYPE_WORD[request.type];
     const span =
       request.startDate === request.endDate
         ? formatDateOnly(request.startDate)
         : `${formatDateOnly(request.startDate)}–${formatDateOnly(request.endDate)}`;
-    return `${names.user(request.userId)} requested ${word ? `${word} ` : ""}leave for ${span}`;
+    return t(`notice.leaveReq${request.type}`, { name: names.user(request.userId), span });
   }
 
   const { appointment, event } = notice;
@@ -40,31 +39,31 @@ function describe(notice, user, names) {
 
   switch (event.type) {
     case "REQUESTED":
-      return `${pt} requested an appointment with ${dr} on ${when}`;
+      return t("notice.apptRequested", { pt, dr, when });
     case "ACCEPTED":
       return isFirst
-        ? `An appointment with ${dr} on ${when} was booked for you`
-        : `${dr} confirmed your appointment on ${when}`;
+        ? t("notice.apptBookedForYou", { dr, when })
+        : t("notice.apptConfirmed", { dr, when });
     case "DECLINED":
       if (event.byRole == null) {
         // Expired with no response -- phrased for whichever side is reading.
         return user.role === "DOCTOR"
-          ? `A request from ${pt} for ${when} expired before you answered it`
-          : `Your request for ${when} with ${dr} expired with no response`;
+          ? t("notice.apptExpiredDoctor", { pt, when })
+          : t("notice.apptExpiredPatient", { dr, when });
       }
-      return `${dr} could not take your request for ${when}`;
+      return t("notice.apptDeclined", { dr, when });
     case "RESCHEDULED": {
       const to = event.toScheduledAt ? formatDateTime(event.toScheduledAt) : when;
       return user.role === "PATIENT"
-        ? `Your appointment with ${dr} was moved to ${to}`
-        : `${pt}'s appointment with ${dr} was moved to ${to}`;
+        ? t("notice.apptMovedPatient", { dr, to })
+        : t("notice.apptMovedStaff", { pt, dr, to });
     }
     case "CANCELLED":
       return user.role === "PATIENT"
-        ? `Your appointment with ${dr} on ${when} was cancelled`
-        : `${pt}'s appointment with ${dr} on ${when} was cancelled`;
+        ? t("notice.apptCancelledPatient", { dr, when })
+        : t("notice.apptCancelledStaff", { pt, dr, when });
     default:
-      return `Update to an appointment with ${dr} on ${when}`;
+      return t("notice.apptUpdate", { dr, when });
   }
 }
 
@@ -83,6 +82,7 @@ function describe(notice, user, names) {
  */
 export function NoticeBell({ align = "right" }) {
   const { user, markNotificationsRead } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   // The `notificationsReadAt` value captured at the moment the panel is opened,
   // held for that one viewing. Opening also stamps a new `notificationsReadAt`
@@ -165,7 +165,7 @@ export function NoticeBell({ align = "right" }) {
       <button
         type="button"
         onClick={toggle}
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+        aria-label={unread > 0 ? t("notice.ariaUnread", { count: unread }) : t("notice.title")}
         aria-expanded={open}
         className="relative rounded-lg p-2 text-ink-700 transition hover:bg-surface/70 focus:outline-none focus:ring-2 focus:ring-frost-400/50"
       >
@@ -184,11 +184,13 @@ export function NoticeBell({ align = "right" }) {
           }`}
         >
           <div className="flex items-baseline justify-between border-b border-ice-200 px-4 py-2.5">
-            <span className="font-semibold text-ink-900">Notifications</span>
-            {newCount > 0 && <span className="text-xs font-medium text-frost-600">{newCount} new</span>}
+            <span className="font-semibold text-ink-900">{t("notice.title")}</span>
+            {newCount > 0 && (
+              <span className="text-xs font-medium text-frost-600">{t("notice.new", { count: newCount })}</span>
+            )}
           </div>
           {isLoading ? (
-            <ul className="space-y-3 px-4 py-4" aria-label="Loading notifications">
+            <ul className="space-y-3 px-4 py-4" aria-label={t("notice.loading")}>
               {[1, 2, 3].map((item) => (
                 <li key={item} className="space-y-2">
                   <div className="h-3 w-full animate-pulse rounded bg-ice-200" />
@@ -197,11 +199,9 @@ export function NoticeBell({ align = "right" }) {
               ))}
             </ul>
           ) : hasError ? (
-            <p className="px-4 py-6 text-center text-sm text-ink-400">
-              Notifications are temporarily unavailable.
-            </p>
+            <p className="px-4 py-6 text-center text-sm text-ink-400">{t("notice.unavailable")}</p>
           ) : shown.length === 0 ? (
-            <p className="px-4 py-6 text-center text-ink-400">You're all caught up.</p>
+            <p className="px-4 py-6 text-center text-ink-400">{t("notice.allCaught")}</p>
           ) : (
             <ul className="max-h-96 divide-y divide-ice-200 overflow-y-auto">
               {shown.map((n) => {
@@ -224,9 +224,9 @@ export function NoticeBell({ align = "right" }) {
                         }`}
                       />
                       <div className="min-w-0">
-                        {fresh && <span className="sr-only">Unread. </span>}
+                        {fresh && <span className="sr-only">{t("notice.unread")}</span>}
                         <p className={fresh ? "font-medium text-ink-900" : "text-ink-700"}>
-                          {describe(n, user, names)}
+                          {describe(n, user, names, t)}
                         </p>
                         {n.kind === "appointment" && n.event.reason && (
                           <p className="mt-0.5 text-xs text-ink-400">“{n.event.reason}”</p>
