@@ -621,6 +621,9 @@ export const my = {
   "pay.noteRequired": "ငွေလွှဲ မှတ်စု သို့မဟုတ် ကိုးကားနံပါတ် ထည့်ပါ။",
   "pay.receiptRequired": "ငွေပေးချေမှု ပြေစာ သို့မဟုတ် ဖန်သားပြင်ဓာတ်ပုံ တင်ပါ။",
   "pay.submitError": "ငွေပေးချေမှု အထောက်အထား တင်ပြ၍ မရပါ။",
+  "pay.existingReceipt": "လက်ရှိ ပြေစာ",
+  "pay.existingReceiptAlt": "မကြာသေးမီနှင့်တင်ပြီး ပြေစာ",
+  "pay.submittedAt": "{date} တွင်တင်ပြီး",
 
   // --- error pages (401 / 403 / 404 / 500) ------------------
   "err.404Title": "စာမျက်နှာ မတွေ့ပါ",

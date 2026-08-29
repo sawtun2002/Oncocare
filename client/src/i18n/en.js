@@ -621,6 +621,9 @@ export const en = {
   "pay.noteRequired": "Add the transaction note or reference number.",
   "pay.receiptRequired": "Upload the payment receipt or screenshot.",
   "pay.submitError": "Could not submit payment proof.",
+  "pay.existingReceipt": "Existing receipt",
+  "pay.existingReceiptAlt": "Previously submitted receipt",
+  "pay.submittedAt": "Submitted {date}",
 
   // --- error pages (401 / 403 / 404 / 500) ------------------
   "err.404Title": "Page Not Found",

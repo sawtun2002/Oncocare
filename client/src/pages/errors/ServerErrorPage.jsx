@@ -1,5 +1,6 @@
 import React from 'react'
 import ErrorLayout from '../../Layout/ErrorLayout'
+import { useLanguage } from '../../context/LanguageContext'
 
 export default function ServerErrorPage({ onRetry }) {
   const { t } = useLanguage()

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { useAppointmentRedirect } from '../../hooks/useAppointmentRedirect'
 
 export default function AboutPage() {
+  const handleAppointment = useAppointmentRedirect();
   const stats = [
     { icon: 'fa-users', value: '10,000+', label: 'Patients Served', detail: 'Across all oncology units' },
     { icon: 'fa-user-md', value: '50+', label: 'Expert Specialists', detail: 'Board-certified oncologists' },
@@ -119,13 +121,13 @@ export default function AboutPage() {
                   <span>Meet Our Specialists</span>
                   <i className="fas fa-arrow-right text-sm"></i>
                 </Link>
-                <Link
-                  to="/book"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/5 px-7 py-3.5 text-base font-semibold text-white backdrop-blur-md hover:bg-white/10 transition-all active:scale-95"
-                >
-                  <i className="fas fa-calendar-alt text-serenity-300"></i>
-                  <span>Book Consultation</span>
-                </Link>
+                 <button
+                   onClick={handleAppointment}
+                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/5 px-7 py-3.5 text-base font-semibold text-white backdrop-blur-md hover:bg-white/10 transition-all active:scale-95"
+                 >
+                   <i className="fas fa-calendar-alt text-serenity-300"></i>
+                   <span>Book Consultation</span>
+                 </button>
               </div>
             </div>
 

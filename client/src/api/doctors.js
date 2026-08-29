@@ -12,7 +12,23 @@ import axios from "axios";
 
 
 export async function listDoctorProfiles() {
-  return delay([...db.doctorProfiles].sort((a, b) => a.name.localeCompare(b.name)));
+  const activeDoctors = db.users.filter((u) => u.role === "DOCTOR" && u.status === "ACTIVE");
+  const profiles = activeDoctors.map((u) => {
+    const existing = db.doctorProfiles.find((p) => p.id === u.id);
+    if (existing) return existing;
+    return {
+      id: u.id,
+      name: u.name,
+      specialty: "General Oncology",
+      yearsOfExperience: 0,
+      education: [],
+      certifications: [],
+      languages: [],
+      bio: "",
+      acceptingNewPatients: true,
+    };
+  });
+  return delay(profiles.sort((a, b) => a.name.localeCompare(b.name)));
 }
 
 

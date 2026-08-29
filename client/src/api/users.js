@@ -66,6 +66,21 @@ export async function createStaffUser(input) {
     notifyAppointmentReminders: true,
   };
   db.users.push(user);
+
+  if (input.role === "DOCTOR") {
+    db.doctorProfiles.push({
+      id: user.id,
+      name: user.name,
+      specialty: "General Oncology",
+      yearsOfExperience: 0,
+      education: [],
+      certifications: [],
+      languages: [],
+      bio: "",
+      acceptingNewPatients: true,
+    });
+  }
+
   persist();
   return delay(toUser(user));
 }

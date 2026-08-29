@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listDoctorProfiles } from '../../api/doctors'
+import { useAppointmentRedirect } from '../../hooks/useAppointmentRedirect'
 import doctorImage from "../../assets/images/doctor&logo.png"
 import building from "../../assets/images/building.jpg"
 
@@ -27,6 +28,7 @@ export default function HomePage() {
     queryKey: ['doctor-profiles'], 
     queryFn: listDoctorProfiles
   })
+  const handleAppointment = useAppointmentRedirect();
 
   // Limit showcase to top 3 doctors
   const displayedDoctors = doctors.slice(0, 3)
@@ -116,13 +118,13 @@ export default function HomePage() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3.5 sm:gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                  <Link 
-                    to="/book" 
-                    className="group inline-flex items-center justify-center gap-2.5 rounded-xl bg-white px-7 py-3.5 sm:py-4 font-semibold text-slate-900 shadow-xl shadow-slate-950/20 transition-all duration-200 hover:bg-serenity-50 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0"
-                  >
-                    <span>Make Appointment</span>
-                    <i className="fas fa-arrow-right text-sm transition-transform duration-200 group-hover:translate-x-1" />
-                  </Link>
+                  <button 
+                     onClick={handleAppointment}
+                     className="group inline-flex items-center justify-center gap-2.5 rounded-xl bg-white px-7 py-3.5 sm:py-4 font-semibold text-slate-900 shadow-xl shadow-slate-950/20 transition-all duration-200 hover:bg-serenity-50 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0"
+                   >
+                     <span>Make Appointment</span>
+                     <i className="fas fa-arrow-right text-sm transition-transform duration-200 group-hover:translate-x-1" />
+                   </button>
                   
                   <Link 
                     to="/rooms" 

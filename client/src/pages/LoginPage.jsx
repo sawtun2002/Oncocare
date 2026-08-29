@@ -6,7 +6,7 @@ import { PasswordStrength } from "../components/PasswordStrength";
 import { useAuth } from "../context/useAuth";
 import { useLanguage } from "../context/LanguageContext";
 import { LANGUAGES, LANGUAGE_LABEL } from "../i18n";
-import { homePathFor, isPatientReturnPath } from "../lib/roles";
+import { homePathFor, isPatientReturnPath, isAppointmentReturnPath, getAppointmentRoute } from "../lib/roles";
 import { btnPrimary, errorText, inputClass, labelClass } from "../lib/ui";
 import { MIN_PASSWORD_LENGTH, evaluatePassword, isValidPhone } from "../lib/validation";
 
@@ -55,13 +55,12 @@ export function LoginPage({ initialMode = "login" }) {
   }
 
   if (user) {
-    // A logout can leave the browser at an admin/staff URL. Only resume a
-    // patient-safe route; otherwise a patient must land on My Bookings instead
-    // of being redirected straight to /403.
     const from = location.state?.from;
-    const dest = user.role === "PATIENT" && isPatientReturnPath(from)
-      ? from
-      : homePathFor(user.role);
+    const dest =
+      (user.role === "PATIENT" && isPatientReturnPath(from)) ||
+      (user.role !== "PATIENT" && isAppointmentReturnPath(from))
+        ? getAppointmentRoute(user.role)
+        : homePathFor(user.role);
     return <Navigate to={dest} replace />;
   }
 
