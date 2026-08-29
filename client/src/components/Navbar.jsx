@@ -190,13 +190,13 @@ export default function Navbar({ onMenuClick }) {
                     className="flex items-center gap-2 rounded-full px-2 py-1 text-ink-700 transition-colors hover:bg-surface/70 focus:outline-none"
                   >
                     <div className="relative">
-                      {user.avatar ? (
-                        <img 
-                          src={user.avatar} 
-                          alt={user.name} 
-                          className="h-8 w-8 rounded-full object-cover border border-serenity-200" 
-                        />
-                      ) : (
+                     {user.avatarUrl ? (
+                         <img 
+                           src={user.avatarUrl} 
+                           alt={user.name} 
+                           className="h-8 w-8 rounded-full object-cover border border-serenity-200" 
+                         />
+                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-ice-100">
                           <i className={`fas ${getRoleIcon()} text-ink-700 text-xs`}></i>
                         </div>
@@ -268,13 +268,13 @@ export default function Navbar({ onMenuClick }) {
                   className="flex items-center gap-2 rounded-full px-2 py-1 text-ink-700 transition-colors hover:bg-surface/70 focus:outline-none"
                 >
                   <div className="relative">
-                    {user.avatar ? (
-                      <img 
-                        src={user.avatar} 
-                        alt={user.name} 
-                        className="h-10 w-10 rounded-full object-cover border-2 border-white/40" 
-                      />
-                    ) : (
+                     {user.avatarUrl ? (
+                       <img 
+                         src={user.avatarUrl} 
+                         alt={user.name} 
+                         className="h-10 w-10 rounded-full object-cover border-2 border-white/40" 
+                       />
+                     ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ice-100">
                           <i className={`fas ${getRoleIcon()} text-ink-700`}></i>
                       </div>
@@ -355,9 +355,9 @@ export default function Navbar({ onMenuClick }) {
                     'border-hairline bg-surface/60 text-ink-700 backdrop-blur-sm hover:bg-surface/80'
                   }`}
                 >
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="" className="h-full w-full object-cover" />
-                  ) : (
+                   {user.avatarUrl ? (
+                     <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                   ) : (
                     <i className={`fas ${getRoleIcon()}`} aria-hidden="true"></i>
                   )}
                 </button>
