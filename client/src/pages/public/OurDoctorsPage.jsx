@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { listDoctorProfiles } from '../../api/doctors'
+import { useAppointmentRedirect } from '../../hooks/useAppointmentRedirect'
 import stethoscope from "../../assets/images/stethoscope.jpg"
 import logo_full from "../../assets/logo-full-verti.png"
 
@@ -161,6 +162,7 @@ const OurDoctorsPage = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("rating")
+  const handleAppointment = useAppointmentRedirect();
 
   // Try to fetch from API, fallback to dummy data
   const { data: apiDoctors = [], isLoading } = useQuery({ 
@@ -240,13 +242,13 @@ const OurDoctorsPage = () => {
                   <i className="fas fa-arrow-down text-sm" />
                 </button>
                 
-                <Link 
-                  to="/book" 
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/40 bg-white/90 px-7 py-4 text-base font-semibold text-serenity-900 backdrop-blur-md transition-all duration-200 hover:bg-white active:scale-95"
-                >
-                  <i className="fas fa-calendar-alt text-serenity-600" />
-                  <span>Book Appointment</span>
-                </Link>
+                 <button
+                   onClick={handleAppointment}
+                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/40 bg-white/90 px-7 py-4 text-base font-semibold text-serenity-900 backdrop-blur-md transition-all duration-200 hover:bg-white active:scale-95"
+                 >
+                   <i className="fas fa-calendar-alt text-serenity-600"></i>
+                   <span>Book Appointment</span>
+                 </button>
               </div>
 
               {/* Bottom Stat Highlights */}
@@ -417,13 +419,13 @@ const OurDoctorsPage = () => {
                       <span>View Profile</span>
                       <i className="fas fa-arrow-right text-[10px]"></i>
                     </Link>
-                    <Link
-                      to={`/book?doctorId=${doctor.id}`}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 text-slate-700 px-3.5 py-2.5 text-xs sm:text-sm font-semibold hover:bg-slate-100 transition-colors"
-                      title="Book Appointment"
-                    >
-                      <i className="fas fa-calendar-plus"></i>
-                    </Link>
+                     <button
+                       onClick={handleAppointment}
+                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 text-slate-700 px-3.5 py-2.5 text-xs sm:text-sm font-semibold hover:bg-slate-100 transition-colors"
+                       title="Book Appointment"
+                     >
+                       <i className="fas fa-calendar-plus"></i>
+                     </button>
                   </div>
                 </div>
               </article>

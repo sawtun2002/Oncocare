@@ -30,6 +30,7 @@ export function UsersPage() {
     mutationFn: (input) => createStaffUser(input),
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["doctor-profiles"] });
       toast.success(t("users.canSignIn", { name: user.name }));
     },
   });

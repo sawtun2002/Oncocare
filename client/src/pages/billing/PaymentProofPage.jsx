@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
-import { formatCurrency } from "../../lib/format";
+import { formatCurrency, formatDateTime } from "../../lib/format";
 import { btnGhost, btnPrimary, errorText, inputClass, labelClass } from "../../lib/ui";
 import Payment_QR from "../../assets/images/payment-qr.jpg";
 
@@ -26,9 +26,10 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  const existingProof = invoice.paymentSubmission;
+
   async function handleReceipt(event) {
     const file = event.target.files?.[0];
-    event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
       setError(t("pay.badFileType"));
@@ -59,7 +60,7 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
       setError(t("pay.noteRequired"));
       return;
     }
-    if (!receiptDataUrl) {
+    if (!existingProof?.receiptDataUrl && !receiptDataUrl) {
       setError(t("pay.receiptRequired"));
       return;
     }
@@ -105,9 +106,24 @@ export function PaymentProofPage({ invoice, onCancel, onSubmit }) {
             {t("pay.txNote")}
             <input required value={note} onChange={(event) => setNote(event.target.value)} placeholder={t("pay.txNotePlaceholder")} className={inputClass} />
           </label>
+
+          {existingProof?.receiptDataUrl && (
+            <div className="rounded-lg border border-hairline/80 bg-surface/60 p-3">
+              <p className="text-xs font-medium text-ink-500">{t("pay.existingReceipt")}</p>
+              <img
+                src={existingProof.receiptDataUrl}
+                alt={t("pay.existingReceiptAlt")}
+                className="mt-2 max-h-40 rounded border border-hairline/60 object-contain"
+              />
+              <p className="mt-1 text-xs text-ink-400">
+                {t("pay.submittedAt", { date: formatDateTime(existingProof.submittedAt) })}
+              </p>
+            </div>
+          )}
+
           <label className={labelClass}>
             {t("pay.receipt")}
-            <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" required onChange={handleReceipt} className={inputClass} />
+            <input ref={fileInputRef} type="file" accept="image/*,.pdf,application/pdf" onChange={handleReceipt} className={inputClass} />
             <span className="mt-1 block text-xs text-ink-400">{t("pay.receiptHint")}</span>
           </label>
           {receiptName && <p className="text-xs text-emerald-600">{t("pay.attached", { name: receiptName })}</p>}

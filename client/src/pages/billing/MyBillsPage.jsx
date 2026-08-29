@@ -62,11 +62,12 @@ export function MyBillsPage() {
   if (payingInvoice) {
     return (
       <PaymentProofPage
+        key={payingInvoice.id}
         invoice={payingInvoice}
         onCancel={() => setPayingInvoice(null)}
         onSubmit={async (input) => {
           await paymentMutation.mutateAsync({ id: payingInvoice.id, input });
-          setPayingInvoice(null); // back to the bills list after a successful submission
+          setPayingInvoice(null);
         }}
       />
     );

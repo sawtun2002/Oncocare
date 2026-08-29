@@ -35,6 +35,14 @@ export function isPatientReturnPath(path) {
   );
 }
 
+export function isAppointmentReturnPath(path) {
+  return typeof path === "string" && (
+    path === "/book" ||
+    path === "/appointments" ||
+    path === "/my-bookings"
+  );
+}
+
 /**
  * Where a role belongs after signing in, and where to send someone who lands on
  * a route they may not see.
@@ -53,5 +61,19 @@ export function homePathFor(role) {
       return "/dashboard";
     default:
       return "/";
+  }
+}
+
+export function getAppointmentRoute(role) {
+  switch (role) {
+    case "PATIENT":
+      return "/book";
+    case "DOCTOR":
+    case "NURSE":
+    case "RECEPTIONIST":
+    case "ADMIN":
+      return "/appointments";
+    default:
+      return "/book";
   }
 }
